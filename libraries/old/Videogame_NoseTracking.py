@@ -62,7 +62,7 @@ def frames_for_each_event_to_stack(movie_filename, events_list, offset):
     success, image=video.read()
 
     # Make Space for captured frames
-    stack = np.zeros((image.shape[0], image.shape[1], np.size(events_list)), dtype= np.float32)
+    stack = np.zeros((image.shape[0], image.shape[1], np.size(events_list)), dtype=np.float32)
 
     # Fill Stack with the frame at each event
     count = 0
@@ -178,7 +178,7 @@ for i in range(0, num_frames):
     cx = (M['m10']/M['m00'])
     cy = (M['m01']/M['m00'])
     
-    # Find Binary Contours            
+    # Find Binary Contours for the rat image WITH rail            
     contours,hierarchy = cv2.findContours(thresholded,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
     
     # Get largest particle
