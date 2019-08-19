@@ -7,7 +7,8 @@ Tracking functions for Pac-Rat videos
 @author: LCARK
 """
 import os
-os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+#os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -101,16 +102,19 @@ def track_rat(video, background):
         # Find it's orientation    
         (x,y),(MA,ma),angle = cv2.fitEllipse(largest_cnt)
         angle_radians = 2*np.pi*(angle/360.0)
-        print(angle)
+        #print(angle)
 
         # Get centroid (and moments)          
         M = cv2.moments(largest_cnt)
         cx = (M['m10']/M['m00'])
         cy = (M['m01']/M['m00'])
+        
+        diff= cv2.absdiff(threshed,opened)
 
+        
         # Display
-        display = np.hstack((threshed, opened))
-        cv2.imshow("Display", display)
+        #display = np.hstack((diff, opened_diff))
+        cv2.imshow("Display",diff)
         cv2.waitKey(1)
 
     # Cleanup
