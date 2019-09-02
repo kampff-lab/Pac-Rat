@@ -21,7 +21,7 @@ importlib.reload(tracking)
 
 # Specify video file name
 #video_path = '/home/kampff/LC/videos/pre.avi'
-video_path = 'E:/AK_33.2_test/2018_04_29-15_43/Video.avi'
+video_path = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Videos/tracking_video.mp4'
 # Open video
 video = cv2.VideoCapture(video_path)
 

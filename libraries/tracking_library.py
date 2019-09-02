@@ -42,6 +42,12 @@ def compute_background_median(video, start, stop, step):
 
     return np.uint8(background)
 
+def rotation_2D(points, theta):
+
+   R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+
+   return np.dot(points, R.T)
+
 # Get largest contour
 def get_largest_contour(contours):
     # Find contour with maximum area and store it as best_cnt
@@ -89,7 +95,8 @@ def track_rat(video, background):
         # Open (Erode then Dialate) to remove tail and noise
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
         opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
-
+        mask = np.zeros(image.shape,np.uint8)
+        
         # Find Binary Contours            
         ret, contours, hierarchy = cv2.findContours(np.copy(opened),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)        
         if len(contours) == 0:
@@ -109,13 +116,54 @@ def track_rat(video, background):
         cx = (M['m10']/M['m00'])
         cy = (M['m01']/M['m00'])
         
-        diff= cv2.absdiff(threshed,opened)
+        
+        cv2.drawContours(mask,[largest_cnt],0,1,-1) # -1 draw the contour filled
+        pixel_points = np.float32(np.transpose(np.nonzero(mask)))
+        centered_points = np.vstack((pixel_points[:,0]-y,pixel_points[:,1]-x)).T
+                        
+        # Rotate Pixel Points by Angle of Major Axis (ellipse)
+        rotated_points = rotation_2D(centered_points, angle_radians)
+        offset_points = np.vstack((rotated_points[:,0]-y,rotated_points[:,1]-x)).T
+
+        # Find Extreme Points in Y
+        topmost = offset_points[:,0].argmin()
+        bottommost = offset_points[:,0].argmax()
+    
+        tip1 = pixel_points[topmost,:]
+        tip2 = pixel_points[bottommost,:]
+        
+        plt.subplot(2,2,1)
+        plt.cla()
+        plt.imshow(subtracted)
+        plt.subplot(2,2,2)
+        plt.cla()
+        plt.imshow(opened)
+        plt.plot(tip1[1], tip1[0], 'go', markersize=5)
+        plt.plot(tip2[1], tip2[0], 'ro', markersize=5)
+        plt.axis('image')
+        plt.subplot(2,2,3)
+        plt.cla()
+        plt.imshow(mask)
+        plt.plot(tip1[1], tip1[0], 'go', markersize=5)
+        plt.plot(tip2[1], tip2[0], 'ro', markersize=5)
+        plt.axis('image')
+        plt.subplot(2,2,4)
+        plt.cla()
+        plt.plot(centered_points[:,0], centered_points[:,1],'b.')
+        plt.plot(rotated_points[:,0], rotated_points[:,1],'r.')
+        
+        
+        
+        
+        
+        
+        #diff= cv2.absdiff(threshed,opened)
 
         
         # Display
         #display = np.hstack((diff, opened_diff))
-        cv2.imshow("Display",diff)
-        cv2.waitKey(1)
+        #cv2.imshow("Display",largest_cnt)
+        #cv2.waitKey(1)
 
     # Cleanup
     cv2.destroyAllWindows()
