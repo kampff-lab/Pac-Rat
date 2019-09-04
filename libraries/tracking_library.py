@@ -171,14 +171,16 @@ def track_rat(video, background):
     return 1
 
 # Track rat through entire video
+    
 def crop_rat(video, background, window_size, output_name):
 
     # Create output filenames
-    csv_path = output_name + '.csv'
-    avi_path = output_name + '.avi'
+    csv_path = r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/' +output_name + '.csv'
+    avi_path = r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/' + output_name + '.avi'
     
-    # Open output video
-    
+    # Open output movie file, then specify compression, frames per second and size
+    fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
+    fps = 120
     
     # Compute crop size (half of window size)
     crop_size = np.int(window_size / 2)
@@ -193,11 +195,15 @@ def crop_rat(video, background, window_size, output_name):
     num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Create "larger" frame to contain video frame with border
-     container = np.zeros((height + 2 * crop_size, width + 2 * crop_size), dtype=np.uint8)
+    container = np.zeros((height + 2 * crop_size, width + 2 * crop_size), dtype=np.uint8)
 
     # Reset video to first frame
     video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
+    
+    # Empty list to be filled with centroid x and y 
+    centroid_x= []
+    centroid_y = []
+    
     # Read and process each frame
     cv2.namedWindow("Display")
     for frame in range(0, num_frames):
@@ -235,6 +241,12 @@ def crop_rat(video, background, window_size, output_name):
         cx = (M['m10']/M['m00'])
         cy = (M['m01']/M['m00'])
         
+        
+        
+        centroid_x.append(cx)
+        centroid_y.append(cy)
+        
+        
         # Insert grayscale frame into the container
         container[crop_size:(height+crop_size), crop_size:(width+crop_size)] = gray
         
@@ -248,17 +260,30 @@ def crop_rat(video, background, window_size, output_name):
         
 
         # Write output video frame
+       
+        outputVid = cv2.VideoWriter(avi_path, fourcc, fps, (window_size, window_size))
         
-                      
+        outputVid.write(crop)
+
+              
+                     
         # Display
-        display = np.hstack((diff, crop))
+        #display = np.hstack((diff, crop))
+        cv2.imshow("Display",crop)
      
-        #cv2.waitKey(1)
+        cv2.waitKey(1)
+
+        
+    np.savetxt(csv_path, np.vstack((centroid_x,centroid_y)).T,delimiter=',')    
+
+
 
     # Cleanup
     cv2.destroyAllWindows()
     # Clouse output video
-
+    outputVid.release() 
     return 1
 
 #FIN
+    
+

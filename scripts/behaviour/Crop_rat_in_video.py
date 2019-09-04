@@ -30,10 +30,10 @@ background = tracking.compute_background_median(video, 0, 72000, 1440)
 
 # Test tracking
 importlib.reload(tracking)
-test = tracking.crop_rat(video, background, 640)
+test = tracking.crop_rat(video, background, 640, 'cropped_video')
 
 # Display
 #plt.imshow(background, cmap='gray')
 #plt.show()
-
+1
 #FIN
