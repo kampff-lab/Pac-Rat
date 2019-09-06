@@ -21,19 +21,28 @@ importlib.reload(tracking)
 
 # Specify video file name
 #video_path = '/home/kampff/LC/videos/pre.avi'
-video_path = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Videos/tracking_video.mp4'
+video_path = 'Y:/swc/kampff/Lorenza/Videogame_Assay/AK_48.1/2019_07_18-13_24/Video.avi'
+
 # Open video
 video = cv2.VideoCapture(video_path)
 
 # Compute background (for first 10 minutes of a session, using approx. 50 frames)
 background = tracking.compute_background_median(video, 0, 72000, 1440)
 
-# Test tracking
+# Test crop movie making
 importlib.reload(tracking)
-test = tracking.crop_rat(video, background, 640, 'cropped_video')
+
+# Specify outout movie/data folder and filename
+output_folder = 'Y:/swc/kampff/Lorenza/Videogame_Assay/AK_48.1/2019_07_18-13_24/crop'
+
+# Create crop movie
+test = tracking.crop_rat(video, background, 640, output_folder)
 
 # Display
 #plt.imshow(background, cmap='gray')
 #plt.show()
-1
+
+# Cleanup
+video.release()
+
 #FIN

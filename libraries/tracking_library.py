@@ -170,22 +170,21 @@ def track_rat(video, background):
 
     return 1
 
-# Track rat through entire video
-    
+# Crop video around rat centroid
 def crop_rat(video, background, window_size, output_name):
 
     # Create output filenames
-    csv_path = r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/' +output_name + '.csv'
-    avi_path = r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/' + output_name + '.avi'
+    csv_path = output_name + '.csv'
+    avi_path = output_name + '.avi'
     
     # Open output movie file, then specify compression, frames per second and size
     fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
     fps = 120
+    outputVid = cv2.VideoWriter(avi_path, fourcc, fps, (window_size, window_size), False)
     
     # Compute crop size (half of window size)
     crop_size = np.int(window_size / 2)
        
-    
     # Read current frame
     success, image = video.read()
 
@@ -197,15 +196,19 @@ def crop_rat(video, background, window_size, output_name):
     # Create "larger" frame to contain video frame with border
     container = np.zeros((height + 2 * crop_size, width + 2 * crop_size), dtype=np.uint8)
 
+    # Create empty frame to contain crop window
+    crop = np.zeros((window_size, window_size), dtype=np.uint8)
+
     # Reset video to first frame
     video.set(cv2.CAP_PROP_POS_FRAMES, 0)
     
     # Empty list to be filled with centroid x and y 
-    centroid_x= []
+    centroid_x = []
     centroid_y = []
     
     # Read and process each frame
     cv2.namedWindow("Display")
+    #num_frames = 1200
     for frame in range(0, num_frames):
 
         # Read current frame
@@ -224,32 +227,27 @@ def crop_rat(video, background, window_size, output_name):
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
         opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
         
-        
-        
         # Find Binary Contours            
         ret, contours, hierarchy = cv2.findContours(np.copy(opened),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)        
         if len(contours) == 0:
-            # Store a NaN in the tracking thing that doesn't exist yet
+            # Store NaN in list
+            centroid_x.append(np.nan)
+            centroid_y.append(np.nan)
+            
+            # Store "previous" crop image
+            outputVid.write(crop)            
             continue
 
         # Get largest particle
         largest_cnt, area = get_largest_contour(contours)
 
-
         # Get centroid (and moments)          
         M = cv2.moments(largest_cnt)
         cx = (M['m10']/M['m00'])
         cy = (M['m01']/M['m00'])
-        
-        
-        
-        centroid_x.append(cx)
-        centroid_y.append(cy)
-        
-        
+                
         # Insert grayscale frame into the container
         container[crop_size:(height+crop_size), crop_size:(width+crop_size)] = gray
-        
         
         # Offset centroid position to container coordinates
         container_cx = np.int(cx + crop_size)
@@ -258,28 +256,28 @@ def crop_rat(video, background, window_size, output_name):
         # Crop around the centroid position in the container image
         crop = container[(container_cy - crop_size):(container_cy + crop_size), (container_cx - crop_size):(container_cx + crop_size)]
         
+        # Store centroid in list
+        centroid_x.append(cx)
+        centroid_y.append(cy)
 
         # Write output video frame
-       
-        outputVid = cv2.VideoWriter(avi_path, fourcc, fps, (window_size, window_size))
-        
         outputVid.write(crop)
-
-              
                      
-        # Display
-        #display = np.hstack((diff, crop))
-        cv2.imshow("Display",crop)
-     
-        cv2.waitKey(1)
+        # Display (occasionally)
+#        if (frame % 12) == 0:
+#            resized = cv2.resize(gray, (np.int(width/2), np.int(height/2)))
+#            color = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+#            cv2.circle(color, (np.int(cx/2), np.int(cy/2)), 5, (0, 255, 0), thickness=1, lineType=8, shift=0)
+#            cv2.imshow("Display", color)    
+#            cv2.waitKey(1)
+#            print("Frame %d of %d" % (frame, num_frames))
 
-        
+    # Save csv file containing the centroids coordinates    
     np.savetxt(csv_path, np.vstack((centroid_x,centroid_y)).T,delimiter=',')    
-
-
 
     # Cleanup
     cv2.destroyAllWindows()
+    
     # Clouse output video
     outputVid.release() 
     return 1
