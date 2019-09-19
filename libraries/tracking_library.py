@@ -180,7 +180,7 @@ def crop_rat(video, background, window_size, output_name):
     # Open output movie file, then specify compression, frames per second and size
     fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
     fps = 120
-    outputVid = cv2.VideoWriter(avi_path, fourcc, fps, (window_size, window_size), False)
+    outputVid = cv2.VideoWriter(avi_path, fourcc, fps, (window_size, window_size), True)
     
     # Compute crop size (half of window size)
     crop_size = np.int(window_size / 2)
@@ -194,10 +194,10 @@ def crop_rat(video, background, window_size, output_name):
     num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Create "larger" frame to contain video frame with border
-    container = np.zeros((height + 2 * crop_size, width + 2 * crop_size), dtype=np.uint8)
+    container = np.zeros((height + 2 * crop_size, width + 2 * crop_size, 3), dtype=np.uint8)
 
     # Create empty frame to contain crop window
-    crop = np.zeros((window_size, window_size), dtype=np.uint8)
+    crop = np.zeros((window_size, window_size,3), dtype=np.uint8)
 
     # Reset video to first frame
     video.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -247,14 +247,14 @@ def crop_rat(video, background, window_size, output_name):
         cy = (M['m01']/M['m00'])
                 
         # Insert grayscale frame into the container
-        container[crop_size:(height+crop_size), crop_size:(width+crop_size)] = gray
+        container[crop_size:(height+crop_size), crop_size:(width+crop_size), :] = image
         
         # Offset centroid position to container coordinates
         container_cx = np.int(cx + crop_size)
         container_cy = np.int(cy + crop_size)
         
         # Crop around the centroid position in the container image
-        crop = container[(container_cy - crop_size):(container_cy + crop_size), (container_cx - crop_size):(container_cx + crop_size)]
+        crop = container[(container_cy - crop_size):(container_cy + crop_size), (container_cx - crop_size):(container_cx + crop_size),:]
         
         # Store centroid in list
         centroid_x.append(cx)
