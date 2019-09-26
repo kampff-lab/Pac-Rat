@@ -32,7 +32,7 @@ background = tracking.compute_background_median(video, 0, 72000, 1440)
 importlib.reload(tracking)
 
 # Specify outout movie/data folder and filename
-output_folder ='Y:/swc/kampff/Lorenza/Chronic_11_shanks/AK_40.2/2018_12_05-18_51/crop'
+output_folder ='Y:/swc/kampff/Lorenza/Chronic_11_shanks/AK_40.2/2018_12_05-18_51/crop.avi'
 
 # Create crop movie
 test = tracking.crop_rat(video, background, 640, output_folder)
