@@ -15,8 +15,8 @@ from scipy import interpolate
 
 
 # Specify hardrive path
-#hardrive_path = r'F:/'
-hardrive_path = r'/home/kampff/'
+hardrive_path = r'F:/'
+#hardrive_path = r'/home/kampff/'
 crop_size = 640
 
 # DLC tracking file
@@ -28,9 +28,13 @@ crop_size = 640
 # 2,3 likelihood nose
 
 # Specify track data paths
-centroid_tracking_path = hardrive_path + r'LC/tracking/centroid_tracking.csv'
-dlc_tracking_path = hardrive_path +r'LC/tracking/dlc_tracking.csv'
-video_path = hardrive_path +r'LC/tracking/video.avi'
+#centroid_tracking_path = hardrive_path + r'LC/tracking/centroid_tracking.csv'
+#dlc_tracking_path = hardrive_path +r'LC/tracking/dlc_tracking.csv'
+#video_path = hardrive_path +r'LC/tracking/video.avi'
+
+centroid_tracking_path = hardrive_path + r'Videogame_Assay/AK_33.2/2018_03_27-14_34/crop.csv'
+dlc_tracking_path = hardrive_path +r'Videogame_Assay/AK_33.2/2018_03_27-14_34/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+video_path = hardrive_path +r'Videogame_Assay/AK_33.2/2018_03_27-14_34/Video.avi'
 
 # Load Centroid tracking
 centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
@@ -41,10 +45,16 @@ dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3,
 subset = np.arange(10000, dtype=np.int) + 10000
 
 # Compensate for crop window shift in DLC coordinates
+
+
 centroid_x = centroid_tracking[:, 0] 
 centroid_y = centroid_tracking[:, 1] 
+
+#select nose coordinates from dlc file
 dlc_x = dlc_tracking[:, 1] 
 dlc_y = dlc_tracking[:, 2] 
+
+
 dlc_centered_x = dlc_x - (crop_size / 2)
 dlc_centered_y = dlc_y - (crop_size / 2) 
 x = centroid_x + dlc_centered_x
@@ -67,12 +77,45 @@ for f in subset:
     rgb = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
     x_int = np.int(x[f])
     y_int = np.int(y[f])
+    centroid_x_int = np.int(centroid_x[f])
+    centroid_y_int = np.int(centroid_y[f])
     cv2.circle(rgb, (x_int, y_int), 5, (0, 255, 0))
+    cv2.circle(rgb, (centroid_x_int, centroid_y_int), 5, (255, 255, 0))
     cv2.imshow("Video", rgb)
     cv2.waitKey(1)
 
 # Close named window
 cv2.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])

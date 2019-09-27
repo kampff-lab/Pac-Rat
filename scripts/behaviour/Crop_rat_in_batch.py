@@ -18,7 +18,7 @@ import tracking_library as tracking
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_41.1_Pt.csv'
 
 Level_1 = Level_1_parser(rat_summary_table_path)
 Level_2_pre = Level_2_pre_parser(rat_summary_table_path)
@@ -30,7 +30,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_2_pre
+session_list = Level_1
 
 
 for session in session_list:
