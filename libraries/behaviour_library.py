@@ -12,14 +12,6 @@ import numpy as np
 
 
 
-# fx that take the file called TrialEnd.csv (column 0 = timestamps, column 1 = Food/Missed)
-#and the 
-
-
-
-
-
-
 
 
 
@@ -41,8 +33,8 @@ def PLOT_trial_and_misses(sessions_subset):
     missed_trials = []
     try:
         for session in sessions_subset: 
-            trial_end_path = os.path.join(hardrive_path,session + '/events/'+'TrialEnd.csv')
-            success, total_trial = trial_outcome(trial_end_path)
+            trial_end_path = os.path.join(hardrive_path, session + '/events/'+'TrialEnd.csv')
+            success, total_trial = trial_outcome(trial_end_path) #would take session instead
             success_trials.append(success)
             missed_trials.append(total_trial-success)
     except Exception: 

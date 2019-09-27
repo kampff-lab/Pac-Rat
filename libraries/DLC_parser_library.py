@@ -125,11 +125,27 @@ centroid_tracking_path = r'F:/Videogame_Assay/AK_33.2/2018_03_27-14_34/crop.csv'
 centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
 
 
+centroid_tracking_wo_nan= centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
+x_centroid = centroid_tracking_wo_nan[:,0]
+y_centroid = centroid_tracking_wo_nan[:,1]
 
+
+from matplotlib.colors import PowerNorm
+        
+from matplotlib.colors import LogNorm        
+        
+plt.hist2d(x_centroid, y_centroid, bins=150, norm=LogNorm()) #norm=PowerNorm(0.3)
+
+
+
+
+
+
+norm=PowerNorm(0.3)
 
 x_centroid = centroid_tracking[:,0]
 y_centroid = centroid_tracking[:,1]
-plt.plot(x_centroid,y_centroid)
+plt.plot(x_centroid,y_centroid, marker ='o',color= [0,0,0,0.002])
 
 
 nan_finder = np.argwhere(np.isnan(centroid_tracking))
