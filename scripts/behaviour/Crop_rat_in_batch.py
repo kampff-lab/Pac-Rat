@@ -14,15 +14,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import tracking_library as tracking
+import parser_library as prs
 # Reload modules
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_41.1_Pt.csv'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_49.1_behaviour_only.csv'
 
-Level_1 = Level_1_parser(rat_summary_table_path)
-Level_2_pre = Level_2_pre_parser(rat_summary_table_path)
-Level_2_post = Level_2_post_parser(rat_summary_table_path)
+
+
+Level_0 = prs.Level_0_paths(rat_summary_table_path)
+Level_1 = prs.Level_1_paths(rat_summary_table_path)
+Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
+Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
 
 
 # Reload modules
@@ -30,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_1
+session_list = Level_2_pre
 
 
 for session in session_list:

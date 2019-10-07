@@ -11,36 +11,44 @@ os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 
 
+hardrive_path = r'F:/' 
 
 
 
+#given a session it finds the file called TrialEnd.csv which contains the timestamp of each trial together with the outcome of that trial (Food or Missed), and 
+#it return the list of reward and misses trial by searching the string in column one  
 
 
-def trial_outcome(trial_end_path):
+
+def trial_outcome(session):
+    trial_end_path = os.path.join(hardrive_path, session + '/events/'+'TrialEnd.csv')
     RewardOutcome_file=np.genfromtxt(trial_end_path, usecols=[1], dtype= str)
-    RewardOutcome_count=[]
-    count=0
-    for i in RewardOutcome_file:
-        count += 1
+    rewards = []
+    misses = []
+    for count, i in enumerate(RewardOutcome_file):
         if i =='Food':
-            RewardOutcome_count.append(count-1)
-    return len(RewardOutcome_count), count
+            rewards.append(count)
+        else:
+            misses.append(count)
+    return rewards, misses
+
 
 
 
 def PLOT_trial_and_misses(sessions_subset):    
     success_trials = []
     missed_trials = []
-    try:
-        for session in sessions_subset: 
-            trial_end_path = os.path.join(hardrive_path, session + '/events/'+'TrialEnd.csv')
-            success, total_trial = trial_outcome(trial_end_path) #would take session instead
-            success_trials.append(success)
-            missed_trials.append(total_trial-success)
-    except Exception: 
+    for session in sessions_subset: 
+        try:
+            rewards, misses = trial_outcome(session) #would take session instead
+            success_trials.append(len(rewards))
+            missed_trials.append(len(misses))
+        except Exception: 
             print('error'+ session)
-            pass
+            continue
     return success_trials, missed_trials   
+
+
   
 def PLOT_trial_per_min(sessions_subset):    
     total_trials = []
@@ -55,7 +63,9 @@ def PLOT_trial_per_min(sessions_subset):
         
             tot_frames = counter[-1] - counter[0]
             session_length_minutes = tot_frames/120/60
-            tot_trials  =len(RewardOutcome_file)
+            
+            rewards, misses = trial_outcome(session)
+            tot_trials = len(rewards + misses)
             total_trials.append(tot_trials)
             session_length.append(session_length_minutes)
     except Exception: 
@@ -63,6 +73,26 @@ def PLOT_trial_per_min(sessions_subset):
             pass
         
     return total_trials, session_length  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -41,6 +41,20 @@ import numpy as np
 # list items format example = Videogame_Assay/AK_48.4/2019_06_24-17_10
 
 
+
+def Level_0_paths(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_0 = []
+    for row in range(len(rat_summary)):
+        if rat_summary[row][2] == 'Level 0' and rat_summary[row][6] == 'Y':
+            Level_0.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_0
+
+
+
+
 def Level_1_paths(rat_summary_table_path):
     rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
     Level_1 = []
@@ -50,7 +64,18 @@ def Level_1_paths(rat_summary_table_path):
         else:
             continue
     return Level_1
+ 
     
+def Level_1_paths_6000_3000(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_1_6000_3000 = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][2] == 'Level 1' and rat_summary[row][7] == '6000':
+            Level_1_6000_3000.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_1_6000_3000
+
 
 def Level_2_pre_paths(rat_summary_table_path):
     rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
