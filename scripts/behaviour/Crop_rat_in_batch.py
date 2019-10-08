@@ -19,7 +19,7 @@ import parser_library as prs
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_49.1_behaviour_only.csv'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_49.2_behaviour_only.csv'
 
 
 
@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_2_pre
+session_list = Level_3_moving
 
 
 for session in session_list:
