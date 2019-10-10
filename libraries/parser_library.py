@@ -77,6 +77,31 @@ def Level_1_paths_6000_3000(rat_summary_table_path):
     return Level_1_6000_3000
 
 
+def Level_1_paths_10000(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_1_10000 = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][2] == 'Level 1' and rat_summary[row][7] == '10000':
+            Level_1_10000.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_1_10000
+
+def Level_1_paths_20000(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_1_20000 = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][2] == 'Level 1' and rat_summary[row][7] == '20000':
+            Level_1_20000.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_1_20000
+
+
+
+
+
+
 def Level_2_pre_paths(rat_summary_table_path):
     rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
     Level_2_pre = []  

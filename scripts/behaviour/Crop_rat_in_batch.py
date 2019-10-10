@@ -19,14 +19,14 @@ import parser_library as prs
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_49.2_behaviour_only.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_48.4_IrO2.csv'
 
 
 
 Level_0 = prs.Level_0_paths(rat_summary_table_path)
 Level_1 = prs.Level_1_paths(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
-Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
+#Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
 
 
 # Reload modules
@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_3_moving
+session_list = Level_1
 
 
 for session in session_list:
