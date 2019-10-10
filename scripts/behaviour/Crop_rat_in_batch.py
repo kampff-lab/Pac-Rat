@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_1
+session_list = Level_1[2:]
 
 
 for session in session_list:

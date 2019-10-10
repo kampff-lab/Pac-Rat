@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+=# -*- coding: utf-8 -*-
 """
 Track_rat_in_video.py
 

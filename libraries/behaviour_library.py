@@ -9,6 +9,7 @@ import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
+import pandas as pd 
 
 
 hardrive_path = r'F:/' 
@@ -135,6 +136,27 @@ def calculate_trial_speed_from_ball_touch(sessions_subset):
             print('error'+ session)
             pass
     return touch_to_reward_speed_seconds
+
+
+
+def timestamp_CSV_to_pandas(filename):
+    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
+    timestamp = timestamp_csv[0]
+    timestamp_Series= pd.to_datetime(timestamp)
+    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
+    return timestamp_Series
+
+def closest_timestamps_to_events(timestamp_list, event_list):
+    nearest  = []
+    for e in event_list:
+        delta_times = timestamp_list-e
+        nearest.append(np.argmin(np.abs(delta_times)))
+    return nearest  
+
+
+
+
+
 
 ############################################################################################################
 #

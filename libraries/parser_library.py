@@ -13,7 +13,7 @@ import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
-
+hardrive_path = r'F:/'
 
 
 
