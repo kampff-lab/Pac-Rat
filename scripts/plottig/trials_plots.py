@@ -418,14 +418,7 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
                           'F:/Videogame_Assay/AK_29.1_behaviour_only.csv','F:/Videogame_Assay/AK_46.2_IrO2.csv']
 
 colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9','#C0C0C0','#B0C4DE']
-RAT_ID = ['AK 33.2', 'AK 40.2','AK 31.1', 'AK 41.1', 'AK 41.2', 'AK 48.1','AK 48.4', 'AK 49.1', 'AK 49.2' ,'AK 31.2', 'AK 46.1', 'AK 48.3','AK 29.1','AK 46.2']
-
-
-
-hardrive_path = r'F:/' 
-
-figure_name = 'RAT_' + RAT_ID + 'Touch_to_Reward_Speed.pdf'
-plot_main_title = 'RAT ' + RAT_ID + 'Touch_to_Reward_Speed'
+RAT_ID = ['AK_33.2', 'AK_40.2','AK_31.1', 'AK_41.1', 'AK_41.2', 'AK_48.1','AK_48.4', 'AK_49.1', 'AK_49.2' ,'AK_31.2', 'AK_46.1', 'AK_48.3','AK_29.1','AK_46.2']
 
 
 
@@ -442,28 +435,36 @@ for count, rat in enumerate(rat_summary_table_path):
     flat_list = [item for sublist in touch_to_reward_speed_seconds for item in sublist]
     vertical_lines =  np.cumsum(total_trials_array) + .5
 
-    figure_name = 'RAT_' + RAT_ID[count] + 'Touch_to_Reward_Speed.pdf'
-    plot_main_title = 'RAT ' + RAT_ID[count] + 'Touch_to_Reward_Speed'
+    figure_name = 'RAT_'+ RAT_ID[count] + '_Touch_to_Reward_Speed.pdf'
+    plot_main_title =  RAT_ID[count] + 'Touch_to_Reward_Speed'
     
-    fig = plt.figure(figsize=(20,10))    
+    fig = plt.figure(figsize=(20,5))    
 
     sns.set()
     sns.set_style('white')
     sns.axes_style('white')
     sns.despine()           
 
-    plt.plot(range(len(flat_list)), flat_list, 'o' , color= colours, alpha = .6, markersize = 3)
+    plt.plot(range(len(flat_list)), flat_list, 'o' , color = '#1E90FF', alpha = .4, markersize = 3)
     plt.xlim(0,len(flat_list))
     plt.ylim(0,50)
     plt.xticks((np.arange(0, len(flat_list), 50)))
+    plt.ylabel('Time (s)', fontsize = 13)
+    plt.xlabel('Trials/Session', fontsize = 13) 
+    plt.suptitle('Level 2 Touch_to_Reward_Speed',fontsize = 16)
+    #ax.spines['right'].set_visible(False)
+    #ax.spines['top'].set_visible(False)
+    fig.tight_layout()
+    fig.subplots_adjust(top = 0.85)
 
-    for i in vertical_lines[:-1]:
+    for i in vertical_lines:
     
-        plt.axvline(x = i , color='k', linestyle='--')
+        plt.axvline(x = i , color='k', linestyle='--',linewidth =.5)
+        #plt.text(i-25,45,'Session%d' %count, ha='right',va='center',fontsize=10)
+        #axvspan
 
-
-
-    script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + rat_ID)
+    hardrive_path = r'F:/' 
+    script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + RAT_ID[count])
     #create a folder where to store the plots 
     main_folder = os.path.join(script_dir +'/Summary')
     #create a folder where to save the plots
@@ -475,12 +476,68 @@ for count, rat in enumerate(rat_summary_table_path):
 
     #save the fig in .tiff
     fig.savefig(results_dir + figure_name, transparent=True)
+    
 
 
 
 
+########level 1
 
 
+
+for count, rat in enumerate(rat_summary_table_path):
+    
+    tot_trials = []
+    Level_1_6000_3000 = prs.Level_1_paths_6000_3000(rat)
+    total_trials, session_length = behaviour.calculate_trial_per_min(Level_1_6000_3000)
+    tot_trials.append(total_trials)
+    full_trial_speed = behaviour.calculate_full_trial_speed(Level_1_6000_3000)
+
+    total_trials_array = np.array(tot_trials)
+    flat_list = [item for sublist in full_trial_speed for item in sublist]
+    vertical_lines =  np.cumsum(total_trials_array) + .5
+
+    figure_name = 'RAT_'+ RAT_ID[count] + '_full_trial_speed_Level_1.pdf'
+    plot_main_title =  RAT_ID[count] + 'full_trial_speed'
+    
+    fig = plt.figure(figsize=(20,5))    
+
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine()           
+
+    plt.plot(range(len(flat_list)), flat_list, 'o' , color = '#32CD32', alpha = .4, markersize = 3)
+    plt.xlim(0,len(flat_list))
+    plt.ylim(0,50)
+    plt.xticks((np.arange(0, len(flat_list), 50)))
+    plt.ylabel('Time (s)', fontsize = 13)
+    plt.xlabel('Trials/Session', fontsize = 13) 
+    plt.suptitle('Level 1 full_trial_speed',fontsize = 16)
+    #ax.spines['right'].set_visible(False)
+    #ax.spines['top'].set_visible(False)
+    fig.tight_layout()
+    fig.subplots_adjust(top = 0.85)
+
+    for i in vertical_lines:
+    
+        plt.axvline(x = i , color='k', linestyle='--',linewidth =.5)
+        #plt.text(i-25,45,'Session%d' %count, ha='right',va='center',fontsize=10)
+        #axvspan
+
+    hardrive_path = r'F:/' 
+    script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + RAT_ID[count])
+    #create a folder where to store the plots 
+    main_folder = os.path.join(script_dir +'/Summary')
+    #create a folder where to save the plots
+    results_dir = os.path.join(main_folder + '/Behaviour/')
+
+
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
+    #save the fig in .tiff
+    fig.savefig(results_dir + figure_name, transparent=True)
 
 
 
