@@ -401,26 +401,6 @@ f4.savefig(results_dir + figure_name, transparent=True)
 
 
 
-               
-#f5=plt.figure(figsize=(20,10))
-#
-#sns.set()
-#sns.set_style('white')
-#sns.axes_style('white')
-#sns.despine()
-#
-#for count, row in enumerate(rat_trial_min_Level_2_pre):
-#    
-#    plt.plot(np.cumsum(row), color = colours[count], marker = 'o', alpha = .8, label = RAT_ID[count])
-#    plt.title('Level 2 Trial/Min', fontsize = 16)
-#    plt.ylabel('Trial/Min', fontsize = 13)
-#    plt.xlabel('Level 2 Sessions', fontsize = 13)
-#    plt.legend()
-#    f5.tight_layout()
-#    plt.legend()
-#
-#
-#
 
 
 
@@ -428,6 +408,8 @@ f4.savefig(results_dir + figure_name, transparent=True)
 
 
 ####################################################################################################
+
+#PLOT SPEED FROM TOUCH TO REWARD per rat all the sessions
 
 rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv','F:/Videogame_Assay/AK_31.1_Pt.csv',
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
@@ -440,146 +422,191 @@ RAT_ID = ['AK 33.2', 'AK 40.2','AK 31.1', 'AK 41.1', 'AK 41.2', 'AK 48.1','AK 48
 
 
 
-rat_summary_table_path=['F:/Videogame_Assay/AK_40.2_Pt.csv']
+hardrive_path = r'F:/' 
 
-tot_trials = []
+figure_name = 'RAT_' + RAT_ID + 'Touch_to_Reward_Speed.pdf'
+plot_main_title = 'RAT ' + RAT_ID + 'Touch_to_Reward_Speed'
+
+
+
 
 for count, rat in enumerate(rat_summary_table_path):
-       
-    Level_2_pre = prs.Level_2_pre_paths(rat)
-    total_trials, session_length = calculate_trial_per_min(Level_2_pre)
-    tot_trials.append(total_trials)
-    touch_to_reward_speed_seconds= calculate_trial_speed_from_ball_touch(Level_2_pre)
-
-
-
-total_trials_array = np.array(tot_trials)
-flat_list = [item for sublist in touch_to_reward_speed_seconds for item in sublist]
-vertical_lines =  np.cumsum(total_trials_array) + .5
-
-
-f5 = plt.figure(figsize=(20,10))    
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine()           
-
-plt.plot(range(len(flat_list)),flat_list,'o', alpha=.5, markersize=2)
-plt.xlim(0,len(flat_list))
-plt.ylim(0,50)
-plt.xticks((np.arange(0, len(flat_list), 50)))
-
-for i in vertical_lines:
     
-    plt.axvline(x = i , color='k', linestyle='--')
+    tot_trials = []
+    Level_2_pre = prs.Level_2_pre_paths(rat)
+    total_trials, session_length = behaviour.calculate_trial_per_min(Level_2_pre)
+    tot_trials.append(total_trials)
+    touch_to_reward_speed_seconds = behaviour.calculate_trial_speed_from_ball_touch(Level_2_pre)
+
+    total_trials_array = np.array(tot_trials)
+    flat_list = [item for sublist in touch_to_reward_speed_seconds for item in sublist]
+    vertical_lines =  np.cumsum(total_trials_array) + .5
+
+    figure_name = 'RAT_' + RAT_ID[count] + 'Touch_to_Reward_Speed.pdf'
+    plot_main_title = 'RAT ' + RAT_ID[count] + 'Touch_to_Reward_Speed'
+    
+    fig = plt.figure(figsize=(20,10))    
+
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine()           
+
+    plt.plot(range(len(flat_list)), flat_list, 'o' , color= colours, alpha = .6, markersize = 3)
+    plt.xlim(0,len(flat_list))
+    plt.ylim(0,50)
+    plt.xticks((np.arange(0, len(flat_list), 50)))
+
+    for i in vertical_lines[:-1]:
+    
+        plt.axvline(x = i , color='k', linestyle='--')
+
+
+
+    script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + rat_ID)
+    #create a folder where to store the plots 
+    main_folder = os.path.join(script_dir +'/Summary')
+    #create a folder where to save the plots
+    results_dir = os.path.join(main_folder + '/Behaviour/')
+
+
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
+    #save the fig in .tiff
+    fig.savefig(results_dir + figure_name, transparent=True)
 
 
 
 
 
-####################################################################################################
-
-figure_name = 'RAT_' + rat_ID + '_Trial_per_Minute.pdf'
-plot_main_title = 'RAT ' + rat_ID + ' Trial/Min'
-
-f,ax = plt.subplots(2,2,figsize=(10,7))
-f.suptitle(plot_main_title)
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine()
-
-
-
-#CALCULATING SUCCESS AND MISSED TRIALS PER EACH SESSION OF EACH LEVEL AND PLOT 4X4 FIG
-
-total_trials_L_1, session_length_L_1 = behaviour.PLOT_trial_per_min(Level_1)
-
-
-trials_per_minutes_L_1 = np.array(total_trials_L_1)/np.array(session_length_L_1)
-x = np.array(range(len((Level_1))))
-ax[0,0].plot(x, trials_per_minutes_L_1, color ='r', marker = 'o', alpha = .8)
-# Create green bars (middle), on top of the firs ones
-#ax[0,0].bar(x, trials_per_minutes,  color ='r', edgecolor ='white', width = 1, alpha = .5)
-ax[0,0].set_title('Level 1', fontsize = 13)
-ax[0,0].set_ylabel('Trials / min', fontsize = 10)
-#ax[0,0].set_xlabel('Sessions')
 
 
 
 
-total_trials_L_2_pre, session_length_L_2_pre = behaviour.PLOT_trial_per_min(Level_2_pre)
-
-trials_per_minutes_L_2_pre = np.array(total_trials_L_2_pre)/np.array(session_length_L_2_pre)
-x = np.array(range(len((Level_2_pre))))
-ax[0,1].plot(x, trials_per_minutes_L_2_pre, color ='b', marker = 'o', alpha = .8)
-#ax[0,1].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
-ax[0,1].set_title('Level 2 pre surgery', fontsize = 13)
-#ax[0,1].set_ylabel('Trials / Session')
-#ax[0,0].set_xlabel('Sessions')
 
 
 
 
-total_trials_L_2_post, session_length_L_2_post = behaviour.PLOT_trial_per_min(Level_2_post)
-
-trials_per_minutes_L_2_post = np.array(total_trials_L_2_post)/np.array(session_length_L_2_post)
-x = np.array(range(len((Level_2_post))))
-ax[1,0].plot(x, trials_per_minutes_L_2_post, color ='g', marker = 'o', alpha = .8)
-# Create green bars (middle), on top of the firs ones
-#ax[1,0].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
-ax[1,0].set_title('Level 2 post surgery', fontsize = 13)
-ax[1,0].set_ylabel('Trials / min', fontsize = 10)
-ax[1,0].set_xlabel('Sessions', fontsize = 10)
 
 
 
-#total_trials_L_3_pre ,session_length_L_3_pre = behaviour.PLOT_trial_per_min(Level_3_pre)
 
-#x = np.array(range(len((Level_3_pre))))
-#ax[1,0].bar(x, success_trials_L_3_pre, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################################
+#
+#figure_name = 'RAT_' + rat_ID + '_Trial_per_Minute.pdf'
+#plot_main_title = 'RAT ' + rat_ID + ' Trial/Min'
+#
+#f,ax = plt.subplots(2,2,figsize=(10,7))
+#f.suptitle(plot_main_title)
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine()
+#
+#
+#
+##CALCULATING SUCCESS AND MISSED TRIALS PER EACH SESSION OF EACH LEVEL AND PLOT 4X4 FIG
+#
+#total_trials_L_1, session_length_L_1 = behaviour.PLOT_trial_per_min(Level_1)
+#
+#
+#trials_per_minutes_L_1 = np.array(total_trials_L_1)/np.array(session_length_L_1)
+#x = np.array(range(len((Level_1))))
+#ax[0,0].plot(x, trials_per_minutes_L_1, color ='r', marker = 'o', alpha = .8)
 ## Create green bars (middle), on top of the firs ones
-#ax[1,0].bar(x, missed_trials_L_3_pre, bottom = success_trials_L_3_pre, color ='b', edgecolor ='white', width = 1, label ='Missed trial', alpha = .6)
-#ax[1,0].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
-#ax[1,0].set_title('Level 3 pre surgery')
-#ax[1,0].set_ylabel('Trials / Session')
-#ax[1,0].set_xlabel('Sessions')
-
-
-
-total_trials_L_3_post, session_length_L_3_post = behaviour.PLOT_trial_per_min(Level_3_post)
-
-trials_per_minutes_L_3_post = np.array(total_trials_L_3_post)/np.array(session_length_L_3_post)
-x = np.array(range(len((Level_3_post))))
-
-ax[1,1].plot(x, trials_per_minutes_L_3_post, color ='c', marker = 'o', alpha = .8)
-
-#ax[1,1].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
-ax[1,1].set_title('Level 3 post surgery', fontsize = 13)
-ax[1,1].set_ylabel('Trials / Session', fontsize = 10)
-ax[1,1].set_xlabel('Sessions', fontsize = 10)
-f.tight_layout()
-f.subplots_adjust(top = 0.87)
-
-
-
-#CREATING A FOLDER CALLED 'SUMMARY' IN THE MAIN RAT FOLDER AMD SAVING THE FIG IN FORMAT .tiff
-
-
-
-#main folder rat ID
-script_dir = os.path.join(hardrive_path +'Videogame_Assay/' + rat_ID)
-#create a folder where to store the plots 
-main_folder = os.path.join(script_dir +'/Summary')
-#create a folder where to save the plots
-results_dir = os.path.join(main_folder + '/Behaviour/')
-
-
-if not os.path.isdir(results_dir):
-    os.makedirs(results_dir)
-
-#save the fig in .tiff
-f.savefig(results_dir + figure_name, transparent=True)
-#f.savefig(results_dir + figure_name)      
+##ax[0,0].bar(x, trials_per_minutes,  color ='r', edgecolor ='white', width = 1, alpha = .5)
+#ax[0,0].set_title('Level 1', fontsize = 13)
+#ax[0,0].set_ylabel('Trials / min', fontsize = 10)
+##ax[0,0].set_xlabel('Sessions')
+#
+#
+#
+#
+#total_trials_L_2_pre, session_length_L_2_pre = behaviour.PLOT_trial_per_min(Level_2_pre)
+#
+#trials_per_minutes_L_2_pre = np.array(total_trials_L_2_pre)/np.array(session_length_L_2_pre)
+#x = np.array(range(len((Level_2_pre))))
+#ax[0,1].plot(x, trials_per_minutes_L_2_pre, color ='b', marker = 'o', alpha = .8)
+##ax[0,1].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
+#ax[0,1].set_title('Level 2 pre surgery', fontsize = 13)
+##ax[0,1].set_ylabel('Trials / Session')
+##ax[0,0].set_xlabel('Sessions')
+#
+#
+#
+#
+#total_trials_L_2_post, session_length_L_2_post = behaviour.PLOT_trial_per_min(Level_2_post)
+#
+#trials_per_minutes_L_2_post = np.array(total_trials_L_2_post)/np.array(session_length_L_2_post)
+#x = np.array(range(len((Level_2_post))))
+#ax[1,0].plot(x, trials_per_minutes_L_2_post, color ='g', marker = 'o', alpha = .8)
+## Create green bars (middle), on top of the firs ones
+##ax[1,0].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
+#ax[1,0].set_title('Level 2 post surgery', fontsize = 13)
+#ax[1,0].set_ylabel('Trials / min', fontsize = 10)
+#ax[1,0].set_xlabel('Sessions', fontsize = 10)
+#
+#
+#
+##total_trials_L_3_pre ,session_length_L_3_pre = behaviour.PLOT_trial_per_min(Level_3_pre)
+#
+##x = np.array(range(len((Level_3_pre))))
+##ax[1,0].bar(x, success_trials_L_3_pre, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
+### Create green bars (middle), on top of the firs ones
+##ax[1,0].bar(x, missed_trials_L_3_pre, bottom = success_trials_L_3_pre, color ='b', edgecolor ='white', width = 1, label ='Missed trial', alpha = .6)
+##ax[1,0].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
+##ax[1,0].set_title('Level 3 pre surgery')
+##ax[1,0].set_ylabel('Trials / Session')
+##ax[1,0].set_xlabel('Sessions')
+#
+#
+#
+#total_trials_L_3_post, session_length_L_3_post = behaviour.PLOT_trial_per_min(Level_3_post)
+#
+#trials_per_minutes_L_3_post = np.array(total_trials_L_3_post)/np.array(session_length_L_3_post)
+#x = np.array(range(len((Level_3_post))))
+#
+#ax[1,1].plot(x, trials_per_minutes_L_3_post, color ='c', marker = 'o', alpha = .8)
+#
+##ax[1,1].legend(loc='best',frameon=False , fontsize = 'x-small') #ncol=2
+#ax[1,1].set_title('Level 3 post surgery', fontsize = 13)
+#ax[1,1].set_ylabel('Trials / Session', fontsize = 10)
+#ax[1,1].set_xlabel('Sessions', fontsize = 10)
+#f.tight_layout()
+#f.subplots_adjust(top = 0.87)
+#
+#
+#
+##CREATING A FOLDER CALLED 'SUMMARY' IN THE MAIN RAT FOLDER AMD SAVING THE FIG IN FORMAT .tiff
+#
+#
+#
+##main folder rat ID
+#script_dir = os.path.join(hardrive_path +'Videogame_Assay/' + rat_ID)
+##create a folder where to store the plots 
+#main_folder = os.path.join(script_dir +'/Summary')
+##create a folder where to save the plots
+#results_dir = os.path.join(main_folder + '/Behaviour/')
+#
+#
+#if not os.path.isdir(results_dir):
+#    os.makedirs(results_dir)
+#
+##save the fig in .tiff
+#f.savefig(results_dir + figure_name, transparent=True)
+##f.savefig(results_dir + figure_name)      
     

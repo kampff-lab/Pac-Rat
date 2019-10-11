@@ -85,10 +85,10 @@ def CLIPS_start_to_end_trial(sessions_subset):
                 else:
                     outputFilename= results_dir +'/Clip%d.avi' %start_frame
                     outputVid = cv2.VideoWriter(outputFilename, fourcc, fps, (inputWidth, inputHeight))
-                for e in range(numFrames[start_frame]):
+                for i in range(numFrames[start_frame]):
                     ret, im = inputVid.read()
                     outputVid.write(im)
-                print (e)
+                print (i)
                 outputVid.release()
              
         inputVid.release()

@@ -189,7 +189,7 @@ f3.subplots_adjust(top = 0.87)
 
 ##########################################################################################
 
-figure_name4 = figure_name = 'RAT_' + rat_ID + '_Centroid_tracking_Level_2_pre.pdf'
+figure_name4 = 'RAT_' + rat_ID + '_Centroid_tracking_Level_2_pre.pdf'
 sessions_subset = Level_2_pre
 
 number_of_subplots= len(sessions_subset)
