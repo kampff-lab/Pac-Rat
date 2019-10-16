@@ -24,14 +24,94 @@ from scipy import interpolate
 
 
 
-dlc_vieo_path = r'D:/DLC_test_videos/AK_33.2_implant/crop2.avi'
-dlc_tracking_path = r'D:/DLC_test_videos/AK_33.2_implant/crop2DeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+dlc_vieo_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/10-22T15_37_43_CROPPED.avi'
+dlc_tracking_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/BEST_croppedDeepCut_resnet50_Cuttle-ShuttleOct14shuffle1_250000.csv'
 
 dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
 
 
 x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
 y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+
+
+
+cleaned_x = [x for x in x_nan if str(x) != 'nan']
+cleaned_y = [x for x in y_nan if str(x) != 'nan']
+
+#cuttlefish
+hist2d(cleaned_x, cleaned_y, bins=250, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+
+
+
+#rat
+
+
+
+dlc_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_07-15_42/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+
+dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+
+
+x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+
+
+
+cleaned_x = [x for x in x_nan if str(x) != 'nan']
+cleaned_y = [x for x in y_nan if str(x) != 'nan']
+
+
+
+centroid_tracking_path = hardrive_path + 'Videogame_Assay/AK_33.2/2018_04_22-14_53/crop.csv'
+dlc_tracking_path = hardrive_path +'Videogame_Assay/AK_33.2/2018_04_22-14_53/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+
+
+# Load Centroid tracking
+centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+
+# Load DLC tracking
+dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+
+
+
+# Compensate for crop window shift in DLC coordinates
+crop_size = 640
+
+centroid_x = centroid_tracking[:, 0] 
+centroid_y = centroid_tracking[:, 1] 
+
+
+
+dlc_x = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+dlc_y =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+
+
+
+
+dlc_centered_x = dlc_x - (crop_size / 2)
+dlc_centered_y = dlc_y - (crop_size / 2) 
+x_nose = centroid_x + dlc_centered_x
+y_nose = centroid_y + dlc_centered_y
+
+
+
+
+cleaned_x = [x for x in x_nose if str(x) != 'nan']
+cleaned_y = [x for x in y_nose if str(x) != 'nan']
+
+f0=plt.figure()
+hist2d(cleaned_x, cleaned_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+
+
+
+centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
+
+centroid_x = centroid_tracking_wo_nan[:, 0] 
+centroid_y = centroid_tracking_wo_nan[:, 1] 
+f1=plt.figure()
+hist2d(centroid_x, centroid_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+
+
 
 
 

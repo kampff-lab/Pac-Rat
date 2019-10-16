@@ -155,6 +155,259 @@ def closest_timestamps_to_events(timestamp_list, event_list):
 
 
 
+######################################################################
+    
+#create a .csv with the start-end-touch idx and save it in the rat session folder 
+    
+
+
+def start_touch_end_idx(sessions_subset):
+            
+    for session in sessions_subset:
+        start_idx = []
+        end_idx = []
+        touch_idx = []
+        
+        try:
+           
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            csv_path = 'Trial_idx.csv'
+
+
+            trial_end_path = os.path.join(hardrive_path, session + '/events/' + 'TrialEnd.csv')
+            trial_start_path = os.path.join(hardrive_path, session + '/events/' + 'TrialStart.csv')
+            touch_path = os.path.join(hardrive_path, session + '/events/' + 'RatTouchBall.csv')
+            
+            video_csv_path = os.path.join(hardrive_path, session + '/Video.csv')
+            video_path = os.path.join(hardrive_path, session + '/Video.avi')
+            
+            
+            start = behaviour.timestamp_CSV_to_pandas(trial_start_path)
+            end = behaviour.timestamp_CSV_to_pandas(trial_end_path)
+            touch = behaviour.timestamp_CSV_to_pandas(touch_path)
+            
+            video_time = behaviour.timestamp_CSV_to_pandas(video_csv_path)
+            
+            
+            start_closest = behaviour.closest_timestamps_to_events(video_time, start)
+            end_closest = behaviour.closest_timestamps_to_events(video_time, end)
+            touch_closest = behaviour.closest_timestamps_to_events(video_time, touch)
+            
+            if len(start_closest)>len(end_closest):
+                start_closest = start_closest[:-1]
+                if len(touch_closest)>len(end_closest): 
+                    touch_closest = touch_closest[:-1]
+                                    
+            
+            start_idx.append(start_closest)
+            end_idx.append(end_closest)
+            touch_idx.append(touch_closest)
+            
+            
+            np.savetxt(csv_dir_path + csv_path, np.vstack((start_idx,end_idx,touch_idx)).T,delimiter=',', fmt='%s')
+
+        except Exception: 
+            print('error'+ session)
+        continue
+
+
+
+
+#############################################################################
+            
+def trial_nose_trajectory(nose_file,trial_closest_ir,end_closest_ir):    
+    nose=np.genfromtxt(nose_file)
+    trial_closest_array=np.array(trial_closest_ir)
+    end_closest_array=np.array(end_closest_ir)
+    dif=abs(end_closest_array-trial_closest_array)
+    count=0
+    n=len(trial_closest_ir)
+    nose_trial_trajectory= [[] for _ in range(n)] 
+    for i in trial_closest_ir:
+        nose_trial_trajectory[count]=nose[i:i+dif[count]]
+        count += 1
+    return nose_trial_trajectory
+
+
+
+
+def session_speed(sessions_subset):
+        
+    n = len(sessions_subset)
+    sessions_speed = [[] for _ in range(n)]         
+    for count, session in enumerate(sessions_subset):  
+        try: 
+            
+            script_dir = os.path.join(hardrive_path + session) 
+            centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+            
+            trajectory_x = centroid_tracking[:,0]
+            trajectory_y = centroid_tracking[:,1]
+            diff_x = np.diff(trajectory_x)
+            diff_y = np.diff(trajectory_y)    
+            diff_x_square = diff_x**2
+            diff_y_square = diff_y**2
+            speed = np.sqrt(diff_x_square + diff_y_square)
+            sessions_speed[count] = speed
+            
+  
+        except Exception: 
+            print('error'+ session)
+        continue
+                               
+    return sessions_speed 
+
+    
+def speed_touch_to_reward(sessions_subset, sessions_speed):
+    
+    l = len(sessions_subset)
+    Level_2_touch_to_reward_speed = [[] for _ in range(l)]     
+    #count = 0
+    
+    for count in np.arange(l):
+        session = sessions_subset[count]
+        speed = sessions_speed[count]
+        
+        script_dir = os.path.join(hardrive_path + session) 
+        trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        end_touch_diff = abs(trial_idx[:,1] - trial_idx[:,2])
+    
+        n = len(trial_idx)
+        touch_idx = trial_idx[:,2]        
+        touch_to_reward_speed = [[] for _ in range(n)] 
+                       
+        count_1 = 0
+    
+        for touch in touch_idx:
+            touch_to_reward_speed[count_1] = speed[touch:touch + end_touch_diff[count_1]]
+            count_1 += 1
+            
+        Level_2_touch_to_reward_speed[count] = touch_to_reward_speed
+
+                 
+
+    return Level_2_touch_to_reward_speed
+        
+
+def speed_start_to_touch(sessions_subset, sessions_speed):
+    
+    l = len(sessions_subset)
+    Level_2_start_to_touch_speed = [[] for _ in range(l)]     
+    
+    for count in np.arange(l):
+        session = sessions_subset[count]
+        speed = sessions_speed[count]
+        
+        script_dir = os.path.join(hardrive_path + session) 
+        trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        start_touch_diff = abs(trial_idx[:,0] - trial_idx[:,2])
+    
+        n = len(trial_idx)
+        start_idx = trial_idx[:,0]        
+        start_to_touch_speed = [[] for _ in range(n)] 
+                       
+        count_1 = 0
+    
+        for start in start_idx:
+            start_to_touch_speed[count_1] = speed[start:start + start_touch_diff[count_1]]
+            count_1 += 1
+            
+        Level_2_start_to_touch_speed[count] = start_to_touch_speed
+
+                 
+
+    return Level_2_start_to_touch_speed
+       
+
+ 
+
+
+
+
+def speed_around_touch(sessions_subset,sessions_speed):
+    
+    x=len(sessions_subset)
+    speed_touch_Level_2 = [[] for _ in range(x)] 
+    
+    for count in np.arange(x):
+        session = sessions_subset[count]
+        speed = sessions_speed[count]
+                
+        script_dir = os.path.join(hardrive_path + session) 
+        csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+        trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        touch_idx = trial_idx[:,2]
+        offset = 600
+        n = len(touch_idx)
+        speed_touch = [[] for _ in range(n)]
+        
+        count_1 = 0
+        for i in touch_idx:
+            speed_touch[count_1]=speed[i-offset:i+offset]
+            count_1 += 1
+        speed_touch_Level_2[count] = speed_touch
+    
+    return speed_touch_Level_2
+                
+                
+                        
+                        
+                        
+                        
+                
+            
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#def distance(nose_trajectory,ball_coordinates,trial_closest_ir,end_closest_ir):
+#    trial_closest_array=np.array(trial_closest_ir)
+#    end_closest_array=np.array(end_closest_ir)
+#    dif=abs(end_closest_array-trial_closest_array)
+#    count=0
+#    n=len(ball_coordinates)
+#    new_ball=[[] for _ in range(n)]
+#    for i in ball_coordinates:
+#        shape=len(range(dif[count]))
+#        ball=np.repeat([i],[shape],axis=0)
+#        new_ball[count]=ball[:]
+#        count += 1     
+#    dst= [[] for _ in range(n)]
+#    for e in range(n):
+#        distances = (new_ball[e]-nose_trajectory[e])**2
+#        distances = distances.sum(axis=-1)
+#        distances = np.sqrt(distances)
+#        dst[e]=distances
+#    return dst
+#
+#
+#
+#
+#
+#def touch(trial_closest_ir,start_closest_ir):
+#    trial_closest_array=np.array(trial_closest_ir)
+#    start_array=np.array(start_closest_ir)
+#    #by doing the difference I find the len between the 2
+#    trial_touch_value=abs(start_array-trial_closest_array) # this should be enough to be able to then subcract this value to an array of ascending number but different enght according the the trial
+#    return trial_touch_value
+#
+#
 
 
 
