@@ -103,6 +103,10 @@ f0=plt.figure()
 hist2d(cleaned_x, cleaned_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
 
 
+norm = matplotlib.colors.Normalize(vmin=0, vmax=len(cleaned_x), clip=True)
+mapper = cm.ScalarMappable(norm=norm, cmap=cm.Greys_r)
+plt.plot(cleaned_x,cleaned_y,color=mapper,alpha=0.4)
+
 
 centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
 
@@ -111,9 +115,9 @@ centroid_y = centroid_tracking_wo_nan[:, 1]
 f1=plt.figure()
 hist2d(centroid_x, centroid_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
 
+plt.plot()
 
-
-
+norm = matplotlib.colors.Normalize(vmin=0.0, vmax=len(cleaned_x))
 
 
 # interpolation methods

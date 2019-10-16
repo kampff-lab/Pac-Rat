@@ -342,7 +342,7 @@ def speed_around_touch(sessions_subset,sessions_speed):
         trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
         trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
         touch_idx = trial_idx[:,2]
-        offset = 600
+        offset = 360
         n = len(touch_idx)
         speed_touch = [[] for _ in range(n)]
         
