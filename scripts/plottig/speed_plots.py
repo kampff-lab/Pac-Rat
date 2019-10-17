@@ -17,6 +17,7 @@ from matplotlib.colors import PowerNorm
 from matplotlib.colors import LogNorm 
 from pylab import *
 from matplotlib.ticker import LogFormatterExponent
+import seaborn as sns 
 
 
 
@@ -34,7 +35,7 @@ Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 
 sessions_subset = Level_2_pre
 behaviour.start_touch_end_idx(sessions_subset)
-sessions_speed = behaviour.session_speed(sessions_subset)
+
 
 
 
@@ -55,7 +56,7 @@ Level_2_start_to_touch_speed = behaviour.speed_start_to_touch(sessions_subset, s
 
 
 
-speed_touch_Level_2 = speed_around_touch(sessions_subset,sessions_speed)
+speed_touch_Level_2 = behaviour.speed_around_touch(sessions_subset,sessions_speed)
 
 
 means= []

@@ -359,18 +359,102 @@ def speed_around_touch(sessions_subset,sessions_speed):
                         
                         
                         
-                
+movie_file = 'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Video.avi'
+
+target_dir= 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames'
+
+
+def frame_before_trials(target_dir,filename,cleaned_idx):
+    video=cv2.VideoCapture(filename)
+    success, image=video.read()
+    success=True
+    count = 0
+    for i in cleaned_idx:
+        video.set(cv2.CAP_PROP_POS_FRAMES, i)
+        success, image = video.read()
+        if count < 10:
+            cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
+        else:
+            cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
+        count += 1
+    return image
+
+          
+
+
+
+def centroid_ball(frame_folder):
+
+    listoffiles = os.listdir(frame_folder)
+    ball_coordinates = np.zeros((len(listoffiles),2), dtype = float)
+    count=0
+    for frame in listoffiles:
+        
+        image = cv2.imread(os.path.join(frame_folder,frame))
+       
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        
+        lower = np.array([22, 93, 0])
+        upper = np.array([45, 255, 255])
+        
+        #find yellow ball and the rest is black
+        mask = cv2.inRange(hsv, lower, upper)
+        res = cv2.bitwise_and(image, image, mask = mask)    
+
+        #cv2.imshow('frame',image)
+        #cv2.imshow('mask',mask)
+        #cv2.imshow('res',res)
+        
+        #gray scale 
+        gray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+        
+        # convert the grayscale image to binary image
+        ret,thresh = cv2.threshold(gray,127,255,0)
+        
+        # calculate moments of binary image
+        M = cv2.moments(thresh)
+        
+        if M['m00'] > 0:
+            
+                                
+            ball_x = (M['m10']/M['m00'])
+            ball_y = (M['m01']/M['m00'])
+            ball_coordinates[count,0]= ball_x
+            ball_coordinates[count,1]= ball_y
+        else:
+        
+            ball_coordinates[count,0]= np.nan
+            ball_coordinates[count,1]= np.nan
             
             
+             
+        # put text and highlight the center
+        #cv2.circle(image, (np.int(ball_x),np.int(ball_y)), 5, (70, 70, 70), -1)
+        #cv2.putText(image, "centroid", (np.int(ball_x) - 25, np.int(ball_y) - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (70, 70, 70), 2)
+ 
+        # display the image
+        #cv2.imshow("Image", image)
+        #cv2.waitKey(0)
+        count +=1
+    return ball_coordinates
 
 
 
 
-
-
-
-
-
+def frame_before_trials(target_dir,filename,cleaned_idx):
+    video=cv2.VideoCapture(filename)
+    success, image=video.read()
+    success=True
+    count = 0
+    for i in cleaned_idx:
+        video.set(cv2.CAP_PROP_POS_FRAMES, i-100)
+        success, image = video.read()
+        if count < 10:
+            cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
+        else:
+            cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
+        count += 1
+    return image 
 
 
 
