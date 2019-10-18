@@ -22,9 +22,9 @@ import seaborn as sns
 
 
 
-rat_summary_table_path = r'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
-rat_ID = 'AK_40.2'
+rat_ID = 'AK_33.2'
 
 
 Level_0 = prs.Level_0_paths(rat_summary_table_path)
@@ -33,31 +33,27 @@ Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
 Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 
+
+#saving a Trial_idx_csv containing the idx of start-end-touch 0-1-2
 sessions_subset = Level_2_pre
 behaviour.start_touch_end_idx(sessions_subset)
 
 
-
-
-rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
-hardrive_path = r'F:/' 
-rat_ID = 'AK_40.2'
-
-Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
-sessions_subset = Level_2_pre
-
+#calculate speed for all the session 
 sessions_speed = behaviour.session_speed(sessions_subset)
 
-Level_2_touch_to_reward_speed = behaviour.speed_touch_to_reward(sessions_subset, sessions_speed)
-
-speed_touch_Level_2 = behaviour.speed_around_touch(sessions_subset,sessions_speed)
+#calculate the speed from start of the trial to touch of the ball using the trial idx csv file 
 Level_2_start_to_touch_speed = behaviour.speed_start_to_touch(sessions_subset, sessions_speed)
 
+#calculate the speed from ball touch to reward using the csv file saved wit the idx 
+Level_2_touch_to_reward_speed = behaviour.speed_touch_to_reward(sessions_subset, sessions_speed)
 
-
-
+#from the speed of the session extract chunck of 6 seconds around the touch idx (360 frames before and 360 frames after)
 speed_touch_Level_2 = behaviour.speed_around_touch(sessions_subset,sessions_speed)
 
+
+#############################################################################################################
+#plotting the speed around touch by doing the mean of each session and plotting the sessions 
 
 means= []
 
@@ -76,8 +72,7 @@ sns.axes_style('white')
 sns.despine()
 
 
-
-cmap=sns.color_palette("hls", len(means))
+cmap = sns.color_palette("hls", len(means))
 for count,i in enumerate(means):
     plt.plot(i, color=cmap[count], label='%d'%count)
 
@@ -87,23 +82,7 @@ f0.tight_layout()
 f0.subplots_adjust(top = 0.87)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#########################################################################################################
 
 
 
@@ -149,15 +128,13 @@ plt.scatter(mean_touch_to_reward,range(l),marker = 'o',color= 'g',alpha = .8)
 
 
 
+####################################################################
 
 
-
-
-
-
-
-
-
+ball = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/events/Ball_coordinates.csv'
+ball_pos = np.genfromtxt(ball, delimiter = ',', dtype = float)
+centroid_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/crop.csv'
+centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
 
 
 
