@@ -247,24 +247,117 @@ f4.savefig(results_dir + figure_name4, transparent=True)
 
 ##########################################################################################
 
+hardrive_path = r'F:/' 
+
+
+trial_idx_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Trial_idx.csv'
+ball_coordinates_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
+
+
+trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
+
+
+x_nan_nose 
+y_nan_nose  
+x_nan_tail_base 
+y_nan_tail_base 
+
+
+
+def speed_touch_to_reward(sessions_subset, sessions_speed):
+    
+    l = len(ball_coordinates)
+    x_nose_trial_tracking_start_to_end = [[] for _ in range(l)] 
+    y_nose_trial_tracking_start_to_end = [[] for _ in range(l)] 
+    x_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)]
+    y_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)] 
+   
+    #count = 0
+    
+    for count in np.arange(l):
+        session = sessions_subset[count]
+        speed = sessions_speed[count]
+        
+        trial_lenght = abs(trial_idx[:,0] - trial_idx[:,1])
+        start_idx = trial_idx[:,0]
+                       
+        count_1 = 0
+    
+        for start in start_idx:
+            x_nose_trial_tracking_start_to_end[count_1] = x_nan_nose[start:start+ trial_lenght[count_1]]
+            count_1 += 1
+            
+        count_1 = 0
+    
+        for start in start_idx:
+            y_nose_trial_tracking_start_to_end[count_1] = y_nan_nose[start:start+ trial_lenght[count_1]]
+            count_1 += 1  
+
+                 
+        count_1 = 0
+    
+        for start in start_idx:
+            x_tail_base_trial_tracking_start_to_end[count_1] = x_nan_tail_base[start:start+ trial_lenght[count_1]]
+            count_1 += 1  
+
+        count_1 = 0
+    
+        for start in start_idx:
+            y_tail_base_trial_tracking_start_to_end[count_1] = y_nan_tail_base[start:start+ trial_lenght[count_1]]
+            count_1 += 1  
+
+count=50
+
+
+for count in np.arange(l):
+    
+    plt.plot(x_nose_trial_tracking_start_to_end[count],y_nose_trial_tracking_start_to_end[count])
+    plt.plot(ball_coordinates[count][0],ball_coordinates[count][1],'o',color='k')    
+    
+    
+for count in np.arange(l):   
+    plt.plot(x_tail_base_trial_tracking_start_to_end[count],y_tail_base_trial_tracking_start_to_end[count])
+    plt.plot(ball_coordinates[count][0],ball_coordinates[count][1],'o',color='k') 
+
+
+image = cv2.imread('F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/Ball_frames/frame00.jpg')
 
 
 
 
+x_nose_centered = [[] for _ in range(l)]
+y_nose_centered = [[] for _ in range(l)]
+x_tail_base_centered = [[] for _ in range(l)]
+y_tail_base_centered = [[] for _ in range(l)]
+    
+for count in np.arange(l):
+
+
+    x_nose_centered[count] = x_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+    y_nose_centered[count] = y_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+    x_tail_base_centered[count] = x_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+    y_tail_base_centered[count] = y_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+    
 
 
 
 
+for count in np.arange(l):
+    
+    plt.plot(x_nose_centered[count],y_nose_centered[count])
+
+    
+    
 
 
 
-
-
-
-
-
-
-
-
-
-
+for count in np.arange(l):
+    
+    plt.plot(x_tail_base_centered[count],y_tail_base_centered[count])
+    plt.plot(0,0,'o',color='k')
+    
+    
+    
+    
+    
