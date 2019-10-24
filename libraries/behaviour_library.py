@@ -16,13 +16,39 @@ hardrive_path = r'F:/'
 
 
 
-#given a session it finds the file called TrialEnd.csv which contains the timestamp of each trial together with the outcome of that trial (Food or Missed), and 
-#it return the list of reward and misses trial by searching the string in column one  
+def timestamp_CSV_to_pandas(filename):
+    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
+    timestamp = timestamp_csv[0]
+    timestamp_Series= pd.to_datetime(timestamp)
+    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
+    return timestamp_Series
 
 
+
+###############################################################################
+
+
+def closest_timestamps_to_events(timestamp_list, event_list):
+    nearest  = []
+    for e in event_list:
+        delta_times = timestamp_list-e
+        nearest.append(np.argmin(np.abs(delta_times)))
+    return nearest  
+
+
+
+
+
+
+
+
+
+#given a session it finds the file called TrialEnd.csv which contains the timestamp
+#of each trial together with the outcome of that trial (Food or Missed), and 
+#it returns the list of reward and misses trial by searching the string in column one  
 
 def trial_outcome_index(session):
-    trial_end_path = os.path.join(hardrive_path, session + '/events/'+'TrialEnd.csv')
+    trial_end_path = os.path.join(hardrive_path, session +'/events/'+'TrialEnd.csv')
     RewardOutcome_file=np.genfromtxt(trial_end_path, usecols=[1], dtype= str)
     rewards = []
     misses = []
@@ -33,7 +59,9 @@ def trial_outcome_index(session):
             misses.append(count)
     return rewards, misses
 
-
+#############################################################################################
+#it uses the previous fx but it iterates of a sibset of sessions and create a list 
+# with the number or rewarded or missed trial per session
 
 
 def find_trial_and_misses(sessions_subset):    
@@ -41,7 +69,7 @@ def find_trial_and_misses(sessions_subset):
     missed_trials = []
     for session in sessions_subset: 
         try:
-            rewards, misses = trial_outcome_index(session) #would take session instead
+            rewards, misses = trial_outcome_index(session) 
             success_trials.append(len(rewards))
             missed_trials.append(len(misses))
         except Exception: 
@@ -49,8 +77,10 @@ def find_trial_and_misses(sessions_subset):
             continue
     return success_trials, missed_trials   
 
-
-  
+############################################################################################
+# using the trial outcome fx it calculates the tot amount of trials in a session 
+#and it saves the lenght of the session in minutes
+    
 def calculate_trial_per_min(sessions_subset):    
     total_trials = []
     session_length = []
@@ -62,7 +92,9 @@ def calculate_trial_per_min(sessions_subset):
             counter_csv = os.path.join(hardrive_path, session + '/Video.csv')
             counter = np.genfromtxt(counter_csv, usecols = 1)
         
+            #subtract the last first value from the last value of the camera frame counter
             tot_frames = counter[-1] - counter[0]
+            #minutes conversion
             session_length_minutes = tot_frames/120/60
             
             rewards, misses = trial_outcome_index(session)
@@ -75,17 +107,16 @@ def calculate_trial_per_min(sessions_subset):
         
     return total_trials, session_length  
 
-
-
-def calculate_full_trial_speed(sessions_subset):
+###############################################################################################
+#calculate the time taken by the rat to collect the reward or miss a given trial from the start if it
+#trial start for Level 1 corresponds to the tone starting whilefor Level 2 to the ball appearance
     
+def calculate_full_trial_speed(sessions_subset):   
     full_trials_speed_seconds = []
-    
-    
+        
     try:
         for session in sessions_subset:
-            
-            
+                       
             trial_start_path = os.path.join(hardrive_path, session + '/events/' + 'TrialStart.csv')
             trial_start_path_time = timestamp_CSV_to_pandas(trial_start_path)
                         
@@ -94,21 +125,23 @@ def calculate_full_trial_speed(sessions_subset):
             
             if len(trial_start_path_time)>len(trial_end_path_time):
                 
-                trial_start_path_time=trial_start_path_time[:-1]
+                trial_start_path_time = trial_start_path_time[:-1]
                 #removing the date 
                 #trial_start_path_time_no_date = pd.Series([val.time() for val in trial_start_path_time])
                 #trial_end_path_time_no_date= pd.Series([val.time() for val in trial_end_path_time])
                                
-                trial_speed= trial_end_path_time - trial_start_path_time
+                trial_speed = trial_end_path_time - trial_start_path_time
                 trial_speed_seconds = trial_speed.dt.total_seconds()
                 
                 full_trials_speed_seconds.append(trial_speed_seconds)
-
                 
     except Exception: 
             print('error'+ session)
             pass
     return full_trials_speed_seconds
+
+
+#######################################################################################
 
 
 
@@ -215,19 +248,19 @@ def start_touch_end_idx(sessions_subset):
 
 
 #############################################################################
-            
-def trial_nose_trajectory(nose_file,trial_closest_ir,end_closest_ir):    
-    nose=np.genfromtxt(nose_file)
-    trial_closest_array=np.array(trial_closest_ir)
-    end_closest_array=np.array(end_closest_ir)
-    dif=abs(end_closest_array-trial_closest_array)
-    count=0
-    n=len(trial_closest_ir)
-    nose_trial_trajectory= [[] for _ in range(n)] 
-    for i in trial_closest_ir:
-        nose_trial_trajectory[count]=nose[i:i+dif[count]]
-        count += 1
-    return nose_trial_trajectory
+#            
+#def trial_nose_trajectory(nose_file,trial_closest_ir,end_closest_ir):    
+#    nose=np.genfromtxt(nose_file)
+#    trial_closest_array=np.array(trial_closest_ir)
+#    end_closest_array=np.array(end_closest_ir)
+#    dif=abs(end_closest_array-trial_closest_array)
+#    count=0
+#    n=len(trial_closest_ir)
+#    nose_trial_trajectory= [[] for _ in range(n)] 
+#    for i in trial_closest_ir:
+#        nose_trial_trajectory[count]=nose[i:i+dif[count]]
+#        count += 1
+#    return nose_trial_trajectory
 
 
 

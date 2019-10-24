@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd 
 
 from scipy import interpolate
-
+from scipy.interpolate import interp1d
 
 #DLC tracking file
 
@@ -22,143 +22,100 @@ from scipy import interpolate
 # 0,2  = y
 # 2,3 likelihood nose
 
-
-
-dlc_vieo_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/10-22T15_37_43_CROPPED.avi'
-dlc_tracking_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/BEST_croppedDeepCut_resnet50_Cuttle-ShuttleOct14shuffle1_250000.csv'
-
-dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
-
-
-x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
-y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
-
-
-
-cleaned_x = [x for x in x_nan if str(x) != 'nan']
-cleaned_y = [x for x in y_nan if str(x) != 'nan']
-
-#cuttlefish
-hist2d(cleaned_x, cleaned_y, bins=250, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+#
+#
+#dlc_vieo_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/10-22T15_37_43_CROPPED.avi'
+#dlc_tracking_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/BEST_croppedDeepCut_resnet50_Cuttle-ShuttleOct14shuffle1_250000.csv'
+#
+#dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+#
+#
+#x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+#y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+#
+#
+#
+#cleaned_x = [x for x in x_nan if str(x) != 'nan']
+#cleaned_y = [x for x in y_nan if str(x) != 'nan']
+#
+##cuttlefish
+#hist2d(cleaned_x, cleaned_y, bins=250, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
 
 
 
 #rat
 
 
+#
+#dlc_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_07-15_42/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+#
+#dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+#
+#
+#x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+#y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+#
+#
+#
+#cleaned_x = [x for x in x_nan if str(x) != 'nan']
+#cleaned_y = [x for x in y_nan if str(x) != 'nan']
 
-dlc_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_07-15_42/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+hardrive_path = r'F:/'
 
-dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+crop_size = 640
 
-
-x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
-y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
-
-
-
-cleaned_x = [x for x in x_nan if str(x) != 'nan']
-cleaned_y = [x for x in y_nan if str(x) != 'nan']
-
-
-
-centroid_tracking_path = hardrive_path + 'Videogame_Assay/AK_33.2/2018_04_22-14_53/crop.csv'
-dlc_tracking_path = hardrive_path +'Videogame_Assay/AK_33.2/2018_04_22-14_53/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
+centroid_tracking_path = hardrive_path + 'Videogame_Assay/AK_33.2/2018_03_26-10_54/crop.csv'
+dlc_tracking_path = hardrive_path +'Videogame_Assay/AK_33.2/2018_03_26-10_54/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
 
 
 # Load Centroid tracking
 centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
 
 # Load DLC tracking
-dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+dlc_tracking = np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
 
-
-
-# Compensate for crop window shift in DLC coordinates
-crop_size = 640
-
+#select x and y from centroid file 
 centroid_x = centroid_tracking[:, 0] 
 centroid_y = centroid_tracking[:, 1] 
 
 
+#fill with Nan x and yf if the likehood of dlc is less than 0.99
+x_nan_nose = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+y_nan_nose =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
 
-dlc_x = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
-dlc_y =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
-
-
-
-
-dlc_centered_x = dlc_x - (crop_size / 2)
-dlc_centered_y = dlc_y - (crop_size / 2) 
-x_nose = centroid_x + dlc_centered_x
-y_nose = centroid_y + dlc_centered_y
+x_nan_tail_base = np.where(dlc_tracking[:,12]<= 0.99, np.NaN, dlc_tracking[:,10])
+y_nan_tail_base =  np.where(dlc_tracking[:,12]<= 0.99, np.NaN, dlc_tracking[:,11])
 
 
 
 
-cleaned_x = [x for x in x_nose if str(x) != 'nan']
-cleaned_y = [x for x in y_nose if str(x) != 'nan']
+dlc_centered_x_nose = x_nan_nose - (crop_size / 2)
+dlc_centered_y_nose = y_nan_nose - (crop_size / 2) 
 
-f0=plt.figure()
-hist2d(cleaned_x, cleaned_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
-
-
-norm = matplotlib.colors.Normalize(vmin=0, vmax=len(cleaned_x), clip=True)
-mapper = cm.ScalarMappable(norm=norm, cmap=cm.Greys_r)
-plt.plot(cleaned_x,cleaned_y,color=mapper,alpha=0.4)
+dlc_centered_x_tail_base = x_nan_tail_base - (crop_size / 2)
+dlc_centered_y_tail_base = y_nan_tail_base - (crop_size / 2) 
 
 
-centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
 
-centroid_x = centroid_tracking_wo_nan[:, 0] 
-centroid_y = centroid_tracking_wo_nan[:, 1] 
-f1=plt.figure()
-hist2d(centroid_x, centroid_y, bins=150, norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+x_correct_nose = centroid_x + dlc_centered_x_nose
+y_correct_nose = centroid_y + dlc_centered_y_nose
 
-plt.plot()
-
-norm = matplotlib.colors.Normalize(vmin=0.0, vmax=len(cleaned_x))
-
-
-# interpolation methods
-
-
-def linearly_interpolate_nans(y):
-    # Fit a linear regression to the non-nan y values
-
-    # Create X matrix for linreg with an intercept and an index
-    X = np.vstack((np.ones(len(y)), np.arange(len(y))))
-
-    # Get the non-NaN values of X and y
-    X_fit = X[:, ~np.isnan(y)]
-    y_fit = y[~np.isnan(y)].reshape(-1, 1)
-
-    # Estimate the coefficients of the linear regression
-    beta = np.linalg.lstsq(X_fit.T, y_fit)[0]
-
-    # Fill in all the nan values using the predicted coefficients
-    y.flat[np.isnan(y)] = np.dot(X[:, np.isnan(y)].T, beta)
-    return y
+x_correct_tail_base = centroid_x + dlc_centered_x_tail_base
+y_correct_tail_base = centroid_y + dlc_centered_y_tail_base
 
 
 
 
-#x_zeros = np.where(dlc_tracking[:,3]<= 0.99, 0, dlc_tracking[:,1])
-#y_zeros =  np.where(dlc_tracking[:,3]<= 0.99, 0, dlc_tracking[:,2])
 
-
-
-x_nan_int_1 = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
-y_nan_int_1=  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
-
-
-x_nan_fx_inter = linearly_interpolate_nans(x_nan_int_1)
-y_nan_fx_inter = linearly_interpolate_nans(y_nan_int_1)
+#remove nans
+#cleaned_x = [x for x in x_nose if str(x) != 'nan']
+#cleaned_y = [x for x in y_nose if str(x) != 'nan']
 
 
 
 
-#2nd way to interpolate
+
+# interpolate 1
 
 
 
@@ -168,17 +125,18 @@ y_nan_int_2=  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
 
 
 
-ok = ~np.isnan(x_nan_int_2)
+
+ok = ~np.isnan(x_correct)
 xp = ok.ravel().nonzero()[0]
-fp = x_nan[~np.isnan(x_nan_int_2)]
-x  = np.isnan(x_nan_int_2).ravel().nonzero()[0]
-x_nan_int_2[np.isnan(x_nan_int_2)] = np.interp(x, xp, fp)
+fp = x_correct[~np.isnan(x_correct)]
+x  = np.isnan(x_correct).ravel().nonzero()[0]
+x_correct[np.isnan(x_correct)] = np.interp(x, xp, fp)
 
-ok2 = ~np.isnan(y_nan_int_2)
+ok2 = ~np.isnan(y_correct)
 xp2 = ok2.ravel().nonzero()[0]
-fp2 = y_nan[~np.isnan(y_nan_int_2)]
-x2  = np.isnan(y_nan_int_2).ravel().nonzero()[0] 
-y_nan_int_2[np.isnan(y_nan_int_2)] = np.interp(x2, xp2, fp2)
+fp2 = y_correct[~np.isnan(y_correct)]
+x2  = np.isnan(y_correct).ravel().nonzero()[0] 
+y_correct[np.isnan(y_correct)] = np.interp(x2, xp2, fp2)
 
 
 
@@ -187,7 +145,18 @@ y_nan_int_2[np.isnan(y_nan_int_2)] = np.interp(x2, xp2, fp2)
 
 
 
-#
+
+
+def pad(data):
+    bad_indexes = np.isnan(data)
+    good_indexes = np.logical_not(bad_indexes)
+    good_data = data[good_indexes]
+    interpolated = np.interp(bad_indexes.nonzero()[0], good_indexes.nonzero()[0], good_data)
+    data[bad_indexes] = interpolated
+    return data
+
+
+
 #import numpy as np
 #nan = np.nan
 #
