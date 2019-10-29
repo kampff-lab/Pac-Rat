@@ -18,9 +18,9 @@ import cv2
 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
-rat_ID = 'AK_33.2'
+rat_ID = 'AK_40.2'
 
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 

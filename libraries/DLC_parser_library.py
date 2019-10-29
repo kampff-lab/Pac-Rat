@@ -60,6 +60,62 @@ from scipy.interpolate import interp1d
 #cleaned_x = [x for x in x_nan if str(x) != 'nan']
 #cleaned_y = [x for x in y_nan if str(x) != 'nan']
 
+'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Trial_idx.csv'
+'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
+
+#nose dlc  x = 1  / y = 2 / likelihood = 3
+#tail base dlc   x = 10  / y = 11  / likelihood = 12
+def DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3):
+    
+    # Centroid path
+    centroid_tracking_path = os.path.join(hardrive_path + session + '/crop.csv')
+    # Load Centroid tracking
+    centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+    
+    
+    # Select x and y from centroid file 
+    centroid_x = centroid_tracking[:, 0] 
+    centroid_y = centroid_tracking[:, 1] 
+    
+    # Load DLC tracking
+    dlc_tracking_path = os.path.join(hardrive_path + session + '/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv')
+    dlc_tracking = np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+    
+    # Select x and y from DLC file
+    dlc_x = dlc_tracking[:, dlc_x_column] 
+    dlc_y = dlc_tracking[:, dlc_y_column] 
+    #dlc_x_tail_base = dlc_tracking[:, 10] 
+    #dlc_y_tail_base = dlc_tracking[:, 11]
+    
+    # Center DLC coordinates in crop window
+    dlc_centered_x = dlc_x - (crop_size / 2)
+    dlc_centered_y = dlc_y - (crop_size / 2) 
+    #dlc_centered_x_tail_base = dlc_x_tail_base - (crop_size / 2)
+    #dlc_centered_y_tail_base = dlc_y_tail_base - (crop_size / 2) 
+    
+    # Correct coordinates base on crop region centroid
+    dlc_correct_x = centroid_x + dlc_centered_x
+    dlc_correct_y = centroid_y + dlc_centered_y
+    #dlc_correct_x_tail_base = centroid_x + dlc_centered_x_tail_base
+    #dlc_correct_y_tail_base = centroid_y + dlc_centered_y_tail_base
+    
+    # Fill with Nan x and y if the likehood of dlc is less than 0.9
+    x_nan = np.where(dlc_tracking[:,dlc_likelihood_column]<= 0.9999, np.NaN, dlc_correct_x)
+    y_nan =  np.where(dlc_tracking[:,dlc_likelihood_column]<= 0.9999, np.NaN, dlc_correct_y)
+    #x_nan_tail_base = np.where(dlc_tracking[:,12]<= 0.9999, np.NaN, dlc_correct_x_tail_base)
+    #y_nan_tail_base =  np.where(dlc_tracking[:,12]<= 0.9999, np.NaN, dlc_correct_y_tail_base)
+        
+    return x_nan ,y_nan
+        
+
+
+    x_nan_tail_base = np.where(dlc_tracking[:,12]<= 0.9999, np.NaN, dlc_correct_x_tail_base)
+    y_nan_tail_base =  np.where(dlc_tracking[:,12]<= 0.9999, np.NaN, dlc_correct_y_tail_base)
+
+
+
+
+    
 
 
 
@@ -68,8 +124,8 @@ from scipy.interpolate import interp1d
 ### START DLC IMPORT and CLEAN HERE! ###
 
 crop_size = 640
-centroid_tracking_path = '/home/kampff/LC/tracking/centroid_tracking.csv'
-dlc_tracking_path = '/home/kampff/LC/tracking/dlc_tracking.csv'
+centroid_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/crop.csv'
+dlc_tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/cropDeepCut_resnet50_Pac-RatSep13shuffle1_250000.csv'
 
 
 # Load Centroid tracking

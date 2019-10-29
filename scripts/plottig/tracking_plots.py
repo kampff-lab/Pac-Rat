@@ -249,114 +249,201 @@ f4.savefig(results_dir + figure_name4, transparent=True)
 
 hardrive_path = r'F:/' 
 
+#snippets idx:  trial start = 0  / trial end = 1 / ball touch = 2
 
-trial_idx_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Trial_idx.csv'
-ball_coordinates_path = 'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
-
-
-trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
-ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
-
-
-x_nan_nose 
-y_nan_nose  
-x_nan_tail_base 
-y_nan_tail_base 
-
-
-
-def speed_touch_to_reward(sessions_subset, sessions_speed):
+def create_tracking_snippets_start_to_touch_and_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
     
-    l = len(ball_coordinates)
-    x_nose_trial_tracking_start_to_end = [[] for _ in range(l)] 
-    y_nose_trial_tracking_start_to_end = [[] for _ in range(l)] 
-    x_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)]
-    y_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)] 
-   
-    #count = 0
+    x = len(sessions_subset)
     
-    for count in np.arange(l):
-        session = sessions_subset[count]
-        speed = sessions_speed[count]
+    for count in np.arange(x):
+        try:
         
-        trial_lenght = abs(trial_idx[:,0] - trial_idx[:,1])
-        start_idx = trial_idx[:,0]
-                       
-        count_1 = 0
-    
-        for start in start_idx:
-            x_nose_trial_tracking_start_to_end[count_1] = x_nan_nose[start:start+ trial_lenght[count_1]]
-            count_1 += 1
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
             
-        count_1 = 0
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
+            
+            x_nan_nose, y_nan_nose = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
     
-        for start in start_idx:
-            y_nose_trial_tracking_start_to_end[count_1] = y_nan_nose[start:start+ trial_lenght[count_1]]
-            count_1 += 1  
+        
+            l = len(ball_coordinates)
+            x_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
+            y_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)] 
+       
 
-                 
-        count_1 = 0
+            trial_lenght_start_to_touch = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,mid_snippet_idx])
+            start_idx = trial_idx[:,start_snippet_idx]
+                               
+            count_1 = 0
+            
+            for start in start_idx:
+                x_nose_trial_tracking_snippets_start_to_touch[count_1] = x_nan_nose[start:start + trial_lenght_start_to_touch[count_1]]
+                y_nose_trial_tracking_snippets_start_to_touch[count_1] = y_nan_nose[start:start + trial_lenght_start_to_touch[count_1]]
+                x_tail_base_trial_tracking_start_to_touch[count_1] = x_nan_tail_base[start:start + trial_lenght_start_to_touch[count_1]]
+                y_tail_base_trial_tracking_start_to_touch[count_1] = y_nan_tail_base[start:start + trial_lenght_start_to_touch[count_1]]
+                count_1 += 1
+            
+            
+            trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
+            touch_idx = trial_idx[:,mid_snippet_idx]        
+            
     
-        for start in start_idx:
-            x_tail_base_trial_tracking_start_to_end[count_1] = x_nan_tail_base[start:start+ trial_lenght[count_1]]
-            count_1 += 1  
-
-        count_1 = 0
-    
-        for start in start_idx:
-            y_tail_base_trial_tracking_start_to_end[count_1] = y_nan_tail_base[start:start+ trial_lenght[count_1]]
-            count_1 += 1  
-
-count=50
-
-
-for count in np.arange(l):
-    
-    plt.plot(x_nose_trial_tracking_start_to_end[count],y_nose_trial_tracking_start_to_end[count])
-    plt.plot(ball_coordinates[count][0],ball_coordinates[count][1],'o',color='k')    
-    
-    
-for count in np.arange(l):   
-    plt.plot(x_tail_base_trial_tracking_start_to_end[count],y_tail_base_trial_tracking_start_to_end[count])
-    plt.plot(ball_coordinates[count][0],ball_coordinates[count][1],'o',color='k') 
-
-
-image = cv2.imread('F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/Ball_frames/frame00.jpg')
-
-
-
-
-x_nose_centered = [[] for _ in range(l)]
-y_nose_centered = [[] for _ in range(l)]
-x_tail_base_centered = [[] for _ in range(l)]
-y_tail_base_centered = [[] for _ in range(l)]
-    
-for count in np.arange(l):
-
-
-    x_nose_centered[count] = x_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
-    y_nose_centered[count] = y_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
-    x_tail_base_centered[count] = x_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
-    y_tail_base_centered[count] = y_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
-    
-
-
-
-
-for count in np.arange(l):
-    
-    plt.plot(x_nose_centered[count],y_nose_centered[count])
-
+            x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)] 
     
     
-
-
-
-for count in np.arange(l):
+            
+            count_2 = 0
+            
+            for touch in touch_idx:
+                x_nose_trial_tracking_snippets_touch_to_end[count_2] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
+                y_nose_trial_tracking_snippets_touch_to_end[count_2] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
+                x_tail_base_trial_tracking_touch_to_end[count_2] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
+                y_tail_base_trial_tracking_touch_to_end[count_2] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
+                count_2 += 1
+                   
+            
+            
+            f=plt.figure(figsize=(20,10))
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine()
+            for row in np.arange(l):
+                plt.plot(x_nose_trial_tracking_snippets_start_to_touch[row],y_nose_trial_tracking_snippets_start_to_touch[row], '.',color ='#FF7F50', alpha=.1)
+                plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],'.',color = '#ADFF2F', alpha=.1)
+                plt.plot(ball_coordinates[row][0],ball_coordinates[row][1],'o', color ='k') 
+                plt.title('Nose_trial_tracking'+ '_session%d' %count, fontsize = 16)
+            f.tight_layout()
+            f.savefig('F:/test_folder/nose_level_2/'+'_session%d' %count)
+                
     
-    plt.plot(x_tail_base_centered[count],y_tail_base_centered[count])
-    plt.plot(0,0,'o',color='k')
     
+            f1=plt.figure(figsize=(20,10))
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine()
+            for row in np.arange(l):
+                plt.plot(x_tail_base_trial_tracking_start_to_touch[row],y_tail_base_trial_tracking_start_to_touch[row], '.',color = '#FF7F50', alpha=.1)
+                plt.plot(x_tail_base_trial_tracking_touch_to_end[row],y_tail_base_trial_tracking_touch_to_end[row],'.',color = '#ADFF2F', alpha=.1)
+                plt.plot(ball_coordinates[row][0],ball_coordinates[row][1],'o', color ='k') 
+                plt.title('Tail_base_trial_tracking'+ '_session%d' %count, fontsize = 16)
+            f1.tight_layout()
+            f1.savefig('F:/test_folder/tail_level_2/'+'_session%d' %count)
+            
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue   
+   
+
+
+
+
+
+def create_tracking_snippets_start_to_end_trial(sessions_subset,start_snippet_idx=0,end_snippet_idx=1):
+    
+    x = len(sessions_subset)
+    
+    for count in np.arange(x):
+        try:
+        
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            
+            x_nan_nose, y_nan_nose = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
+    
+        
+            l = len(trial_idx)
+            x_nose_trial_tracking_snippets_start_to_end = [[] for _ in range(l)] 
+            y_nose_trial_tracking_snippets_start_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)] 
+       
+
+            trial_lenght_start_to_end = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,end_snippet_idx])
+            start_idx = trial_idx[:,start_snippet_idx]
+                               
+            count_1 = 0
+            
+            for start in start_idx:
+                x_nose_trial_tracking_snippets_start_to_end[count_1] = x_nan_nose[start:start + trial_lenght_start_to_end[count_1]]
+                y_nose_trial_tracking_snippets_start_to_end[count_1] = y_nan_nose[start:start + trial_lenght_start_to_end[count_1]]
+                x_tail_base_trial_tracking_start_to_end[count_1] = x_nan_tail_base[start:start + trial_lenght_start_to_end[count_1]]
+                y_tail_base_trial_tracking_start_to_end[count_1] = y_nan_tail_base[start:start + trial_lenght_start_to_end[count_1]]
+                count_1 += 1
+            
+            
+           
+            f=plt.figure(figsize=(20,10))
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine()
+            for row in np.arange(l):
+                plt.plot(x_nose_trial_tracking_snippets_start_to_end[row],y_nose_trial_tracking_snippets_start_to_end[row], '.',color ='#FF7F50', alpha=.1)
+                plt.title('Nose_trial_tracking'+ '_session%d' %count, fontsize = 16)
+            f.tight_layout()
+            f.savefig('F:/test_folder/nose_level_1/'+'_session%d' %count)
+                
+    
+    
+            f1=plt.figure(figsize=(20,10))
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine()
+            for row in np.arange(l):
+                plt.plot(x_tail_base_trial_tracking_start_to_end[row],y_tail_base_trial_tracking_start_to_end[row], '.',color = '#1E90FF', alpha=.1)
+                plt.title('Tail_base_trial_tracking'+ '_session%d' %count, fontsize = 16)
+            f1.tight_layout()
+            f1.savefig('F:/test_folder/tail_level_1/'+'_session%d' %count)
+            
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue   
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
+        
+
     
     
     

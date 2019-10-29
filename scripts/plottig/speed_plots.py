@@ -139,11 +139,6 @@ centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype
 
 
 
-
-
-
-
-
 figure_name = figure_name = 'RAT_' + rat_ID + '_Speed_Touch_to_reward_Level2.pdf'
 plot_main_title = 'RAT ' + rat_ID + ' Speed_Touch_to_reward_Level2' + 'Level_2'
 
@@ -151,12 +146,6 @@ plot_main_title = 'RAT ' + rat_ID + ' Speed_Touch_to_reward_Level2' + 'Level_2'
 for i, session in enumerate(sessions_subset): 
     try:
         behaviour.full_trial_idx(sessions_subset)
-        
-        
-        
-        
-        
-        
         
         centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
         centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)

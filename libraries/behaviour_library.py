@@ -9,8 +9,8 @@ import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
-import pandas as pd 
-
+import pandas as pd
+import cv2
 
 hardrive_path = r'F:/' 
 
@@ -171,20 +171,20 @@ def calculate_trial_speed_from_ball_touch(sessions_subset):
     return touch_to_reward_speed_seconds
 
 
-
-def timestamp_CSV_to_pandas(filename):
-    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
-    timestamp = timestamp_csv[0]
-    timestamp_Series= pd.to_datetime(timestamp)
-    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
-    return timestamp_Series
-
-def closest_timestamps_to_events(timestamp_list, event_list):
-    nearest  = []
-    for e in event_list:
-        delta_times = timestamp_list-e
-        nearest.append(np.argmin(np.abs(delta_times)))
-    return nearest  
+#
+#def timestamp_CSV_to_pandas(filename):
+#    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
+#    timestamp = timestamp_csv[0]
+#    timestamp_Series= pd.to_datetime(timestamp)
+#    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
+#    return timestamp_Series
+#
+#def closest_timestamps_to_events(timestamp_list, event_list):
+#    nearest  = []
+#    for e in event_list:
+#        delta_times = timestamp_list-e
+#        nearest.append(np.argmin(np.abs(delta_times)))
+#    return nearest  
 
 
 
@@ -216,16 +216,16 @@ def start_touch_end_idx(sessions_subset):
             video_path = os.path.join(hardrive_path, session + '/Video.avi')
             
             
-            start = behaviour.timestamp_CSV_to_pandas(trial_start_path)
-            end = behaviour.timestamp_CSV_to_pandas(trial_end_path)
-            touch = behaviour.timestamp_CSV_to_pandas(touch_path)
+            start = timestamp_CSV_to_pandas(trial_start_path)
+            end = timestamp_CSV_to_pandas(trial_end_path)
+            touch = timestamp_CSV_to_pandas(touch_path)
             
-            video_time = behaviour.timestamp_CSV_to_pandas(video_csv_path)
+            video_time = timestamp_CSV_to_pandas(video_csv_path)
             
             
-            start_closest = behaviour.closest_timestamps_to_events(video_time, start)
-            end_closest = behaviour.closest_timestamps_to_events(video_time, end)
-            touch_closest = behaviour.closest_timestamps_to_events(video_time, touch)
+            start_closest = closest_timestamps_to_events(video_time, start)
+            end_closest = closest_timestamps_to_events(video_time, end)
+            touch_closest = closest_timestamps_to_events(video_time, touch)
             
             if len(start_closest)>len(end_closest):
                 start_closest = start_closest[:-1]
@@ -245,6 +245,51 @@ def start_touch_end_idx(sessions_subset):
         continue
 
 
+def start_end_idx(sessions_subset):
+            
+    for session in sessions_subset:
+        start_idx = []
+        end_idx = []
+        
+        try:
+           
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            csv_path = 'Trial_idx.csv'
+
+
+            trial_end_path = os.path.join(hardrive_path, session + '/events/' + 'TrialEnd.csv')
+            trial_start_path = os.path.join(hardrive_path, session + '/events/' + 'TrialStart.csv')
+            
+            video_csv_path = os.path.join(hardrive_path, session + '/Video.csv')
+            video_path = os.path.join(hardrive_path, session + '/Video.avi')
+            
+            
+            start = timestamp_CSV_to_pandas(trial_start_path)
+            end = timestamp_CSV_to_pandas(trial_end_path)
+
+            
+            video_time = timestamp_CSV_to_pandas(video_csv_path)
+            
+            
+            start_closest = closest_timestamps_to_events(video_time, start)
+            end_closest = closest_timestamps_to_events(video_time, end)
+            
+            if len(start_closest)>len(end_closest):
+                start_closest = start_closest[:-1]
+
+                                    
+            
+            start_idx.append(start_closest)
+            end_idx.append(end_closest)
+
+            
+            
+            np.savetxt(csv_dir_path + csv_path, np.vstack((start_idx,end_idx)).T,delimiter=',', fmt='%s')
+
+        except Exception: 
+            print('error'+ session)
+        continue
 
 
 #############################################################################
@@ -391,26 +436,26 @@ def speed_around_touch(sessions_subset,sessions_speed):
                         
                         
                         
-                        
-movie_file = 'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Video.avi'
-
-target_dir= 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames'
-
-
-def frame_before_trials(target_dir,filename,cleaned_idx):
-    video=cv2.VideoCapture(filename)
-    success, image=video.read()
-    success=True
-    count = 0
-    for i in cleaned_idx:
-        video.set(cv2.CAP_PROP_POS_FRAMES, i)
-        success, image = video.read()
-        if count < 10:
-            cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
-        else:
-            cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
-        count += 1
-    return image
+#                        
+#movie_file = 'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Video.avi'
+#
+#target_dir= 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames'
+#
+#
+#def frame_before_trials(target_dir,filename,cleaned_idx):
+#    video=cv2.VideoCapture(filename)
+#    success, image=video.read()
+#    success=True
+#    count = 0
+#    for i in cleaned_idx:
+#        video.set(cv2.CAP_PROP_POS_FRAMES, i)
+#        success, image = video.read()
+#        if count < 10:
+#            cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
+#        else:
+#            cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
+#        count += 1
+#    return image
 
           
 
@@ -584,12 +629,12 @@ def frame_before_trials(target_dir,filename,cleaned_idx):
 #
 #
 
-def timestamp_CSV_to_pandas(filename):
-    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
-    timestamp = timestamp_csv[0]
-    timestamp_Series= pd.to_datetime(timestamp)
-    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
-    return timestamp_Series
+#def timestamp_CSV_to_pandas(filename):
+#    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
+#    timestamp = timestamp_csv[0]
+#    timestamp_Series= pd.to_datetime(timestamp)
+#    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
+#    return timestamp_Series
 #
 #      
 #def closest_timestamps_to_events(timestamp_list, event_list):
