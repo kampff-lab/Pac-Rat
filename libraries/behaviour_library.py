@@ -11,6 +11,7 @@ os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import pandas as pd
 import cv2
+import math
 
 hardrive_path = r'F:/' 
 
@@ -533,6 +534,130 @@ def frame_before_trials(target_dir,filename,cleaned_idx):
             cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
         count += 1
     return image 
+
+
+
+
+
+######################new####################
+
+ball_coordinates='F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
+#vector from poke to ball centroid
+def orientation_poke_ball(ball_coordinates):
+    ball_position  = np.genfromtxt(ball_coordinates, delimiter = ',', dtype = float)
+    #count=0
+    poke_ball_orientation=[]
+    shape=len(ball_position)
+    poke=np.array([[1400,959]])    # poke position in a 664-350 frames
+    poke_coordinates=np.repeat(poke, [shape], axis=0)
+    diff=ball_position-poke_coordinates
+    for i in diff:
+        poke_ball_orientation.append(math.degrees(math.atan2(i[0], -i[1])))
+    #count += 1
+    return poke_ball_orientation
+
+
+
+
+
+
+def furthest_estremes(body_file,tail_file):
+    extremes_list_A = np.genfromtxt(body_file, dtype=float)
+    extremes_list_B = np.genfromtxt(tail_file, dtype=float)
+    count=0
+    shape=len(extremes_list_A)
+    nose=np.zeros((shape,2),dtype=float)
+    back=np.zeros((shape,2),dtype=float)
+    for i,e in list(zip(extremes_list_A,extremes_list_B)):
+        if any(np.isnan(i)) or any(np.isnan(e)):
+            nose[count,:]=np.nan
+            back[count,:]=np.nan
+        else:
+            dist1 = distance.euclidean(i[:2],e[:2]) + distance.euclidean(i[:2],e[2:])
+            dist2 = distance.euclidean(i[2:],e[:2]) + distance.euclidean(i[2:],e[2:])
+            if dist1> dist2:
+                furthest_extreme = i[:2]
+                back_extreme =i[2:]  
+            else:
+                furthest_extreme = i[2:]
+                back_extreme=i[:2]
+            nose[count,:]=furthest_extreme
+            back[count,:]=back_extreme
+        count += 1
+    return nose, back
+
+#vector from back to nose of the rat
+def orientation_body(nose,back):
+    #count=0
+    body_orientation=[]
+    body_diff=nose-back
+    for i in body_diff:
+        body_orientation.append(degrees(atan2(i[0], -i[1])))
+    #count += 1
+    return body_orientation
+
+
+
+
+#dor product  
+def dot(vA, vB):
+    return vA[0]*vB[0]+vA[1]*vB[1]
+
+
+#it doesnt matter if I use diff or nose_trajectory as input of the fx
+    
+def angle(nose_trajectories,shape,ball_coordinates):
+    trajectory_angle=[]
+    trajectory_angle_radians=[]
+    #nose_trajectory_int=nose_trajectory.astype(int)
+    for i in range(shape):
+        #select the xy position to get the angle: 99 correspond to the 
+        #start_closest while 0 the start of the trajectory and -1 the last 
+        #point of the trajectory(these parameters will need to change according to 
+        #the lenght of the trajectory and number of frames before and after the start_closest
+        #lineA=((ball[i]/2),(nose_trajectories[i,69,:]))
+        #lineB=((ball[i]/2),([332, 350]))
+        #129 corresponds to 1sec before the touch of the ball which is at frame 249 (tot lenght 499, 250before touch and 250
+        #after, 332 and 350 it is the position of the poke port in IR space which is half of the color one, in fact the ball coordinates
+        #need to be divioded by 2 so that all the parameteres will be referred to the Ir movie)
+        lineA=((nose_trajectories[i,129,:]),(ball_coordinates[i]))
+        lineB=(([332, 340]),(ball_coordinates[i]))
+        #lineA=((diff[i,129,:]), ball       
+        #lineB=(ball,([332, 350])
+        # Get nicer vector form
+        vA = [(lineA[0][0]-lineA[1][0]), (lineA[0][1]-lineA[1][1])]
+        vB = [(lineB[0][0]-lineB[1][0]), (lineB[0][1]-lineB[1][1])]
+        # Get dot prod
+        dot_prod = dot(vA, vB)
+        # Get magnitudes
+        magA = dot(vA, vA)**0.5
+        magB = dot(vB, vB)**0.5
+        # Get cosine value
+        # cos_ = dot_prod/magA/magB
+        # Get angle in radians and then convert to degrees
+        angle = math.acos(dot_prod/magB/magA)
+        trajectory_angle_radians.append(angle)
+        # Basically doing angle <- angle mod 360
+        ang_deg = math.degrees(angle)%360
+        if ang_deg-180>=0:
+            trajectory_angle.append(360 - ang_deg)  
+        else: 
+            trajectory_angle.append(ang_deg)
+    return trajectory_angle,trajectory_angle_radians
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

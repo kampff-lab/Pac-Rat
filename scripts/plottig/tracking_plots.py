@@ -430,20 +430,40 @@ def create_tracking_snippets_start_to_end_trial(sessions_subset,start_snippet_id
 
 
 
+#create plot centered to ball
 
 
 
 
+#x_nose_centered = [[] for _ in range(l)]
+#y_nose_centered = [[] for _ in range(l)]
+#x_tail_base_centered = [[] for _ in range(l)]
+#y_tail_base_centered = [[] for _ in range(l)]
+#    
+#for count in np.arange(l):
+#
+#
+#    x_nose_centered[count] = x_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+#    y_nose_centered[count] = y_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+#    x_tail_base_centered[count] = x_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+#    y_tail_base_centered[count] = y_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+#    
 
 
 
-
-
-
-
-     
-        
-
+#
+#for count in np.arange(l):
+#    
+#    plt.plot(x_nose_centered[count],y_nose_centered[count])
+#
+#
+#
+#
+#for count in np.arange(l):
+#    
+#    plt.plot(x_tail_base_centered[count],y_tail_base_centered[count])
+#    plt.plot(0,0,'o',color='k')
+#    
     
     
     
