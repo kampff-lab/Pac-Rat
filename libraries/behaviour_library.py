@@ -537,7 +537,35 @@ def frame_before_trials(target_dir,filename,cleaned_idx):
 
 
 
-
+def ball_positions_based_on_quadrant_of_appearance(session):
+      
+    ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
+    ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
+    
+    quadrant_1 = []
+    quadrant_2 = []
+    quadrant_3 = []
+    quadrant_4 = []
+       
+    for n, row in enumerate(ball_coordinates):
+        try:
+            if row[0] <= 800 and row[1]>=600:
+                quadrant_1.append(n)
+            elif row[0] >= 800 and row[1]>=600:
+                quadrant_2.append(n)
+            elif row[0] <= 800 and row[1]<=600:
+                quadrant_3.append(n)
+            else:
+                quadrant_4.append(n)
+                  
+        
+        except Exception: 
+            print (session + '/error')
+            continue 
+    
+    
+    return quadrant_1,quadrant_2,quadrant_3,quadrant_4
+    
 
 ######################new####################
 
