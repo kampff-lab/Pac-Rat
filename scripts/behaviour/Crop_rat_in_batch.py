@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_2_pre[5:]
+session_list = Level_1
 
 for session in session_list:
     video_path = os.path.join(hardrive_path, session +'/Video.avi')
