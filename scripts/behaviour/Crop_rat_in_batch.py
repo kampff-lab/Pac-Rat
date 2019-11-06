@@ -19,7 +19,7 @@ import parser_library as prs
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path ='F:/Videogame_Assay/AK_31.1_Pt.csv'
+rat_summary_table_path ='F:/Videogame_Assay/AK_46.1_behaviour_only.csv'
 
 
 
@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_1
+session_list = Level_0
 
 for session in session_list:
     video_path = os.path.join(hardrive_path, session +'/Video.avi')

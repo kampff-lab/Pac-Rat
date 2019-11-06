@@ -587,8 +587,6 @@ def orientation_poke_ball(ball_coordinates):
 
 
 
-
-
 def furthest_estremes(body_file,tail_file):
     extremes_list_A = np.genfromtxt(body_file, dtype=float)
     extremes_list_B = np.genfromtxt(tail_file, dtype=float)
@@ -614,13 +612,48 @@ def furthest_estremes(body_file,tail_file):
         count += 1
     return nose, back
 
+
+
+
+first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base
+
+def nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base):
+    
+    for count in np.arange(sessions_subset):
+        
+        deltax = first_values_x_nose[count] - first_values_x_tail_base[count]
+        deltay =  first_values_y_nose[count] - first_values_y_tail_base[count]
+    
+        shape = len(deltax)
+        degrees= np.zeros((shape,),dtype=float)
+        
+        for i in np.arange(shape):
+            degrees_temp = math.degrees(math.atan2(deltax[i], -deltay[i])) #/math.pi*180 or math.degrees to change from radians to degrees
+            if degrees_temp < 0:
+                degrees_final = 360 + degrees_temp
+                degrees[i]= degrees_final
+            else:
+                degrees_final = degrees_temp
+                degrees[i]= degrees_final
+        
+            
+            
+            
+
+
+
+
+
+
+frame_before_trials('C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test',r'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Video.avi',cleaned_idx)
+
 #vector from back to nose of the rat
 def orientation_body(nose,back):
     #count=0
     body_orientation=[]
     body_diff=nose-back
     for i in body_diff:
-        body_orientation.append(degrees(atan2(i[0], -i[1])))
+        body_orientation.append(math.degrees(math.atan2(i[0], -i[1])))
     #count += 1
     return body_orientation
 

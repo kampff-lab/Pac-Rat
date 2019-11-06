@@ -252,7 +252,8 @@ f4.savefig(results_dir + figure_name4, transparent=True)
 
 #snippets idx:  trial start = 0  / trial end = 1 / ball touch = 2
 
-
+        
+#used for Level 2      
 def create_and_save_tracking_snippets_start_to_touch(sessions_subset,start_snippet_idx=0,touch_snippet_idx=2):
     hardrive_path = r'F:/' 
     sessions_lenght = len(sessions_subset)
@@ -288,8 +289,8 @@ def create_and_save_tracking_snippets_start_to_touch(sessions_subset,start_snipp
             
             x_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
             y_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
-            x_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
        
 
             trial_lenght_start_to_touch = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,touch_snippet_idx])
@@ -300,122 +301,40 @@ def create_and_save_tracking_snippets_start_to_touch(sessions_subset,start_snipp
             for start in start_idx:
                 x_nose_trial_tracking_snippets_start_to_touch[count_1] = x_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
                 y_nose_trial_tracking_snippets_start_to_touch[count_1] = y_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                x_tail_base_trial_tracking_start_to_touch[count_1] = x_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                y_tail_base_trial_tracking_start_to_touch[count_1] = y_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
+                x_tail_base_trial_tracking_snippets_start_to_touch[count_1] = x_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
+                y_tail_base_trial_tracking_snippets_start_to_touch[count_1] = y_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
                 count_1 += 1
             
             #create a zeros array with rows= number of trial and column = max trial lenght
             x_nose_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(x_nose_trial_tracking_snippets_start_to_touch),len(max(x_nose_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
+            x_nose_trial_tracking_snippets_start_to_touch_padded.fill(np.nan)
             
             for i,j in enumerate(x_nose_trial_tracking_snippets_start_to_touch):
                 x_nose_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
                 
             y_nose_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(y_nose_trial_tracking_snippets_start_to_touch),len(max(y_nose_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
+            y_nose_trial_tracking_snippets_start_to_touch_padded.fill(np.nan)
             
             for i,j in enumerate(y_nose_trial_tracking_snippets_start_to_touch):
                 y_nose_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
                 
-            x_tail_base_trial_tracking_start_to_touch_padded = np.zeros([len(x_tail_base_trial_tracking_start_to_touch),len(max(x_tail_base_trial_tracking_start_to_touch,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(x_tail_base_trial_tracking_snippets_start_to_touch),len(max(x_tail_base_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_start_to_touch_padded.fill(np.nan)
             
-            for i,j in enumerate(x_tail_base_trial_tracking_start_to_touch):
-                x_tail_base_trial_tracking_start_to_touch_padded[i][0:len(j)] = j
+            for i,j in enumerate(x_tail_base_trial_tracking_snippets_start_to_touch):
+                x_tail_base_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
                 
-            y_tail_base_trial_tracking_start_to_touch_padded = np.zeros([len(y_tail_base_trial_tracking_start_to_touch),len(max(y_tail_base_trial_tracking_start_to_touch,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(y_tail_base_trial_tracking_snippets_start_to_touch),len(max(y_tail_base_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_start_to_touch_padded.fill(np.nan)
             
-            for i,j in enumerate(y_tail_base_trial_tracking_start_to_touch):
-                y_tail_base_trial_tracking_start_to_touch_padded[i][0:len(j)] = j
+            for i,j in enumerate(y_tail_base_trial_snippets_tracking_start_to_touch):
+                y_tail_base_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
             
             
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_nose, x_nose_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_nose, y_nose_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_start_to_touch_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_start_to_touch_padded, delimiter=',', fmt='%s')
-                        
-            print(count)        
-        
-        except Exception: 
-            print (session + '/error')
-            continue  
-        
-        
-        
-def create_and_save_tracking_snippets_start_to_touch(sessions_subset,start_snippet_idx=0,touch_snippet_idx=2):
-    hardrive_path = r'F:/' 
-    sessions_lenght = len(sessions_subset)
-    
-    for count in np.arange(sessions_lenght):
-        try:
-            
-            #files of interest paths
-            session = sessions_subset[count]                
-            script_dir = os.path.join(hardrive_path + session) 
-            csv_dir_path = os.path.join(script_dir + '/events/')
-            trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
-            DLC_corrected_coordinates_folder_path = os.path.join(script_dir + '/DLC_corrected_coordinates/' )
-            nose_DLC_corrected_coordinates_path = os.path.join(DLC_corrected_coordinates_folder_path + 'nose_corrected_coordinates.csv')
-            tail_base_DLC_corrected_coordinates_path = os.path.join(DLC_corrected_coordinates_folder_path + 'tail_base_corrected_coordinates.csv')
-            csv_x_nose = 'x_nose_snippets_start_to_touch.csv'
-            csv_y_nose = 'y_nose_snippets_start_to_touch.csv'
-            csv_x_tail_base = 'x_tail_base_snippets_start_to_touch.csv'
-            csv_y_tail_base = 'y_tail_base_snippets_start_to_touch.csv'
-            
-            
-            #opening files
-            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)  
-              
-            x_nose_DLC_corrected_coordinates = np.genfromtxt(nose_DLC_corrected_coordinates_path, delimiter = ',', dtype = float, usecols= 0)
-            y_nose_DLC_corrected_coordinates = np.genfromtxt(nose_DLC_corrected_coordinates_path, delimiter = ',', dtype = float, usecols= 1)
-            
-            x_tail_base_DLC_corrected_coordinates =  np.genfromtxt(tail_base_DLC_corrected_coordinates_path, delimiter = ',', dtype = float, usecols= 0)
-            y_tail_base_DLC_corrected_coordinates =  np.genfromtxt(tail_base_DLC_corrected_coordinates_path, delimiter = ',', dtype = float, usecols= 1)
-            
-            
-            l = len(trial_idx)
-            
-            x_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
-            y_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
-            x_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_start_to_touch = [[] for _ in range(l)] 
-       
-
-            trial_lenght_start_to_touch = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,touch_snippet_idx])
-            start_idx = trial_idx[:,start_snippet_idx]
-                               
-            count_1 = 0
-            
-            for start in start_idx:
-                x_nose_trial_tracking_snippets_start_to_touch[count_1] = x_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                y_nose_trial_tracking_snippets_start_to_touch[count_1] = y_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                x_tail_base_trial_tracking_start_to_touch[count_1] = x_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                y_tail_base_trial_tracking_start_to_touch[count_1] = y_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_touch[count_1]]
-                count_1 += 1
-            
-            #create a zeros array with rows= number of trial and column = max trial lenght
-            x_nose_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(x_nose_trial_tracking_snippets_start_to_touch),len(max(x_nose_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
-            
-            for i,j in enumerate(x_nose_trial_tracking_snippets_start_to_touch):
-                x_nose_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
-                
-            y_nose_trial_tracking_snippets_start_to_touch_padded = np.zeros([len(y_nose_trial_tracking_snippets_start_to_touch),len(max(y_nose_trial_tracking_snippets_start_to_touch,key = lambda x: len(x)))])
-            
-            for i,j in enumerate(y_nose_trial_tracking_snippets_start_to_touch):
-                y_nose_trial_tracking_snippets_start_to_touch_padded[i][0:len(j)] = j
-                
-            x_tail_base_trial_tracking_start_to_touch_padded = np.zeros([len(x_tail_base_trial_tracking_start_to_touch),len(max(x_tail_base_trial_tracking_start_to_touch,key = lambda x: len(x)))])
-            
-            for i,j in enumerate(x_tail_base_trial_tracking_start_to_touch):
-                x_tail_base_trial_tracking_start_to_touch_padded[i][0:len(j)] = j
-                
-            y_tail_base_trial_tracking_start_to_touch_padded = np.zeros([len(y_tail_base_trial_tracking_start_to_touch),len(max(y_tail_base_trial_tracking_start_to_touch,key = lambda x: len(x)))])
-            
-            for i,j in enumerate(y_tail_base_trial_tracking_start_to_touch):
-                y_tail_base_trial_tracking_start_to_touch_padded[i][0:len(j)] = j
-            
-            
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_nose, x_nose_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_nose, y_nose_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_start_to_touch_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_start_to_touch_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_snippets_start_to_touch_padded, delimiter=',', fmt='%s')
                         
             print(count)        
         
@@ -428,7 +347,8 @@ def create_and_save_tracking_snippets_start_to_touch(sessions_subset,start_snipp
 
 
 
-
+#used for Level 2
+            
 def create_and_save_tracking_snippets_touch_to_end(sessions_subset,end_snippet_idx=1,touch_snippet_idx=2):
     
     hardrive_path = r'F:/' 
@@ -465,8 +385,8 @@ def create_and_save_tracking_snippets_touch_to_end(sessions_subset,end_snippet_i
             
             x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
             y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
-            x_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
        
 
             trial_lenght_touch_to_end = abs(trial_idx[:,touch_snippet_idx] - trial_idx[:,end_snippet_idx])
@@ -477,43 +397,51 @@ def create_and_save_tracking_snippets_touch_to_end(sessions_subset,end_snippet_i
             for touch in touch_idx:
                 x_nose_trial_tracking_snippets_touch_to_end[count_1] = x_nose_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
                 y_nose_trial_tracking_snippets_touch_to_end[count_1] = y_nose_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
-                x_tail_base_trial_tracking_touch_to_end[count_1] = x_tail_base_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
-                y_tail_base_trial_tracking_touch_to_end[count_1] = y_tail_base_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
+                x_tail_base_trial_tracking_snippets_touch_to_end[count_1] = x_tail_base_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
+                y_tail_base_trial_tracking_snippets_touch_to_end[count_1] = y_tail_base_DLC_corrected_coordinates[touch:touch + trial_lenght_touch_to_end[count_1]]
                 count_1 += 1
             
             
-            #create a zeros array with rows= number of trial and column = max trial lenght
+            #create a zeros array with rows = number of trial and column = max trial lenght
             x_nose_trial_tracking_snippets_touch_to_end_padded = np.zeros([len(x_nose_trial_tracking_snippets_touch_to_end),len(max(x_nose_trial_tracking_snippets_touch_to_end,key = lambda x: len(x)))])
+            x_nose_trial_tracking_snippets_touch_to_end_padded.fill(np.nan)
             
             for i,j in enumerate(x_nose_trial_tracking_snippets_touch_to_end):
                 x_nose_trial_tracking_snippets_touch_to_end_padded[i][0:len(j)] = j
                 
             y_nose_trial_tracking_snippets_touch_to_end_padded = np.zeros([len(y_nose_trial_tracking_snippets_touch_to_end),len(max(y_nose_trial_tracking_snippets_touch_to_end,key = lambda x: len(x)))])
+            y_nose_trial_tracking_snippets_touch_to_end_padded.fill(np.nan)
             
             for i,j in enumerate(y_nose_trial_tracking_snippets_touch_to_end):
                 y_nose_trial_tracking_snippets_touch_to_end_padded[i][0:len(j)] = j
                 
-            x_tail_base_trial_tracking_touch_to_end_padded = np.zeros([len(x_tail_base_trial_tracking_touch_to_end),len(max(x_tail_base_trial_tracking_touch_to_end,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_touch_to_end_padded = np.zeros([len(x_tail_base_trial_tracking_snippets_touch_to_end),len(max(x_tail_base_trial_tracking_snippets_touch_to_end,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_touch_to_end_padded.fill(np.nan)
             
-            for i,j in enumerate(x_tail_base_trial_tracking_touch_to_end):
-                x_tail_base_trial_tracking_touch_to_end_padded[i][0:len(j)] = j
+            for i,j in enumerate(x_tail_base_trial_tracking_snippets_touch_to_end):
+                x_tail_base_trial_tracking_snippets_touch_to_end_padded[i][0:len(j)] = j
                 
-            y_tail_base_trial_tracking_touch_to_end_padded = np.zeros([len(y_tail_base_trial_tracking_touch_to_end),len(max(y_tail_base_trial_tracking_touch_to_end,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_touch_to_end_padded = np.zeros([len(y_tail_base_trial_tracking_snippets_touch_to_end),len(max(y_tail_base_trial_tracking_snippets_touch_to_end,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_touch_to_end_padded.fill(np.nan)
             
-            for i,j in enumerate(y_tail_base_trial_tracking_touch_to_end):
-                y_tail_base_trial_tracking_touch_to_end_padded[i][0:len(j)] = j
+            for i,j in enumerate(y_tail_base_trial_tracking_snippets_touch_to_end):
+                y_tail_base_trial_tracking_snippets_touch_to_end_padded[i][0:len(j)] = j
             
             
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_nose, x_nose_trial_tracking_snippets_touch_to_end_padded, delimiter=',', fmt='%s')
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_nose, y_nose_trial_tracking_snippets_touch_to_end_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_touch_to_end_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_touch_to_end_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_snippets_touch_to_end_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_snippets_touch_to_end_padded, delimiter=',', fmt='%s')
                         
             print(count)        
         
         except Exception: 
             print (session + '/error')
             continue  
+
+
+
+#thi scan br use for Level 1 and Level 2
           
 def create_and_save_tracking_snippets_start_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1):
     
@@ -552,8 +480,8 @@ def create_and_save_tracking_snippets_start_to_end(sessions_subset,start_snippet
             
             x_nose_trial_tracking_snippets_start_to_end = [[] for _ in range(l)] 
             y_nose_trial_tracking_snippets_start_to_end = [[] for _ in range(l)] 
-            x_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_start_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_snippets_start_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_snippets_start_to_end = [[] for _ in range(l)] 
        
 
             trial_lenght_start_to_end = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,end_snippet_idx])
@@ -564,117 +492,49 @@ def create_and_save_tracking_snippets_start_to_end(sessions_subset,start_snippet
             for start in start_idx:
                 x_nose_trial_tracking_snippets_start_to_end[count_1] = x_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
                 y_nose_trial_tracking_snippets_start_to_end[count_1] = y_nose_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
-                x_tail_base_trial_tracking_start_to_end[count_1] = x_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
-                y_tail_base_trial_tracking_start_to_end[count_1] = y_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
+                x_tail_base_trial_tracking_snippets_start_to_end[count_1] = x_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
+                y_tail_base_trial_tracking_snippets_start_to_end[count_1] = y_tail_base_DLC_corrected_coordinates[start:start + trial_lenght_start_to_end[count_1]]
                 count_1 += 1
             
             #create a zeros array with rows= number of trial and column = max trial lenght
             x_nose_trial_tracking_snippets_start_to_end_padded = np.zeros([len(x_nose_trial_tracking_snippets_start_to_end),len(max(x_nose_trial_tracking_snippets_start_to_end,key = lambda x: len(x)))])
+            x_nose_trial_tracking_snippets_start_to_end_padded.fill(np.nan)
             
             for i,j in enumerate(x_nose_trial_tracking_snippets_start_to_end):
                 x_nose_trial_tracking_snippets_start_to_end_padded[i][0:len(j)] = j
                 
             y_nose_trial_tracking_snippets_start_to_end_padded = np.zeros([len(y_nose_trial_tracking_snippets_start_to_end),len(max(y_nose_trial_tracking_snippets_start_to_end,key = lambda x: len(x)))])
+            y_nose_trial_tracking_snippets_start_to_end_padded.fill(np.nan)
             
             for i,j in enumerate(y_nose_trial_tracking_snippets_start_to_end):
                 y_nose_trial_tracking_snippets_start_to_end_padded[i][0:len(j)] = j
                 
-            x_tail_base_trial_tracking_start_to_end_padded = np.zeros([len(x_tail_base_trial_tracking_start_to_end),len(max(x_tail_base_trial_tracking_start_to_end,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_start_to_end_padded = np.zeros([len(x_tail_base_trial_tracking_snippets_start_to_end),len(max(x_tail_base_trial_tracking_snippets_start_to_end,key = lambda x: len(x)))])
+            x_tail_base_trial_tracking_snippets_start_to_end_padded.fill(np.nan)
             
-            for i,j in enumerate(x_tail_base_trial_tracking_start_to_end):
-                x_tail_base_trial_tracking_start_to_end_padded[i][0:len(j)] = j
+            for i,j in enumerate(x_tail_base_trial_tracking_snippets_start_to_end):
+                x_tail_base_trial_tracking_snippets_start_to_end_padded[i][0:len(j)] = j
                 
-            y_tail_base_trial_tracking_start_to_end_padded = np.zeros([len(y_tail_base_trial_tracking_start_to_end),len(max(y_tail_base_trial_tracking_start_to_end,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_start_to_end_padded = np.zeros([len(y_tail_base_trial_tracking_snippets_start_to_end),len(max(y_tail_base_trial_tracking_snippets_start_to_end,key = lambda x: len(x)))])
+            y_tail_base_trial_tracking_snippets_start_to_end_padded.fill(np.nan)
             
-            for i,j in enumerate(y_tail_base_trial_tracking_start_to_end):
-                y_tail_base_trial_tracking_start_to_end_padded[i][0:len(j)] = j
+            for i,j in enumerate(y_tail_base_trial_tracking_snippets_start_to_end):
+                y_tail_base_trial_tracking_snippets_start_to_end_padded[i][0:len(j)] = j
             
             
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_nose, x_nose_trial_tracking_snippets_start_to_end_padded, delimiter=',', fmt='%s')
             np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_nose, y_nose_trial_tracking_snippets_start_to_end_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_start_to_end_padded, delimiter=',', fmt='%s')
-            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_start_to_end_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_x_tail_base, x_tail_base_trial_tracking_snippets_start_to_end_padded, delimiter=',', fmt='%s')
+            np.savetxt(DLC_corrected_coordinates_folder_path + csv_y_tail_base, y_tail_base_trial_tracking_snippets_start_to_end_padded, delimiter=',', fmt='%s')
                         
             print(count)        
         
         except Exception: 
             print (session + '/error')
-            continue  
-          
-a=x_nose_trial_tracking_snippets_start_to_touch
-#a = [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
-import numpy as np
-b = np.zeros([len(a),len(max(a,key = lambda x: len(x)))])
-for i,j in enumerate(a):
-    b[i][0:len(j)] = j
+            continue
 
 
-    Level_1_6000 = prs.Level_1_paths_6000_3000(rat)
-    total_trials, session_length = behaviour.calculate_trial_per_min(Level_1_6000)
-    trials_per_minutes_L_1 = np.array(total_trials)/np.array(session_length)
-    
-    if len(trials_per_minutes_L_1) == 5:
-        rat_trial_min_Level_1[count,]=trials_per_minutes_L_1
-    else:
-        npad = 5 - len(trials_per_minutes_L_1)
-        trials_per_minutes_L_1_padded = np.pad(trials_per_minutes_L_1, pad_width=(0, npad), mode='constant')
-        rat_trial_min_Level_1[count,] = trials_per_minutes_L_1_padded
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-            trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
-            touch_idx = trial_idx[:,mid_snippet_idx]        
-            
-    
-            x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
-            y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
-            x_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)] 
-    
-    
-            
-            count_2 = 0
-            
-            for touch in touch_idx:
-                x_nose_trial_tracking_snippets_touch_to_end[count_2] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
-                y_nose_trial_tracking_snippets_touch_to_end[count_2] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
-                x_tail_base_trial_tracking_touch_to_end[count_2] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
-                y_tail_base_trial_tracking_touch_to_end[count_2] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
-                count_2 += 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#plotting
 
 def create_tracking_snippets_start_to_touch_and_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
     
@@ -724,9 +584,7 @@ def create_tracking_snippets_start_to_touch_and_touch_to_end(sessions_subset,sta
             x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
             y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
             x_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)]
-            y_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)] 
-    
-    
+            y_tail_base_trial_tracking_touch_to_end = [[] for _ in range(l)]    
             
             count_2 = 0
             
@@ -816,8 +674,7 @@ def create_tracking_snippets_start_to_end_trial(sessions_subset,start_snippet_id
                 x_tail_base_trial_tracking_start_to_end[count_1] = x_nan_tail_base[start:start + trial_lenght_start_to_end[count_1]]
                 y_tail_base_trial_tracking_start_to_end[count_1] = y_nan_tail_base[start:start + trial_lenght_start_to_end[count_1]]
                 count_1 += 1
-            
-            
+                      
            
             f=plt.figure(figsize=(20,10))
             sns.set()
@@ -892,24 +749,8 @@ def create_colorcoded_snippets_start_to_touch_and_touch_to_end(sessions_subset,s
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
             ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
             
-            x_nan_nose, y_nan_nose = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
-            x_nan_tail_base, y_nan_tail_base = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
-    
-        
-            l = len(ball_coordinates)
-            x_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
-            y_nose_trial_tracking_snippets_start_to_touch = [[] for _ in range(l)] 
-       
-            trial_lenght_start_to_touch = abs(trial_idx[:,start_snippet_idx] - trial_idx[:,mid_snippet_idx])
-            start_idx = trial_idx[:,start_snippet_idx]
-                               
-            count_1 = 0
-            
-            for start in start_idx:
-                x_nose_trial_tracking_snippets_start_to_touch[count_1] = x_nan_nose[start:start + trial_lenght_start_to_touch[count_1]]
-                y_nose_trial_tracking_snippets_start_to_touch[count_1] = y_nan_nose[start:start + trial_lenght_start_to_touch[count_1]]
-                count_1 += 1
-            
+            x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
             
             trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
             touch_idx = trial_idx[:,mid_snippet_idx]        
@@ -983,7 +824,120 @@ def create_colorcoded_snippets_start_to_touch_and_touch_to_end(sessions_subset,s
             continue
  
     
+def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
     
+    x = len(sessions_subset)
+    first_values_x_nose=[[] for _ in range(x)]
+    first_values_y_nose=[[] for _ in range(x)]
+    first_values_x_tail_base=[[] for _ in range(x)]
+    first_values_y_tail_base=[[] for _ in range(x)]
+    
+    
+    
+    for count in np.arange(x):
+        try:
+        
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
+            
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
+            
+            x_nan_nose, y_nan_nose = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
+            
+            trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
+            touch_idx = trial_idx[:,mid_snippet_idx]        
+            
+            l=len(touch_idx)
+    
+            x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)]
+            
+
+            
+            for c,touch in enumerate(touch_idx):
+                x_nose_trial_tracking_snippets_touch_to_end[c] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
+                y_nose_trial_tracking_snippets_touch_to_end[c] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
+                x_tail_base_trial_tracking_snippets_touch_to_end[c] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
+                y_tail_base_trial_tracking_snippets_touch_to_end[c] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
+
+
+
+            first_x_value_nose=np.zeros((len(x_nose_trial_tracking_snippets_touch_to_end),),dtype=float)
+            first_y_value_nose=np.zeros((len(x_nose_trial_tracking_snippets_touch_to_end),),dtype=float)
+            first_x_value_tail_base=np.zeros((len(x_nose_trial_tracking_snippets_touch_to_end),),dtype=float)
+            first_y_value_tail_base=np.zeros((len(x_nose_trial_tracking_snippets_touch_to_end),),dtype=float)
+            
+
+            for value in np.arange(len(x_nose_trial_tracking_snippets_touch_to_end)):
+                
+                first_x_value_nose[value]= next((x for x in x_nose_trial_tracking_snippets_touch_to_end[value] if not isnan(x)),0)
+                first_y_value_nose[value]= next((x for x in y_nose_trial_tracking_snippets_touch_to_end[value] if not isnan(x)),0)
+                first_x_value_tail_base[value]= next((x for x in x_tail_base_trial_tracking_snippets_touch_to_end[value] if not isnan(x)),0)
+                first_y_value_tail_base[value]= next((x for x in y_tail_base_trial_tracking_snippets_touch_to_end[value] if not isnan(x)),0)
+ 
+               
+                first_values_x_nose[count]=first_x_value_nose
+                first_values_y_nose[count]=first_y_value_nose
+                first_values_x_tail_base[count]=first_x_value_tail_base
+                first_values_y_tail_base[count]=  first_x_value_tail_base
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue
+     
+    return first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base
+
+            
+            
+    
+
+
+
+                
+                
+ =next(x for x in x_nose_trial_tracking_snippets_touch_to_end[value][0] if not isnan(x))               
+                
+>>> from math import isnan
+
+
+       next(x for x in test if not isnan(x))     
+       
+            l=len(idx_meeting_criteria)
+            left_out = len(left_out_trials)
+            f=plt.figure(figsize=(20,10)) 
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine()
+            #colors = plt.cm.jet(np.linspace(0,1,l))
+        
+            for row in np.arange(l):  
+                plt.plot(x_nose_meeting_criteria[row],y_nose_meeting_criteria[row],color = 'r', alpha=.5)
+                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
+            for left in np.arange(left_out):     
+                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
+                plt.plot(left_out_x_nose[left],left_out_y_nose[left],color = 'b', alpha=.5)
+                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k') 
+                plt.title('Nose_subset'+ '_session%d' %count, fontsize = 16)
+            f.tight_layout()
+            f.savefig('F:/test_folder/nose_level_2/'+'_session%d' %count)
+
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue
+     
     
 script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + rat_ID)
 #create a folder where to store the plots 
