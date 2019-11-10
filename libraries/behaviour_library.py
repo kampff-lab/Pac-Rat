@@ -41,26 +41,66 @@ def closest_timestamps_to_events(timestamp_list, event_list):
 
 
 
-
-
-
 #given a session it finds the file called TrialEnd.csv which contains the timestamp
 #of each trial together with the outcome of that trial (Food or Missed), and 
 #it returns the list of reward and misses trial by searching the string in column one  
 
 def trial_outcome_index(session):
     trial_end_path = os.path.join(hardrive_path, session +'/events/'+'TrialEnd.csv')
-    RewardOutcome_file=np.genfromtxt(trial_end_path, usecols=[1], dtype= str)
+    reward_outcome_file = np.genfromtxt(trial_end_path, usecols = [1], dtype = str)
     rewards = []
     misses = []
-    for count, i in enumerate(RewardOutcome_file):
+    for count, i in enumerate(reward_outcome_file):
         if i =='Food':
             rewards.append(count)
         else:
             misses.append(count)
     return rewards, misses
 
-#############################################################################################
+
+
+
+def PLOT_trial_and_misses(sessions_subset):    
+    success_trials = []
+    missed_trials = []
+    for session in sessions_subset: 
+        try:
+            
+            rewards, misses = trial_outcome_index(session)
+            success_trials.append(len(rewards))
+            missed_trials.append(len(misses))
+        except Exception: 
+            print('error'+ session)
+            pass
+    return success_trials, missed_trials   
+
+
+
+
+def PLOT_trial_per_min(sessions_subset):    
+    total_trials = []
+    session_length = []
+    try:
+        for session in sessions_subset: 
+
+            counter_csv = os.path.join(hardrive_path, session + '/Video.csv')
+            counter = np.genfromtxt(counter_csv, usecols = 1)
+
+            tot_frames = counter[-1] - counter[0]
+            session_length_minutes = tot_frames/120/60
+            
+            rewards, misses = trial_outcome_index(session)
+            tot_trials = len(rewards + misses)
+            total_trials.append(tot_trials)
+            session_length.append(session_length_minutes)
+    except Exception: 
+            print('error'+ session)
+            pass
+
+    return total_trials, session_length
+
+
+####################################################################
 #it uses the previous fx but it iterates of a sibset of sessions and create a list 
 # with the number or rewarded or missed trial per session
 
@@ -615,26 +655,38 @@ def furthest_estremes(body_file,tail_file):
 
 
 
-first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base
+#first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base
 
 def nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base):
     
-    for count in np.arange(sessions_subset):
-        
-        deltax = first_values_x_nose[count] - first_values_x_tail_base[count]
-        deltay =  first_values_y_nose[count] - first_values_y_tail_base[count]
+    l= len(first_values_x_nose)
     
-        shape = len(deltax)
-        degrees= np.zeros((shape,),dtype=float)
+    sessions_degrees = [[] for _ in range(l)]
+    
+    for count in np.arange(l):
+        try:
+                
+            deltax = np.array(first_values_x_nose)[count] - np.array(first_values_x_tail_base)[count]
+            deltay = np.array(first_values_y_nose)[count] - np.array(first_values_y_tail_base)[count]
         
-        for i in np.arange(shape):
-            degrees_temp = math.degrees(math.atan2(deltax[i], -deltay[i])) #/math.pi*180 or math.degrees to change from radians to degrees
-            if degrees_temp < 0:
-                degrees_final = 360 + degrees_temp
-                degrees[i]= degrees_final
-            else:
-                degrees_final = degrees_temp
-                degrees[i]= degrees_final
+            shape = len(deltax)
+            degrees = np.zeros((shape,),dtype=float)
+            
+            for i in np.arange(shape):
+                degrees_temp = math.degrees(math.atan2(-deltay[i], deltax[i])) #/math.pi*180 or math.degrees to change from radians to degrees
+                if degrees_temp < 0:
+                    degrees_final = 360 + degrees_temp
+                    degrees[i]= degrees_final
+                else:
+                    degrees_final = degrees_temp
+                    degrees[i]= degrees_final
+                    
+            sessions_degrees[count] = degrees
+        except Exception: 
+            print (count)
+            continue 
+        
+    return sessions_degrees
         
             
             
@@ -645,7 +697,7 @@ def nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x
 
 
 
-frame_before_trials('C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test',r'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Video.avi',cleaned_idx)
+#frame_before_trials('C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test',r'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Video.avi',cleaned_idx)
 
 #vector from back to nose of the rat
 def orientation_body(nose,back):

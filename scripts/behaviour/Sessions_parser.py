@@ -23,7 +23,7 @@ import parser_library as prs
 
 hardrive_path = r'F:/'
 
-rat_summary_table_path =  hardrive_path + 'Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path =  hardrive_path + 'Videogame_Assay/AK_50.2_behaviour_only.csv'
 
 #reminder of .csv summary structure
 

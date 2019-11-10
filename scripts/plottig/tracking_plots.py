@@ -16,6 +16,7 @@ from matplotlib.colors import PowerNorm
 from matplotlib.colors import LogNorm 
 from pylab import *
 from matplotlib.ticker import LogFormatterExponent
+import DLC_parser_library as DLC
 
 rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
@@ -823,6 +824,73 @@ def create_colorcoded_snippets_start_to_touch_and_touch_to_end(sessions_subset,s
             print (session + '/error')
             continue
  
+
+
+######################in use##################
+            
+        
+def create_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
+    
+    x = len(sessions_subset)
+    
+    x_nose_trial_tracking_snippets_touch_to_end_subset = [[] for _ in range(x)] 
+    y_nose_trial_tracking_snippets_touch_to_end_subset = [[] for _ in range(x)] 
+    x_tail_base_trial_tracking_snippets_touch_to_end_subset = [[] for _ in range(x)]
+    y_tail_base_trial_tracking_snippets_touch_to_end_subset = [[] for _ in range(x)]
+    
+        
+    
+    for count in np.arange(x):
+        try:
+        
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
+            
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
+            
+            x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
+            
+            trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
+            touch_idx = trial_idx[:,mid_snippet_idx]        
+            
+            l=len(touch_idx)
+    
+            x_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            y_nose_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)] 
+            x_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)]
+            y_tail_base_trial_tracking_snippets_touch_to_end = [[] for _ in range(l)]
+            
+
+            
+            for c, touch in enumerate(touch_idx):
+                x_nose_trial_tracking_snippets_touch_to_end[c] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[c]]
+                y_nose_trial_tracking_snippets_touch_to_end[c] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[c]]
+                x_tail_base_trial_tracking_snippets_touch_to_end[c] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[c]]
+                y_tail_base_trial_tracking_snippets_touch_to_end[c] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[c]]
+        
+            
+            x_nose_trial_tracking_snippets_touch_to_end_subset[count]= x_nose_trial_tracking_snippets_touch_to_end
+            y_nose_trial_tracking_snippets_touch_to_end_subset[count]= y_nose_trial_tracking_snippets_touch_to_end
+            x_tail_base_trial_tracking_snippets_touch_to_end_subset[count]= x_tail_base_trial_tracking_snippets_touch_to_end
+            y_tail_base_trial_tracking_snippets_touch_to_end_subset[count]= y_tail_base_trial_tracking_snippets_touch_to_end
+            
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue
+     
+    return x_nose_trial_tracking_snippets_touch_to_end_subset,y_nose_trial_tracking_snippets_touch_to_end_subset, x_tail_base_trial_tracking_snippets_touch_to_end_subset,y_tail_base_trial_tracking_snippets_touch_to_end_subset
+            
+# create list of list containing the first x and y values for tail at nose at the moment of touch (taken from touch to end snippets), if nan the fx looks for the first value which is not nan
+    
     
 def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
     
@@ -847,8 +915,8 @@ def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
             ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
             
-            x_nan_nose, y_nan_nose = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
-            x_nan_tail_base, y_nan_tail_base = DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
+            x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
+            x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
             
             trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
             touch_idx = trial_idx[:,mid_snippet_idx]        
@@ -862,11 +930,11 @@ def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,
             
 
             
-            for c,touch in enumerate(touch_idx):
-                x_nose_trial_tracking_snippets_touch_to_end[c] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
-                y_nose_trial_tracking_snippets_touch_to_end[c] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[count_2]]
-                x_tail_base_trial_tracking_snippets_touch_to_end[c] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
-                y_tail_base_trial_tracking_snippets_touch_to_end[c] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[count_2]]
+            for c, touch in enumerate(touch_idx):
+                x_nose_trial_tracking_snippets_touch_to_end[c] = x_nan_nose[touch:touch + trial_lenght_touch_to_end[c]]
+                y_nose_trial_tracking_snippets_touch_to_end[c] = y_nan_nose[touch:touch + trial_lenght_touch_to_end[c]]
+                x_tail_base_trial_tracking_snippets_touch_to_end[c] = x_nan_tail_base[touch:touch + trial_lenght_touch_to_end[c]]
+                y_tail_base_trial_tracking_snippets_touch_to_end[c] = y_nan_tail_base[touch:touch + trial_lenght_touch_to_end[c]]
 
 
 
@@ -886,8 +954,8 @@ def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,
                
                 first_values_x_nose[count]=first_x_value_nose
                 first_values_y_nose[count]=first_y_value_nose
-                first_values_x_tail_base[count]=first_x_value_tail_base
-                first_values_y_tail_base[count]=  first_x_value_tail_base
+                first_values_x_tail_base[count]= first_x_value_tail_base
+                first_values_y_tail_base[count]=  first_y_value_tail_base
             
             print(count)        
         
@@ -898,224 +966,474 @@ def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,
     return first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base
 
             
+x_nose_trial_tracking_snippets_touch_to_end_subset            
+y_nose_trial_tracking_snippets_touch_to_end_subset
+
             
+            
+plot_color_coded_snippets_based_on_nose_butt_angle_touch(x_nose_trial_tracking_snippets_touch_to_end_subset,y_nose_trial_tracking_snippets_touch_to_end_subset , session_degrees):    
     
+    poke_half=[]
+    far_half=[]
+    for d, degree in enumerate(degrees):
+        if degree >=90.0 and degree<= 270.0:
+            far_half.append(d)
+        else:
+            poke_half.append(d)
+            
 
 
-
-                
-                
- =next(x for x in x_nose_trial_tracking_snippets_touch_to_end[value][0] if not isnan(x))               
-                
->>> from math import isnan
-
-
-       next(x for x in test if not isnan(x))     
-       
-            l=len(idx_meeting_criteria)
-            left_out = len(left_out_trials)
-            f=plt.figure(figsize=(20,10)) 
-            sns.set()
-            sns.set_style('white')
-            sns.axes_style('white')
-            sns.despine()
-            #colors = plt.cm.jet(np.linspace(0,1,l))
+def quadrant_degrees(sessions_degrees):
+    
+    l=len(sessions_degrees)
         
-            for row in np.arange(l):  
-                plt.plot(x_nose_meeting_criteria[row],y_nose_meeting_criteria[row],color = 'r', alpha=.5)
-                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
-            for left in np.arange(left_out):     
-                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
-                plt.plot(left_out_x_nose[left],left_out_y_nose[left],color = 'b', alpha=.5)
-                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k') 
-                plt.title('Nose_subset'+ '_session%d' %count, fontsize = 16)
-            f.tight_layout()
-            f.savefig('F:/test_folder/nose_level_2/'+'_session%d' %count)
-
-            print(count)        
+    q_1_idx=[[] for _ in range(l)]
+    q_2_idx=[[] for _ in range(l)]
+    q_3_idx=[[] for _ in range(l)]
+    q_4_idx=[[] for _ in range(l)]
+    
+    for count in np.arange(l):   
         
-        except Exception: 
-            print (session + '/error')
-            continue
+        session = sessions_degrees[count]
+        x =len(session)
+         
+        q_1=[]
+        q_2=[]
+        q_3=[]
+        q_4=[]
+        
+        for d, degree in enumerate(session):
+            if degree >=0.0 and degree<= 90.0:
+                q_2.append(d)
+            elif degree >=90.0 and degree<= 180.0:
+                q_1.append(d)
+            elif degree >=180.0 and degree<= 270.0:
+                q_3.append(d)
+            else:
+                q_4.append(d)
      
-    
-script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + rat_ID)
-#create a folder where to store the plots 
-main_folder = os.path.join(script_dir +'/Summary')
-#create a folder where to save the plots
-results_dir = os.path.join(main_folder + '/Behaviour/')
+        q_1_idx[count]=q_1
+        q_2_idx[count]=q_2
+        q_3_idx[count]=q_3
+        q_4_idx[count]=q_4
 
-
-if not os.path.isdir(results_dir):
-    os.makedirs(results_dir)
-
-#save the fig in .tiff
-f0.savefig(results_dir + figure_name0, transparent=True)
-f1.savefig(results_dir + figure_name1, transparent=True)
-f2.savefig(results_dir + figure_name2, transparent=True)   
-test=np.array(x_nose_trial_tracking_snippets_touch_to_end)
-
-missing_element = []
-for i in range(idx_meeting_criteria[0], idx_meeting_criteria[-1]+1):
-    if i not in idx_meeting_criteria:
-        missing_element.append(i)
-
-print( missing_element)
-
-trial_list=np.array(list(range(len(ball_coordinates))))
-
-left_trial=np.delete(trial_list,criteria_array)
-
-criteria_array=np.array(idx_meeting_criteria)
-test2=[(e1+1) for e1,e2 in zip(idx_meeting_criteria, idx_meeting_criteria[1:]) if e2-e1 != 1]
-test2=test[idx_meeting_criteria]
-y_nose_meeting_criteria = [[] for _ in range(lenght)] 
-idx_meeting_criteria= []
-ball_coordinates_subset=[]
-x_nose_meeting_criteria = [[] for _ in range(lenght)]
-
-lenght=len(x_nose_trial_tracking_snippets_touch_to_end)
-#row= x_nose_trial_tracking_snippets_touch_to_end[i]>1200           
- 
-
-
-for i in np.arange(lenght):
-    select_x = np.sort(x_nose_trial_tracking_snippets_touch_to_end[i])
-    select_y = np.sort(y_nose_trial_tracking_snippets_touch_to_end[i])    
-    max_value_x = max(select_x)
-    max_value_y = max(select_y)
-    if max_value_y>910 and max_value_x>1200: 
-        y_nose_meeting_criteria[i]=y_nose_trial_tracking_snippets_touch_to_end[i]
-        x_nose_meeting_criteria[i]=x_nose_trial_tracking_snippets_touch_to_end[i]
-        ball_coordinates_subset.append(ball_position[i]) 
-        idx_meeting_criteria.append(i)
-
-
-test=x_nose_trial_tracking_snippets_touch_to_end[]
-
-
-        
-i=0
-
-for i in np.arange(lenght):
-   y_nose= y_nose_trial_tracking_snippets_touch_to_end[i]
-   x_nose =x_nose_trial_tracking_snippets_touch_to_end[i]    
-    for trial in 
-    if max_value_y>910 and max_value_x>1200: 
-        y_nose_meeting_criteria[i]=y_nose_trial_tracking_snippets_touch_to_end[i]
-        x_nose_meeting_criteria[i]=x_nose_trial_tracking_snippets_touch_to_end[i]
-        ball_coordinates_subset.append(ball_position[i]) 
-        idx_meeting_criteria.append(i)
-
-
-
-
-
- 
-l=len(idx_meeting_criteria)       
-plt.figure(figsize=(20,10)) 
-
-
-colors = plt.cm.jet(np.linspace(0,1,l))
-#c=next(color)
-for row in np.arange(l):  
-    plt.plot(x_nose_meeting_criteria[row],y_nose_meeting_criteria[row],color = colors[row], alpha=.5)
-    plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k') 
-    
-      
-        
-test2 = np.array(y_nose_trial_tracking_snippets_touch_to_end)
-test3 =test2[idx][0]
-
-
-
-plt.figure(figsize=(20,10))  
-plt.plot(x_nose_trial_tracking_snippets_touch_to_end[i],y_nose_trial_tracking_snippets_touch_to_end[i],color = 'r', alpha=.5)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#find idx of the balls accordng to the quadrants in which they appear
-
-      
-quadrant_1,quadrant_2,quadrant_3,quadrant_4=ball_positions_based_on_quadrant_of_appearance(session)
-
-
-    
+           
+    return q_1_idx,q_2_idx,q_3_idx,q_4_idx
             
-plt.plot(ball_position[quadrant_1][:,0],ball_position[quadrant_1][:,1],'o',color='r')
-plt.plot(ball_position[quadrant_2][:,0],ball_position[quadrant_2][:,1],'o',color='g')
-plt.plot(ball_position[quadrant_3][:,0],ball_position[quadrant_3][:,1],'o',color='b')
-plt.plot(ball_position[quadrant_4][:,0],ball_position[quadrant_4][:,1],'o',color='m')
+            
 
-                
-                
+######plot  all session for one qudant in subplot ####
+import seaborn as sns  
+
+rat_ID =['AK_33.2']
+
+
+quadrant = 1
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+            
+x_nose_snippets=x_nose_trial_tracking_snippets_touch_to_end_subset            
+y_nose_snippets =y_nose_trial_tracking_snippets_touch_to_end_subset
+
+   
+for i in np.arange(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q1 = q_1_idx[i]
+        ax = f2.add_subplot(2, 4, 1+i, frameon=False)
+        for q in q1:
+            plot= ax.plot(x[q],y[q],'-',color = '#DC143C', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+
+    except Exception: 
+        continue           
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+        
+
+#############################
+
+quadrant = 2
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+            
+x_nose_snippets=x_nose_trial_tracking_snippets_touch_to_end_subset            
+y_nose_snippets =y_nose_trial_tracking_snippets_touch_to_end_subset
+
+   
+for i in np.arange(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q2 = q_2_idx[i]
+        ax = f2.add_subplot(2, 4, 1+i, frameon=False)
+        for q in q2:
+            plot= ax.plot(x[q],y[q],'-',color = '#228B22', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+
+    except Exception: 
+        continue       
     
-plt.figure(figsize=(20,10))
-for row in quadrant_1:
-    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'r', alpha=.5)
-plt.plot(ball_position[quadrant_1][:,0],ball_position[quadrant_1][:,1],'o',color='r')
-plt.figure(figsize=(20,10))
-for row in quadrant_2:
-    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'g', alpha=.5)
-plt.plot(ball_position[quadrant_2][:,0],ball_position[quadrant_2][:,1],'o',color='g')
-plt.figure(figsize=(20,10))
-for row in quadrant_3:
-    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'b', alpha=.5)
-plt.plot(ball_position[quadrant_3][:,0],ball_position[quadrant_3][:,1],'o',color='b')
-plt.figure(figsize=(20,10))  
-for row in quadrant_4:
-    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'm', alpha=.5)
-plt.plot(ball_position[quadrant_4][:,0],ball_position[quadrant_4][:,1],'o',color='m')#create plot centered to ball
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+        
+
+#########################
+        
+    
+quadrant = 3
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+            
+x_nose_snippets=x_nose_trial_tracking_snippets_touch_to_end_subset            
+y_nose_snippets =y_nose_trial_tracking_snippets_touch_to_end_subset
+
+   
+for i in np.arange(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q3 = q_3_idx[i]
+        ax = f2.add_subplot(2, 4, 1+i, frameon=False)
+        for q in q3:
+            plot= ax.plot(x[q],y[q],'-',color = '#6495ED', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+    except Exception: 
+        continue       
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+        
+#############################
+
+quadrant =4
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+            
+x_nose_snippets=x_nose_trial_tracking_snippets_touch_to_end_subset            
+y_nose_snippets =y_nose_trial_tracking_snippets_touch_to_end_subset
+
+   
+for i in np.arange(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q4 = q_4_idx[i]
+        ax = f2.add_subplot(2, 4, 1+i, frameon=False)
+        for q in q4:
+            plot= ax.plot(x[q],y[q],'-',color = 'k', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+    except Exception: 
+        continue 
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+
+ 
+#############################################
 
 
 
+       
+f=plt.figure(figsize=(20,10)) 
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+#colors = plt.cm.jet(np.linspace(0,1,l))
 
-#x_nose_centered = [[] for _ in range(l)]
-#y_nose_centered = [[] for _ in range(l)]
-#x_tail_base_centered = [[] for _ in range(l)]
-#y_tail_base_centered = [[] for _ in range(l)]
+l=len(y_nose_trial_tracking_snippets_touch_to_end)
+
+for idx in poke_half:  
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[idx],y_nose_trial_tracking_snippets_touch_to_end[idx],color = 'r', alpha=.5)
+
+for item in far_half:
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[item],y_nose_trial_tracking_snippets_touch_to_end[item],color = 'g', alpha=.5)
+    
+f=plt.figure(figsize=(20,10)) 
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+for a in q_1:  
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[a],y_nose_trial_tracking_snippets_touch_to_end[a],'.',color = 'r', alpha=.5,markersize=7)
+
+
+for b in q_2:  
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[b],y_nose_trial_tracking_snippets_touch_to_end[b],'.',color = 'b', alpha=.5)
+
+for c in q_3:  
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[c],y_nose_trial_tracking_snippets_touch_to_end[c],'.',color = 'g', alpha=.5)
+
+
+for d in q_4:  
+    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[d],y_nose_trial_tracking_snippets_touch_to_end[d],'.',color = 'k', alpha=.5)
+
+
+import scipy.signal
+
+test= scipy.signal.savgol_filter(x_nose_trial_tracking_snippets_touch_to_end[0],11,2)
+
+
+#                
+# =next(x for x in x_nose_trial_tracking_snippets_touch_to_end[value][0] if not isnan(x))               
+#                
+#>>> from math import isnan
+#
+#
+#       next(x for x in test if not isnan(x))     
+#       
+#            l=len(idx_meeting_criteria)
+#            left_out = len(left_out_trials)
+#            f=plt.figure(figsize=(20,10)) 
+#            sns.set()
+#            sns.set_style('white')
+#            sns.axes_style('white')
+#            sns.despine()
+#            #colors = plt.cm.jet(np.linspace(0,1,l))
+#        
+#            for row in np.arange(l):  
+#                plt.plot(x_nose_meeting_criteria[row],y_nose_meeting_criteria[row],color = 'r', alpha=.5)
+#                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
+#            for left in np.arange(left_out):     
+#                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k')
+#                plt.plot(left_out_x_nose[left],left_out_y_nose[left],color = 'b', alpha=.5)
+#                #plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k') 
+#                plt.title('Nose_subset'+ '_session%d' %count, fontsize = 16)
+#            f.tight_layout()
+#            f.savefig('F:/test_folder/nose_level_2/'+'_session%d' %count)
+#
+#            print(count)        
+#        
+#        except Exception: 
+#            print (session + '/error')
+#            continue
+#     
 #    
-#for count in np.arange(l):
+#script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + rat_ID)
+##create a folder where to store the plots 
+#main_folder = os.path.join(script_dir +'/Summary')
+##create a folder where to save the plots
+#results_dir = os.path.join(main_folder + '/Behaviour/')
 #
 #
-#    x_nose_centered[count] = x_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
-#    y_nose_centered[count] = y_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
-#    x_tail_base_centered[count] = x_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
-#    y_tail_base_centered[count] = y_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+#if not os.path.isdir(results_dir):
+#    os.makedirs(results_dir)
+#
+##save the fig in .tiff
+#f0.savefig(results_dir + figure_name0, transparent=True)
+#f1.savefig(results_dir + figure_name1, transparent=True)
+#f2.savefig(results_dir + figure_name2, transparent=True)   
+#test=np.array(x_nose_trial_tracking_snippets_touch_to_end)
+#
+#missing_element = []
+#for i in range(idx_meeting_criteria[0], idx_meeting_criteria[-1]+1):
+#    if i not in idx_meeting_criteria:
+#        missing_element.append(i)
+#
+#print( missing_element)
+#
+#trial_list=np.array(list(range(len(ball_coordinates))))
+#
+#left_trial=np.delete(trial_list,criteria_array)
+#
+#criteria_array=np.array(idx_meeting_criteria)
+#test2=[(e1+1) for e1,e2 in zip(idx_meeting_criteria, idx_meeting_criteria[1:]) if e2-e1 != 1]
+#test2=test[idx_meeting_criteria]
+#y_nose_meeting_criteria = [[] for _ in range(lenght)] 
+#idx_meeting_criteria= []
+#ball_coordinates_subset=[]
+#x_nose_meeting_criteria = [[] for _ in range(lenght)]
+#
+#lenght=len(x_nose_trial_tracking_snippets_touch_to_end)
+##row= x_nose_trial_tracking_snippets_touch_to_end[i]>1200           
+# 
+#
+#
+#for i in np.arange(lenght):
+#    select_x = np.sort(x_nose_trial_tracking_snippets_touch_to_end[i])
+#    select_y = np.sort(y_nose_trial_tracking_snippets_touch_to_end[i])    
+#    max_value_x = max(select_x)
+#    max_value_y = max(select_y)
+#    if max_value_y>910 and max_value_x>1200: 
+#        y_nose_meeting_criteria[i]=y_nose_trial_tracking_snippets_touch_to_end[i]
+#        x_nose_meeting_criteria[i]=x_nose_trial_tracking_snippets_touch_to_end[i]
+#        ball_coordinates_subset.append(ball_position[i]) 
+#        idx_meeting_criteria.append(i)
+#
+#
+#test=x_nose_trial_tracking_snippets_touch_to_end[]
+#
+#
+#        
+#i=0
+#
+#for i in np.arange(lenght):
+#   y_nose= y_nose_trial_tracking_snippets_touch_to_end[i]
+#   x_nose =x_nose_trial_tracking_snippets_touch_to_end[i]    
+#    for trial in 
+#    if max_value_y>910 and max_value_x>1200: 
+#        y_nose_meeting_criteria[i]=y_nose_trial_tracking_snippets_touch_to_end[i]
+#        x_nose_meeting_criteria[i]=x_nose_trial_tracking_snippets_touch_to_end[i]
+#        ball_coordinates_subset.append(ball_position[i]) 
+#        idx_meeting_criteria.append(i)
+#
+#
+#
+#
+#
+# 
+#l=len(idx_meeting_criteria)       
+#plt.figure(figsize=(20,10)) 
+#
+#
+#colors = plt.cm.jet(np.linspace(0,1,l))
+##c=next(color)
+#for row in np.arange(l):  
+#    plt.plot(x_nose_meeting_criteria[row],y_nose_meeting_criteria[row],color = colors[row], alpha=.5)
+#    plt.plot(ball_coordinates_subset[row][0],ball_coordinates_subset[row][1],'o', color ='k') 
 #    
-
-
-
+#      
+#        
+#test2 = np.array(y_nose_trial_tracking_snippets_touch_to_end)
+#test3 =test2[idx][0]
 #
-#for count in np.arange(l):
+#
+#
+#plt.figure(figsize=(20,10))  
+#plt.plot(x_nose_trial_tracking_snippets_touch_to_end[i],y_nose_trial_tracking_snippets_touch_to_end[i],color = 'r', alpha=.5)
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+##find idx of the balls accordng to the quadrants in which they appear
+#
+#      
+#quadrant_1,quadrant_2,quadrant_3,quadrant_4=ball_positions_based_on_quadrant_of_appearance(session)
+#
+#
 #    
-#    plt.plot(x_nose_centered[count],y_nose_centered[count])
+#            
+#plt.plot(ball_position[quadrant_1][:,0],ball_position[quadrant_1][:,1],'o',color='r')
+#plt.plot(ball_position[quadrant_2][:,0],ball_position[quadrant_2][:,1],'o',color='g')
+#plt.plot(ball_position[quadrant_3][:,0],ball_position[quadrant_3][:,1],'o',color='b')
+#plt.plot(ball_position[quadrant_4][:,0],ball_position[quadrant_4][:,1],'o',color='m')
 #
-#
-#
-#
-#for count in np.arange(l):
+#                
+#                
 #    
-#    plt.plot(x_tail_base_centered[count],y_tail_base_centered[count])
-#    plt.plot(0,0,'o',color='k')
-#    
+#plt.figure(figsize=(20,10))
+#for row in quadrant_1:
+#    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'r', alpha=.5)
+#plt.plot(ball_position[quadrant_1][:,0],ball_position[quadrant_1][:,1],'o',color='r')
+#plt.figure(figsize=(20,10))
+#for row in quadrant_2:
+#    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'g', alpha=.5)
+#plt.plot(ball_position[quadrant_2][:,0],ball_position[quadrant_2][:,1],'o',color='g')
+#plt.figure(figsize=(20,10))
+#for row in quadrant_3:
+#    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'b', alpha=.5)
+#plt.plot(ball_position[quadrant_3][:,0],ball_position[quadrant_3][:,1],'o',color='b')
+#plt.figure(figsize=(20,10))  
+#for row in quadrant_4:
+#    plt.plot(x_nose_trial_tracking_snippets_touch_to_end[row],y_nose_trial_tracking_snippets_touch_to_end[row],color = 'm', alpha=.5)
+#plt.plot(ball_position[quadrant_4][:,0],ball_position[quadrant_4][:,1],'o',color='m')#create plot centered to ball
+#
+#
+#
+#
+##x_nose_centered = [[] for _ in range(l)]
+##y_nose_centered = [[] for _ in range(l)]
+##x_tail_base_centered = [[] for _ in range(l)]
+##y_tail_base_centered = [[] for _ in range(l)]
+##    
+##for count in np.arange(l):
+##
+##
+##    x_nose_centered[count] = x_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+##    y_nose_centered[count] = y_nose_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+##    x_tail_base_centered[count] = x_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][0]
+##    y_tail_base_centered[count] = y_tail_base_trial_tracking_start_to_end[count]-ball_coordinates[count][1]
+##    
+#
+#
+#
+##
+##for count in np.arange(l):
+##    
+##    plt.plot(x_nose_centered[count],y_nose_centered[count])
+##
+##
+##
+##
+##for count in np.arange(l):
+##    
+##    plt.plot(x_tail_base_centered[count],y_tail_base_centered[count])
+##    plt.plot(0,0,'o',color='k')
+##    
     
     
     

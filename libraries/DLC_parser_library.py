@@ -60,8 +60,6 @@ from scipy.interpolate import interp1d
 #cleaned_x = [x for x in x_nan if str(x) != 'nan']
 #cleaned_y = [x for x in y_nan if str(x) != 'nan']
 
-'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Trial_idx.csv'
-'F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
 
 #nose dlc  x = 1  / y = 2 / likelihood = 3
 #tail base dlc   x = 10  / y = 11  / likelihood = 12
