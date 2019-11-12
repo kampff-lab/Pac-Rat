@@ -21,16 +21,15 @@ import seaborn as sns
 
 
 
-
-rat_summary_table_path = r'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path =r'F:/Videogame_Assay/AK_46.1_behaviour_only.csv'
 hardrive_path = r'F:/' 
-rat_ID = 'AK_33.2'
+RAT_ID = 'AK_46.1'
 
 
-Level_0 = prs.Level_0_paths(rat_summary_table_path)
-Level_1_6000_3000 = prs.Level_1_paths_6000_3000(rat_summary_table_path)
-Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
-Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
+#Level_0 = prs.Level_0_paths(rat_summary_table_path)
+#Level_1_6000_3000 = prs.Level_1_paths_6000_3000(rat_summary_table_path)
+#Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
+#Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 
 
@@ -39,7 +38,7 @@ sessions_subset = Level_2_pre
 behaviour.start_touch_end_idx(sessions_subset)
 
 
-#calculate speed for all the session 
+#calculate speed for all the session (adapted to use nose corrected coordinates instead of the crop that we used originally)
 sessions_speed = behaviour.session_speed(sessions_subset)
 
 #calculate the speed from start of the trial to touch of the ball using the trial idx csv file 
@@ -54,16 +53,24 @@ speed_touch_Level_2 = behaviour.speed_around_touch(sessions_subset,sessions_spee
 
 #############################################################################################################
 #plotting the speed around touch by doing the mean of each session and plotting the sessions 
+#check because in some cases the speed touch is empty array thats why i used try
+#remove the diff greater than 20 before calculating the mean
 
-means= []
-
-for row in speed_touch_Level_2:
-    mean_session = np.mean(row,axis=0)
-    means.append(mean_session)
+means = []
     
+for row in speed_touch_Level_2:
+    try:
+        session_array = np.array(row)
+        session_array[session_array>=20] = np.NaN
+        mean_session = np.nanmean(session_array,axis=0)
+        means.append(mean_session)        
+    except Exception: 
+        continue     
 
-figure_name0 = figure_name = 'RAT_' + rat_ID + '_speed_around_touch.pdf'
-plot_main_title = 'RAT ' + rat_ID + 'speed around touch +/- 3 sec'
+             
+
+figure_name0 = figure_name = 'RAT_' + RAT_ID + '_speed_around_touch2.png'
+plot_main_title = 'RAT ' + RAT_ID + 'speed around touch +/- 3 sec'
 f0 =plt.figure(figsize=(20,10))
 f0.suptitle(plot_main_title)
 sns.set()
@@ -74,14 +81,27 @@ sns.despine()
 
 cmap = sns.color_palette("hls", len(means))
 for count,i in enumerate(means):
-    plt.plot(i, color=cmap[count], label='%d'%count)
+    plt.plot(i, color=cmap[count], label='session %d'%count)
 
 plt.axvline(360,color='k')
+plt.ylim(0,5)
 plt.legend()
 f0.tight_layout()
 f0.subplots_adjust(top = 0.87)
 
+    
+script_dir = os.path.join(hardrive_path + 'Videogame_Assay/' + RAT_ID)
+#create a folder where to store the plots 
+main_folder = os.path.join(script_dir +'/Summary')
+#create a folder where to save the plots
+results_dir = os.path.join(main_folder + '/Behaviour/')
 
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+#save the fig in .tiff
+f0.savefig(results_dir + figure_name, transparent=True)
 #########################################################################################################
 
 

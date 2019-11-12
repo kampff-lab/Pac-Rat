@@ -18,7 +18,7 @@ from pylab import *
 from matplotlib.ticker import LogFormatterExponent
 import DLC_parser_library as DLC
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 #rat_ID = 'AK_40.2'
 
@@ -847,11 +847,9 @@ def create_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet
             script_dir = os.path.join(hardrive_path + session) 
             csv_dir_path = os.path.join(hardrive_path, session + '/events/')
             trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
-            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
-            
+
             
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
-            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
             
             x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
             x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
@@ -892,7 +890,7 @@ def create_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet
 # create list of list containing the first x and y values for tail at nose at the moment of touch (taken from touch to end snippets), if nan the fx looks for the first value which is not nan
     
     
-def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
+def first_x_y_at_touch(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2):
     
     x = len(sessions_subset)
     first_values_x_nose=[[] for _ in range(x)]
@@ -909,11 +907,10 @@ def create_colorcoded_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,
             script_dir = os.path.join(hardrive_path + session) 
             csv_dir_path = os.path.join(hardrive_path, session + '/events/')
             trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
-            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
-            
+
             
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
-            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
+
             
             x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
             x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)

@@ -18,7 +18,7 @@ import DLC_parser_library as DLC
 
 
 hardrive_path = r'F:/'
-rat_summary_table_path = hardrive_path + 'Videogame_Assay/AK_41.2_Pt.csv'
+rat_summary_table_path = hardrive_path + 'Videogame_Assay/AK_50.1_behaviour_only.csv'
 #rat_ID = 'AK_33.2'
 
 #select the path of the sessions of interest belonging to different levels
@@ -30,7 +30,7 @@ import importlib
 importlib.reload(DLC)
 
 
-sessions_subset = Level_1
+sessions_subset = Level_2_pre
 
 for session in sessions_subset:
     

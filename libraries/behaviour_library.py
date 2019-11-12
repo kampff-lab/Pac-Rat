@@ -359,11 +359,13 @@ def session_speed(sessions_subset):
         try: 
             
             script_dir = os.path.join(hardrive_path + session) 
-            centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
-            centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            corrected_coordinate_path = os.path.join(script_dir + '/DLC_corrected_coordinates')
+            nose_path = os.path.join(corrected_coordinate_path + '/nose_corrected_coordinates.csv')
+            nose_dlc = np.genfromtxt(nose_path, delimiter = ',', dtype = float)
             
-            trajectory_x = centroid_tracking[:,0]
-            trajectory_y = centroid_tracking[:,1]
+            trajectory_x = nose_dlc[:,0]
+            trajectory_y = nose_dlc[:,1]
             diff_x = np.diff(trajectory_x)
             diff_y = np.diff(trajectory_y)    
             diff_x_square = diff_x**2
