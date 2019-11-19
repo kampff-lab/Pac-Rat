@@ -18,11 +18,11 @@ from matplotlib.colors import LogNorm
 from pylab import *
 from matplotlib.ticker import LogFormatterExponent
 import DLC_parser_library as DLC
-#import tracking_plots as tracking
+import tracking_plots as tracking
 import seaborn as sns  
 
 
-rat_summary_table_path =  'F:/Videogame_Assay/AK_48.4_IrO2.csv'
+rat_summary_table_path =  'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 #rat_ID = 'AK_40.2'
 
@@ -58,7 +58,7 @@ y_nose_snippets = y_nose_snippets_te
 
 
 
-quadrant = 1
+quadrant = 'top'
 number_of_subplots= len(sessions_degrees)
 
 plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
@@ -71,6 +71,148 @@ sns.axes_style('white')
 sns.despine()
 
 
+number_of_subplots= [0,1,7]
+
+   
+for count,i in enumerate(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q1 = q_1_idx[i]
+        q2 = q_2_idx[i]
+        q3 = q_3_idx[i]
+        q4 = q_4_idx[i]
+        ax = f2.add_subplot(1, 3, 1+count, frameon=False)
+        ax.invert_yaxis()
+        for q in q1:
+            plot= ax.plot(x[q],y[q],'-',color = '#DC143C', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+        for qua in q2:
+            plot= ax.plot(x[qua],y[qua],'-',color = '#DC143C', alpha=.2)
+            #ax.tick_params(axis='both', which='major', labelsize=10)            
+        for q in q3:
+            plot= ax.plot(x[q],y[q],'-',color = '#1E90FF', alpha=.2)                          
+        for q in q4:
+            plot= ax.plot(x[q],y[q],'-',color = '#1E90FF', alpha=.2)
+
+            
+            
+            
+    except Exception: 
+        continue           
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+        
+
+
+
+#number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,5))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+
+number_of_subplots= [0,1,7]
+
+for count,i in enumerate(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q1 = q_1_idx[i]
+        q2 = q_2_idx[i]
+        q3 = q_3_idx[i]
+        q4 = q_4_idx[i]
+        ax = f2.add_subplot(1, 3, 1+count, frameon=False)
+        ax.invert_yaxis()
+        for q in q1:
+            plot= ax.plot(x[q],y[q],'-',color = 'k', alpha=.2)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+        for qua in q2:
+            plot= ax.plot(x[qua],y[qua],'-',color = 'k', alpha=.2)
+            #ax.tick_params(axis='both', which='major', labelsize=10)            
+        for q in q3:
+            plot= ax.plot(x[q],y[q],'-',color = 'k', alpha=.2)                          
+        for q in q4:
+            plot= ax.plot(x[q],y[q],'-',color = 'k', alpha=.2)
+
+            
+            
+            
+    except Exception: 
+        continue           
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+        
+
+
+quadrant = 'bottom'
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
+
+
+
+
+   
+for i in np.arange(number_of_subplots): 
+    try:
+        
+        x=x_nose_snippets[i]
+        y=y_nose_snippets[i]
+        q3 = q_3_idx[i]
+        q4 = q_4_idx[i]
+        ax = f2.add_subplot(3, 4, 1+i, frameon=False)
+        for q in q3:
+            plot= ax.plot(x[q],y[q],'-',color = '#FF1493', alpha=.05)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+            for qua in q4:
+                plot= ax.plot(x[qua],y[qua],'-',color = '#1E90FF', alpha=.05)
+                #ax.tick_params(axis='both', which='major', labelsize=10)
+            
+    except Exception: 
+        continue           
+
+f2.tight_layout()
+f2.subplots_adjust(top = 0.87)
+
+
+
+
+
+
+
+
+
+
+quadrant=1
+number_of_subplots= len(sessions_degrees)
+
+plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
+
+f2 =plt.figure(figsize=(20,10))
+f2.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
 
    
 for i in np.arange(number_of_subplots): 
