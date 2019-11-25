@@ -22,7 +22,7 @@ import tracking_plots as tracking
 import seaborn as sns  
 
 
-rat_summary_table_path =  'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path =  'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 #rat_ID = 'AK_40.2'
 
@@ -63,7 +63,7 @@ number_of_subplots= len(sessions_degrees)
 
 plot_main_title = 'quadrant ' + str(quadrant) + ' _angle_snippets_touch_to_end' 
 
-f2 =plt.figure(figsize=(20,10))
+f2 =plt.figure(figsize=(20,5))
 f2.suptitle(plot_main_title)
 sns.set()
 sns.set_style('white')
@@ -71,7 +71,7 @@ sns.axes_style('white')
 sns.despine()
 
 
-number_of_subplots= [0,1,7]
+number_of_subplots= [0,2,6]
 
    
 for count,i in enumerate(number_of_subplots): 
@@ -121,7 +121,7 @@ sns.despine()
 
 
 
-number_of_subplots= [0,1,7]
+number_of_subplots= [0,2,6]
 
 for count,i in enumerate(number_of_subplots): 
     try:

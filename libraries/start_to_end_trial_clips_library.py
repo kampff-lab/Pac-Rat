@@ -102,9 +102,71 @@ def CLIPS_start_to_end_trial(sessions_subset):
             
 
 
+def CLIPS_end_trial_before_to_end_current_trial(sessions_subset):
+    
+    for session in sessions_subset:  
+        
+        try:
+        
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            results_dir = os.path.join(script_dir +'/Clips')
 
+            if not os.path.isdir(results_dir):
+                os.makedirs(results_dir)
+            
+            csv_dir_path = os.path.join(hardrive_path, session + '/events/')
+            trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
+            video_path = os.path.join(hardrive_path, session + '/Video.avi')
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
 
+            ends = trial_idx[:,1]
+            
+            trial_lenght_end_to_end = np.diff(np.hstack((0, ends)))
+            
+            inputVid = cv2.VideoCapture(video_path)
+            inputWidth = int(inputVid.get(cv2.CAP_PROP_FRAME_WIDTH))
+            inputHeight  =  int(inputVid.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+            # Open Output movie file, then specify compression, frames per second and size
+            fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
+            fps = 120
 
+            # Specify clip parameters
+            startFrames = np.array(ends)
+            startFrames = np.hstack((0,startFrames[:-1]))
+            numFrames =  trial_lenght_end_to_end
+            numClips = len(numFrames)
 
+            # create clips 
+            for e in range(numClips):
+    
+                start_frame = startFrames[e]
+                inputVid.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+                if e < 10:
+                    outputFilename= results_dir +'/Clip0%d.avi' %start_frame
+                else:
+                    outputFilename= results_dir +'/Clip%d.avi' %start_frame
+                outputVid = cv2.VideoWriter(outputFilename, fourcc, fps, (inputWidth, inputHeight))
+                
+                for i in range(numFrames[e]):
+                    ret, im = inputVid.read()
+                    outputVid.write(im)
+                print (i)
+                outputVid.release()
+             
+            inputVid.release()
+            
+        except Exception: 
+                print('error'+ session)
+        continue
+        
+            
 
+            
+            
+            
+            
+            
+            

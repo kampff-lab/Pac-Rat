@@ -847,9 +847,11 @@ def create_snippets_touch_to_end(sessions_subset,start_snippet_idx=0,end_snippet
             script_dir = os.path.join(hardrive_path + session) 
             csv_dir_path = os.path.join(hardrive_path, session + '/events/')
             trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
-
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
+            
             
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
             
             x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
             x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
@@ -907,10 +909,11 @@ def first_x_y_at_touch(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid
             script_dir = os.path.join(hardrive_path + session) 
             csv_dir_path = os.path.join(hardrive_path, session + '/events/')
             trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv')
-
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')
+            
             
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
-
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float)
             
             x_nan_nose, y_nan_nose = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y_column = 2, dlc_likelihood_column = 3)
             x_nan_tail_base, y_nan_tail_base = DLC.DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 10, dlc_y_column = 11, dlc_likelihood_column = 12)
