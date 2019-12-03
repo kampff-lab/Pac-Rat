@@ -706,7 +706,7 @@ for count, rat in enumerate(rat_summary_table_path):
 #########################################################################################
 
 
-rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv'],
+rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
                           'F:/Videogame_Assay/AK_48.4_IrO2.csv', 'F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
                           'F:/Videogame_Assay/AK_31.2_behaviour_only.csv','F:/Videogame_Assay/AK_46.1_behaviour_only.csv','F:/Videogame_Assay/AK_48.3_behaviour_only.csv'
@@ -716,36 +716,43 @@ colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF'
 RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 48.1','AK 48.4', 'AK 49.1', 'AK 49.2' ,'AK 31.2', 'AK 46.1', 'AK 48.3','AK 46.2','AK 50.1','AK 50.2']
 
 
-rat_total_videogame_lenght =[]
+x = len(rat_summary_table_path)
+
+rat_total_videogame_lenght = [[] for _ in range(x)] 
 
 for count, rat in enumerate(rat_summary_table_path):
-    
+       
     hardrive_path = r'F:/' 
     rat_summary = np.genfromtxt(rat, delimiter = ',', skip_header = 2 , dtype = str, usecols=0)
-    
-    tot_videogame_time = []
-    
-    for session in rat_summary:
-    
+    l= len(rat_summary)
+        
+    tot_videogame_time = [[] for _ in range(l)]
+           
+    for count1, session in enumerate(rat_summary):
         try:
-            
+                
             counter_csv = os.path.join(hardrive_path, session + '/Video.csv')
             counter = np.genfromtxt(counter_csv, usecols = 1)
 
             tot_frames = counter[-1] - counter[0]
             session_length_minutes = tot_frames/120/60
-            tot_videogame_time.append(session_length_minutes)
+            tot_videogame_time[count1] = session_length_minutes
             print(session)
             
+            rat_total_videogame_lenght[count] = tot_videogame_time
+            
+  
         except Exception: 
             continue       
-
-rat_total_videogame_lenght.append(np.sum(tot_videogame_time)/60)            
+      
         
-
-
-
-
+str = open(filePath)
+list2=[]
+for i in str:
+    list1 = i.split()
+    if len(list1)>0:
+        list2.append(list1)
+    
 
 #####################################################################################################
 #

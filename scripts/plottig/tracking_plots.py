@@ -18,7 +18,7 @@ from pylab import *
 from matplotlib.ticker import LogFormatterExponent
 import DLC_parser_library as DLC
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 #rat_ID = 'AK_40.2'
 

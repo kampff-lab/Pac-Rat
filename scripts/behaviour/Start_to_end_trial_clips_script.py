@@ -15,8 +15,8 @@ import parser_library as prs
 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
-rat_ID = 'AK_33.2'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_ID = 'AK_40.2'
 
 
 Level_1 = prs.Level_1_paths(rat_summary_table_path)

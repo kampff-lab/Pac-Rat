@@ -35,8 +35,7 @@ hardrive_path = r'F:/'
 #   create_tracking_snippets_touch_to_end(sessions_subset,start_snippet_idx = 0,end_snippet_idx = 1,mid_snippet_idx = 2)
 #18 first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base = x_y_at_touch(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2)
 #19 sessions_degrees_at_touch = nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base)
-#20
-            
+#20 x_centroid_te, y_centroid_te = create_tracking_snippets_touch_to_end_centroid(sessions_subset,start_snippet_idx = 0,end_snippet_idx = 1,mid_snippet_idx = 2)           
 
 ####################################   1   ##########################################
 
@@ -812,7 +811,139 @@ def nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x
     return sessions_degrees_at_touch
 
 
-#
+
+####################################   20   ##########################################
+
+
+# create nose and tail base tracking snippets from touch to end using the trial idx file using the centroid crop file given by Bonsai
+    
+def create_tracking_snippets_touch_to_end_centroid(sessions_subset,end_snippet_idx = 1,mid_snippet_idx = 2):
+    
+    x = len(sessions_subset)
+    
+    x_centroid_te = [[] for _ in range(x)] 
+    y_centroid_te = [[] for _ in range(x)] 
+               
+    for count in np.arange(x):
+        try:
+        
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(script_dir + '/events/')
+            trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+            centroid_tracking_path = os.path.join(script_dir + '/crop.csv')
+            
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+            
+            
+            x_centroid = centroid_tracking[:,0]
+            y_centroid = centroid_tracking[:,1]
+                       
+            kernel = np.ones(100)/100
+            
+            x_smooth = np.convolve(x_centroid, kernel, mode ='same')
+            y_smooth = np.convolve(y_centroid, kernel, mode ='same')
+            
+            
+            trial_lenght_touch_to_end = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,end_snippet_idx])
+            touch_idx = trial_idx[:,mid_snippet_idx]        
+            
+            l = len(touch_idx)
+    
+            x_centroid_snippets = [[] for _ in range(l)] 
+            y_centroid_snippets = [[] for _ in range(l)] 
+            
+            
+            for c, touch in enumerate(touch_idx):
+                x_centroid_snippets[c] = x_smooth[touch:touch + trial_lenght_touch_to_end[c]]
+                y_centroid_snippets[c] = y_smooth[touch:touch + trial_lenght_touch_to_end[c]]
+
+            x_centroid_te[count] = x_centroid_snippets
+            y_centroid_te[count] = y_centroid_snippets
+
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue
+     
+    return x_centroid_te, y_centroid_te
+
+
+
+####################################   20   ##########################################
+
+
+# create nose and tail base tracking snippets from touch to end using the trial idx file using the centroid crop file given by Bonsai
+    
+def create_tracking_snippets_start_to_end_centroid(sessions_subset, start_snippet_idx = 0, mid_snippet_idx=2):
+    
+    x = len(sessions_subset)
+    
+    x_centroid_st = [[] for _ in range(x)] 
+    y_centroid_st = [[] for _ in range(x)] 
+               
+    for count in np.arange(x):
+        try:
+        
+            session = sessions_subset[count]                
+            script_dir = os.path.join(hardrive_path + session) 
+            csv_dir_path = os.path.join(script_dir + '/events/')
+            trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+            centroid_tracking_path = os.path.join(script_dir + '/crop.csv')
+            
+            
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)    
+            centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+            
+            
+            x_centroid = centroid_tracking[:,0]
+            y_centroid = centroid_tracking[:,1]
+                       
+            kernel = np.ones(100)/100
+            
+            x_smooth = np.convolve(x_centroid, kernel, mode ='same')
+            y_smooth = np.convolve(y_centroid, kernel, mode ='same')
+            
+            
+            trial_lenght_start_to_touch = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,start_snippet_idx])
+            start_idx = trial_idx[:,start_snippet_idx]        
+            
+            l = len(touch_idx)
+    
+            x_centroid_snippets = [[] for _ in range(l)] 
+            y_centroid_snippets = [[] for _ in range(l)] 
+            
+            
+            for c, touch in enumerate(touch_idx):
+                x_centroid_snippets[c] = x_smooth[start:start + trial_lenght_start_to_touch[c]]
+                y_centroid_snippets[c] = y_smooth[start:start + trial_lenght_start_to_touch[c]]
+
+            x_centroid_st[count] = x_centroid_snippets
+            y_centroid_st[count] = y_centroid_snippets
+
+            
+            print(count)        
+        
+        except Exception: 
+            print (session + '/error')
+            continue
+     
+    return x_centroid_st, y_centroid_st
+
+
+
+
+
+
+
+
+
+
+
 #ball_coordinates='F:/Videogame_Assay/AK_33.2/2018_04_08-10_55/events/Ball_coordinates.csv'
 ##vector from poke to ball centroid
 #def orientation_poke_ball(ball_coordinates):
