@@ -29,7 +29,7 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 # Load Data as uint16 from binary file, use memory mapping (i.e. do not load into RAM)
 #   - use read-only mode "r+" to prevent overwriting the original file
-filename = 'F:/AK_33.2/2018_04_28-16_26/Amplifier.bin'
+filename ='F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Amplifier.bin'
 num_channels = 128
 data = np.memmap(filename, dtype = np.uint16, mode = 'r')
 num_samples = int(int(len(data))/num_channels)
@@ -52,9 +52,9 @@ interval = int(ten_min_samples/2)
 data_thirty_min_chunk = reshaped_data_T[:,centre-interval:centre+interval]
 reshaped_data_T = None
 
+#?????????????????
 
-
-data_thirty_min_chunk=reshaped_data_T
+#data_thirty_min_chunk=reshaped_data_T
 
 
 

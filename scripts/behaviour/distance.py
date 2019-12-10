@@ -20,6 +20,7 @@ from matplotlib.ticker import LogFormatterExponent
 import DLC_parser_library as DLC
 import scipy.signal
 import seaborn as sns
+from matplotlib.lines import Line2D
 
 rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
@@ -117,48 +118,50 @@ for count in np.arange(x):
     
     
 
-x_tracking_trial_0_te = x_centroid_te[0][0]
-y_tracking_trial_0_te = x_centroid_st[0][0]
-dst_trial_0 = sessions_dst_te[0][0]
+#x_tracking_trial_0_te = x_centroid_te[0][0]
+#y_tracking_trial_0_te = x_centroid_st[0][0]
+#dst_trial_0 = sessions_dst_te[0][0]
+#
+#x_tracking_trial_0_st = x_centroid_st[0][0]
+#y_tracking_trial_0_st = y_centroid_st[0][0]
+#
+#clip_path = r'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Clips_annotation/Clip00.csv'
+#clip = np.genfromtxt (clip_path, delimiter = ',', dtype = str, usecols=0)
+#time = np.genfromtxt (clip_path, delimiter = ',', dtype = int, usecols=1)
+#
+#for i in time:
+#    
+#    plt.axvline(x = i , color='k', linestyle='--',linewidth =.5)
 
-x_tracking_trial_0_st = x_centroid_st[0][0]
-y_tracking_trial_0_st = y_centroid_st[0][0]
 
-clip_path = r'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Clips_annotation/Clip00.csv'
-clip = np.genfromtxt (clip_path, delimiter = ',', dtype = str, usecols=0)
-time = np.genfromtxt (clip_path, delimiter = ',', dtype = int, usecols=1)
-
-for i in time:
-    
-    plt.axvline(x = i , color='k', linestyle='--',linewidth =.5)
-
-
-number_of_subplots= len(sessions_subset)
-
-plot_main_title = 'distance_st'
-f = plt.figure(figsize=(20,10))
-f.suptitle(plot_main_title)
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine()
-
-   
-for i in np.arange(number_of_subplots): 
-    try:
-        
-        trial_dst = sessions_dst_st[i]
-        ax = f.add_subplot(3, 4, 1+i, frameon=False)
-        for trial in trial_dst:
-            plot = plt.plot(trial,'-',color = '#DC143C', alpha=.1)
-            ax.tick_params(axis='both', which='major', labelsize=10)  
-
-    except Exception: 
-        continue       
-
-f.tight_layout()
-f.subplots_adjust(top = 0.87)
+#number_of_subplots= len(sessions_subset)
+#
+#plot_main_title = 'distance_te_40.2'
+#dst = sessions_dst_st
+#
+#f = plt.figure(figsize=(20,10))
+#f.suptitle(plot_main_title)
+#
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine()
+#
+#   
+#for i in np.arange(number_of_subplots): 
+#    try:
+#        
+#        trial_dst = dst[i]
+#        ax = f.add_subplot(3, 4, 1+i, frameon=False)
+#        for trial in trial_dst:
+#            plot = plt.plot(trial,'-',color = '#DC143C', alpha=.1)
+#            ax.tick_params(axis='both', which='major', labelsize=10)  
+#
+#    except Exception: 
+#        continue       
+#
+#f.tight_layout()
+#f.subplots_adjust(top = 0.87)
 
 
 
@@ -198,6 +201,11 @@ for count in np.arange(x):
                 else:
                     
                     missed_40.append(trial)
+                    
+                    
+        except Exception: 
+            continue       
+           
                             
                             
 sub=sessions_dst_te[count]                        
@@ -215,8 +223,8 @@ f = plt.figure()
 for i in missed_40:
     plt.plot(sub[i],'-',color = 'g', alpha=.2)
              
-             
-
+session=sessions_subset[-1]             
+quadrant_1,quadrant_2,quadrant_3,quadrant_4 = ball_positions_based_on_quadrant_of_appearance(session)
 
                        
 array=np.array(sub)
@@ -258,10 +266,16 @@ int4_30= list(set(quadrant_4).intersection(long_30))
 int4_40= list(set(quadrant_4).intersection(missed_40))
 
 alpha = .8
-
-
+sub=sessions_dst_st[count]  
+#plot_main_title = 'Distance_Touch_to_End_40.2'
+plot_main_title = 'Distance_Start_to_Touch_40.2'
 number_of_subplots= np.arange(4)
 f = plt.figure(figsize=(10,10))
+f.suptitle(plot_main_title)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine()
 
 labels = [ 'less than 5sec', 'between 5sec and 20sec', 'between 20sec and 30sec', 'greater than 30sec']
 
@@ -270,58 +284,66 @@ color = ['k','b','r','g']
 
 plt.subplot(221)
 for i in int1_5 :
-    plt.plot(sub[i],line_style[0], color = color[0], alpha=alpha, label = labels[0])
+    plt.plot(sub[i], color = color[0], alpha=alpha, label = labels[0])
 for i in int2_5 : 
-    plt.plot(sub[i],line_style[0], color = color[1], alpha=alpha, label = labels[0])
+    plt.plot(sub[i], color = color[1], alpha=alpha, label = labels[0])
 for i in int3_5 : 
-    plt.plot(sub[i],line_style[0], color = color[2], alpha=alpha, label = labels[0])
+    plt.plot(sub[i], color = color[2], alpha=alpha, label = labels[0])
 for i in int4_5 : 
-    plt.plot(sub[i],line_style[0], color = color[3], alpha=alpha, label = labels[0])
+    plt.plot(sub[i], color = color[3], alpha=alpha, label = labels[0])
 plt.title(labels[0])
-
+plt.ylabel('norm distance TE')
 
 plt.subplot(222)
 for i in int1_20 : 
-    plt.plot(sub[i],line_style[1], color = color[0], alpha=alpha, label = labels[1])
+    plt.plot(sub[i], color = color[0], alpha=alpha, label = labels[1])
 for i in int2_20 : 
-    plt.plot(sub[i],line_style[1], color = color[1], alpha=alpha, label = labels[1])
+    plt.plot(sub[i], color = color[1], alpha=alpha, label = labels[1])
 for i in int3_20 : 
-    plt.plot(sub[i],line_style[1], color = color[2], alpha=alpha, label = labels[1])
+    plt.plot(sub[i], color = color[2], alpha=alpha, label = labels[1])
 for i in int4_20 : 
-    plt.plot(sub[i],line_style[1], color = color[3], alpha=alpha, label = labels[1])
+    plt.plot(sub[i], color = color[3], alpha=alpha, label = labels[1])
 plt.title(labels[1])
+
 
 plt.subplot(223)
 for i in int1_30 : 
-    plt.plot(sub[i],line_style[2], color = color[0], alpha=alpha,label = labels[2])
+    plt.plot(sub[i], color = color[0], alpha=alpha,label = labels[2])
 for i in int2_30 : 
-    plt.plot(sub[i],line_style[2], color = color[1], alpha=alpha, label = labels[2])
+    plt.plot(sub[i], color = color[1], alpha=alpha, label = labels[2])
 for i in int3_30 : 
-    plt.plot(sub[i],line_style[2], color = color[2], alpha=alpha, label = labels[2])
+    plt.plot(sub[i], color = color[2], alpha=alpha, label = labels[2])
 for i in int4_30 : 
-    plt.plot(sub[i],line_style[2], color = color[3], alpha=alpha, label = labels[2])
+    plt.plot(sub[i], color = color[3], alpha=alpha, label = labels[2])
 plt.title(labels[2])
+plt.xlabel('norm time')
+plt.ylabel('norm distance TE')
 
 plt.subplot(224)
 for i in int1_40 : 
-    plt.plot(sub[i],line_style[3], color = color[0], alpha=alpha, label = labels[3])
+    plt.plot(sub[i], color = color[0], alpha=alpha, label = labels[3])
 for i in int2_40 : 
-    plt.plot(sub[i],line_style[3], color = color[1], alpha=alpha, label = labels[3])
+    plt.plot(sub[i], color = color[1], alpha=alpha, label = labels[3])
 for i in int3_40 : 
-    plt.plot(sub[i],line_style[3], color = color[2], alpha=alpha, label = labels[3])
+    plt.plot(sub[i], color = color[2], alpha=alpha, label = labels[3])
 for i in int4_40 : 
-    plt.plot(sub[i],line_style[3], color = color[3], alpha=alpha, label = labels[3])
+    plt.plot(sub[i], color = color[3], alpha=alpha, label = labels[3])
 plt.title(labels[3])
-
-plt.legend(custom_lines, ['Q1', 'Q2', 'Q3', 'Q4'])
-
-from matplotlib.lines import Line2D
+plt.xlabel('norm time')
 
 
 custom_lines = [Line2D([0], [0], color=color[0], lw=4),
                 Line2D([0], [0], color=color[1], lw=4),
                 Line2D([0], [0], color=color[2], lw=4),
                 Line2D([0], [0], color=color[3], lw=4)]
+
+plt.legend(custom_lines, ['Q1', 'Q2', 'Q3', 'Q4'])
+
+
+
+
+
+
 
 
 
@@ -341,6 +363,12 @@ for i,t in enumerate(all_test):
 #    x_values= y[value:(value + bin_size)]
 #    xmedian = np.nanmedian(x_values)
 #    y_med.append(xmedian)
+
+
+
+
+
+
 
 
 

@@ -24,14 +24,25 @@ from scipy.interpolate import interp1d
 
 #
 #
-#dlc_vieo_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/10-22T15_37_43_CROPPED.avi'
-#dlc_tracking_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/BEST_croppedDeepCut_resnet50_Cuttle-ShuttleOct14shuffle1_250000.csv'
+dlc_vieo_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/10-22T15_37_43_CROPPED.avi'
+dlc_tracking_path = 'D:/cuttlefish/Cuttlefish_butts_DLC/BEST_croppedDeepCut_resnet50_Cuttle-ShuttleOct14shuffle1_250000.csv'
 #
-#dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
+dlc_tracking= np.genfromtxt(dlc_tracking_path, delimiter = ',', skip_header = 3, dtype = float)
 #
 #
-#x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
-#y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
+plt.figure(1)
+like_head = dlc_tracking[:,3]
+
+plt.hist(like_head, bins= 100)
+plt.ylim(0,8000)
+plt.figure(2)
+like_butt = dlc_tracking[:,6]
+plt.hist(like_butt, bins= 100)
+
+
+
+x_nan = np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,1])
+y_nan =  np.where(dlc_tracking[:,3]<= 0.99, np.NaN, dlc_tracking[:,2])
 #
 #
 #
@@ -222,12 +233,12 @@ def DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y
 #
 #
 ## Plot DLC likelihood ranges
-#plt.figure()
-#low_likelihood = np.where(dlc_tracking[:,3] < 0.999)[0]
-#plt.plot(dlc_correct_x_nose[low_likelihood], dlc_correct_y_nose[low_likelihood], 'r.', alpha=0.1)
-#high_likelihood = np.where(dlc_tracking[:,3] > 0.999)[0]
-#plt.plot(dlc_correct_x_nose[high_likelihood], dlc_correct_y_nose[high_likelihood], 'b.', alpha=0.1)
-#plt.show()
+plt.figure()
+low_likelihood = np.where(dlc_tracking[:,3] < 0.999)[0]
+plt.plot(dlc_correct_x_nose[low_likelihood], dlc_correct_y_nose[low_likelihood], 'r.', alpha=0.1)
+high_likelihood = np.where(dlc_tracking[:,3] > 0.999)[0]
+plt.plot(dlc_correct_x_nose[high_likelihood], dlc_correct_y_nose[high_likelihood], 'b.', alpha=0.1)
+plt.show()
 #
 #plt.figure()
 #low_likelihood = np.where(dlc_tracking[:,3] < 0.9999)[0]

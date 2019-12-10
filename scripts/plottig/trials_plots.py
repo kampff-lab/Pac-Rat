@@ -745,14 +745,7 @@ for count, rat in enumerate(rat_summary_table_path):
         except Exception: 
             continue       
       
-        
-str = open(filePath)
-list2=[]
-for i in str:
-    list1 = i.split()
-    if len(list1)>0:
-        list2.append(list1)
-    
+np.sum([np.sum([s for s in rat if type(s) is not list and s > 0]) for rat in rat_total_videogame_lenght])
 
 #####################################################################################################
 #

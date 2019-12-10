@@ -36,7 +36,7 @@ hardrive_path = r'F:/'
 #18 first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base = x_y_at_touch(sessions_subset,start_snippet_idx=0,end_snippet_idx=1,mid_snippet_idx=2)
 #19 sessions_degrees_at_touch = nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x_tail_base,first_values_y_tail_base)
 #20 x_centroid_te, y_centroid_te = create_tracking_snippets_touch_to_end_centroid(sessions_subset,start_snippet_idx = 0,end_snippet_idx = 1,mid_snippet_idx = 2)           
-
+#21 x_centroid_st, y_centroid_st = create_tracking_snippets_start_to_end_centroid(sessions_subset, start_snippet_idx = 0, mid_snippet_idx=2)
 ####################################   1   ##########################################
 
 
@@ -815,7 +815,7 @@ def nose_butt_angle_touch(first_values_x_nose,first_values_y_nose,first_values_x
 ####################################   20   ##########################################
 
 
-# create nose and tail base tracking snippets from touch to end using the trial idx file using the centroid crop file given by Bonsai
+# create centroid tracking snippets from touch to end using the trial idx file using the centroid crop file given by Bonsai
     
 def create_tracking_snippets_touch_to_end_centroid(sessions_subset,end_snippet_idx = 1,mid_snippet_idx = 2):
     
@@ -874,10 +874,10 @@ def create_tracking_snippets_touch_to_end_centroid(sessions_subset,end_snippet_i
 
 
 
-####################################   20   ##########################################
+####################################   21   ##########################################
 
 
-# create nose and tail base tracking snippets from touch to end using the trial idx file using the centroid crop file given by Bonsai
+# create centroid tracking snippets from start to touch using the trial idx file using the centroid crop file given by Bonsai
     
 def create_tracking_snippets_start_to_end_centroid(sessions_subset, start_snippet_idx = 0, mid_snippet_idx=2):
     
@@ -912,13 +912,13 @@ def create_tracking_snippets_start_to_end_centroid(sessions_subset, start_snippe
             trial_lenght_start_to_touch = abs(trial_idx[:,mid_snippet_idx] - trial_idx[:,start_snippet_idx])
             start_idx = trial_idx[:,start_snippet_idx]        
             
-            l = len(touch_idx)
+            l = len(start_idx)
     
             x_centroid_snippets = [[] for _ in range(l)] 
             y_centroid_snippets = [[] for _ in range(l)] 
             
             
-            for c, touch in enumerate(touch_idx):
+            for c, start in enumerate(start_idx):
                 x_centroid_snippets[c] = x_smooth[start:start + trial_lenght_start_to_touch[c]]
                 y_centroid_snippets[c] = y_smooth[start:start + trial_lenght_start_to_touch[c]]
 

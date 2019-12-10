@@ -28,7 +28,7 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 # Load Data as uint16 from binary file, use memory mapping (i.e. do not load into RAM)
 #   - use read-only mode "r+" to prevent overwriting the original file
-filename = 'E:/AK_33.2_test/2018_04_29-15_43/Amplifier.bin'
+filename = 'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Amplifier.bin'
 
 def GET_data_zero_mean_remapped_window(filename, offset, num_samples):
     
@@ -64,7 +64,7 @@ def GET_data_zero_mean_remapped_window(filename, offset, num_samples):
 
 #extract tone sample from sync file
 
-sync_file= 'E:/AK_33.2_test/2018_04_29-15_43/Sync.bin'     
+sync_file= 'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Sync.bin'
 sync_dtype = np.uint8
 fs = 30000
 sync_data = np.fromfile(sync_file,sync_dtype)

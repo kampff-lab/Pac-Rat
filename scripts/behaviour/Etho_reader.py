@@ -69,6 +69,15 @@ OrderedDict([('pear', 1), ('orange', 2), ('banana', 3), ('apple', 4)])
 # Given a list of words, return a dictionary of
 # word-frequency pairs.
 
+print(counter.values())
+# [4, 4, 2, 1, 2]
+print(counter.keys())
+# [1, 2, 3, 4, 5]
+print(counter.most_common(3))
+# [(1, 4), (2, 4), (3, 2)]
+
+
+ stats.itemfreq(a/num_frames)
 
 
 def wordListToFreqDict(wordlist):
@@ -99,5 +108,32 @@ x,y = zip(*aux)
 plt.bar(y,x)
 
 
+folder = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Clips_annotation'
+
+frames = [np.genfromtxt(os.path.join(folder,name), delimiter=',', usecols = 0 , dtype=str) for name in os.listdir(folder) if name.endswith('.csv')]
+
+merged = np.concatenate(frames)
 
 
+folder2 = 'F:/Videogame_Assay/AK_33.2/2018_04_24-17_02/Clips_annotation'
+
+
+frames2 = [np.genfromtxt(os.path.join(folder2,name), delimiter=',', usecols = 0 , dtype=str) for name in os.listdir(folder2) if name.endswith('.csv')]
+
+
+merged2 = np.concatenate(frames2)
+
+
+from collections import Counter
+
+counterA = Counter(merged)
+counterB = Counter(merged2)
+
+
+
+def jaccard_similarity(list1, list2):
+    intersection = len(list(set(list1).intersection(list2)))
+    union = (len(list1) + len(list2)) - intersection
+    return float(intersection) / union
+
+jaccard_similarity(merged, merged2)

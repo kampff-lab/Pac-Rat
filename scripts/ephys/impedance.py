@@ -4,24 +4,25 @@ Created on Mon Feb 19 10:47:05 2018
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
-
+import os
+#os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
+import matplotlib.cm
+import matplotlib.pyplot as plt
+import behaviour_library as behaviour
+import parser_library as prs
+from matplotlib.colors import PowerNorm  
+from matplotlib.colors import LogNorm 
+from pylab import *
+from matplotlib.ticker import LogFormatterExponent
+import DLC_parser_library as DLC
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.colors
 import seaborn as sns
 import os
-
-
-
-
-base_directory = r'F:'
-rat_ID = r'/AK_41.1/'
-rat_folder = base_directory + rat_ID
-day = rat_folder + '2019_02_04-14_48/'
-filename = day + 'impedance1.csv'
-
 
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [121,80,79,102,64,52,32,8,47,48,25],
@@ -36,11 +37,23 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+hardrive_path = r'F:/' 
 
-imp=pd.read_csv(filename)
-imp2=imp['Impedance Magnitude at 1000 Hz (ohms)']
-imp_array=np.array(imp2)
-impedance=imp_array.astype(dtype=int)
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+
+sessions_subset = Level_2_post
+
+session = sessions_subset[0]
+
+impedance_path = os.path.join(hardrive_path, session +'/impedance1.csv')
+
+
+
+imp = pd.read_csv(impedance_path)
+impedance = np.array(imp['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+
+
 
 N=121
 #map the impedance
