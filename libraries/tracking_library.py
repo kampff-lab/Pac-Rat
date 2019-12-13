@@ -42,11 +42,17 @@ def compute_background_median(video, start, stop, step):
 
     return np.uint8(background)
 
+
+
+
 def rotation_2D(points, theta):
 
    R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
 
    return np.dot(points, R.T)
+
+
+
 
 # Get largest contour
 def get_largest_contour(contours):
@@ -61,6 +67,8 @@ def get_largest_contour(contours):
         return best_cnt, max_area
     else:
         return cnt, max_area
+
+
 
 # Track rat through entire video
 def track_rat(video, background):
@@ -169,6 +177,11 @@ def track_rat(video, background):
     cv2.destroyAllWindows()
 
     return 1
+
+
+
+
+
 
 # Crop video around rat centroid
 def crop_rat(video, background, window_size, output_name):
@@ -282,6 +295,100 @@ def crop_rat(video, background, window_size, output_name):
     outputVid.release() 
     return 1
 
-#FIN
+
+
+
+
+
+
+# Crop video around rat centroid
+def motion(video, background, output_name):
+
+    # Create output filenames
+    csv_path = output_name + '.csv'
+              
+    # Read current frame
+    success, image = video.read()
+     
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
+    #store the first frame only to make the loop working for frame=0
+    previous = np.copy(gray)
+    
+    # Measure dimensions
+    width = image.shape[1]
+    height = image.shape[0]
+    num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Reset video to first frame
+    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    
+    # Empty list to be filled with motion values
+    motion = []
+
+    # Read and process each frame
+    cv2.namedWindow("Display")
+    #num_frames = 1200
+    for frame in range(0, num_frames):
+
+        # Read current frame
+        success, image = video.read()
+
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+
+        # Subtract background (darker values positive)
+        back_sub = cv2.subtract(background, gray)
+
+        # Threshold
+        level, threshed = cv2.threshold(back_sub, 15, 255, cv2.THRESH_BINARY)
+        
+        smooth = cv2.blur(threshed, (15,15))
+                
+        #pixel above the th (mostly the rat)
+        count_foreground = np.sum(np.sum(smooth))
+        
+
+
+
+        # detect changed pixels
+        motion_diff = cv2.absdiff(gray, previous)
+        
+        # Threshold
+        level, threshed = cv2.threshold(motion_diff, 15, 255, cv2.THRESH_BINARY)
+
+        count_motion = np.sum(np.sum(threshed))
+        
+        
+        norm_motion = count_motion/count_foreground
+        
+        
+        # Store motion in list
+        motion.append(norm_motion)
+
+        
+        previous = np.copy(gray)
+         
+        print(norm_motion)    
+        # Display (occasionally)
+#       if (frame % 12) == 0:
+#            resized = cv2.resize(gray, (np.int(width/2), np.int(height/2)))
+#            color = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+#            cv2.circle(color, (np.int(cx/2), np.int(cy/2)), 5, (0, 255, 0), thickness=1, lineType=8, shift=0)
+#            cv2.imshow("Display", color)    
+#            cv2.waitKey(1)
+#            print("Frame %d of %d" % (frame, num_frames))
+
+    # Save csv file containing the centroids coordinates    
+    np.savetxt(csv_path, motion, delimiter=',')    
+
+    # Cleanup
+    cv2.destroyAllWindows()
+     
+    return 
+
+#FIN
+        
 

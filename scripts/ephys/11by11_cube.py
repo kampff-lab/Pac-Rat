@@ -30,6 +30,9 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 #   - use read-only mode "r+" to prevent overwriting the original file
 recording = 'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Amplifier.bin'
+samples_for_frames_file_path ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Analysis/samples_for_frames.csv'
+samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype=int)
+
 num_channels = 128
 freq = 30000
 
@@ -39,7 +42,7 @@ highcut = 2000
 
 
 
-for channel in flatten_probe:
+for ch,channel in enumerate(flatten_probe):
     
     data = np.memmap(recording, dtype = np.uint16, mode = 'r')
     num_samples = int(int(len(data))/num_channels)
@@ -52,10 +55,7 @@ for channel in flatten_probe:
     reshaped_data = None
 
     # Extract data chunk for single channel
-    minutes = np.int(recording_time_min)
-    seconds = minutes*60
-    num_samples_per_chunk = seconds*freq
-    channel_data = reshaped_data_T[channel,:num_samples_per_chunk]
+    channel_data = reshaped_data_T[channel,:]
     reshaped_data_T = None
 
     # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
@@ -73,8 +73,23 @@ for channel in flatten_probe:
 
     # RASTER CODE
     
+    binned_signal = np.zeros((121,len(samples_for_frames)))
+    
+    
     # Determine high and low threshold
-    abs_channel_data_highpass = np.abs(channel_data_highpass)
+    abs_channel_data_MUA = np.abs(channel_data_MUA_bandpass)
+    
+    
+    sample_diff = np.diff(samples_for_frames)
+    sample_diff = np.hstack((sample_diff,250))
+
+    for s in np.arange(len(samples_for_frames)):
+        sample = samples_for_frames[s]
+        signal_to_bin = abs_channel_data_MUA[sample:(sample + sample_diff[s])]
+        avg = np.mean(signal_to_bin)
+        binned_signal[ch][s] = avg
+        
+    print(ch)
 
 
 
@@ -82,45 +97,6 @@ for channel in flatten_probe:
 
 
 
-
-
-
-
-
-
-# Load Data as uint16 from binary file, use memory mapping (i.e. do not load into RAM)
-#   - use read-only mode "r+" to prevent overwriting the original file
-filename = 'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Amplifier.bin'
-num_channels = 128
-data = np.memmap(filename, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_channels)
-freq = 30000
-recording_time_sec = num_samples/freq
-recording_time_min = recording_time_sec/60
-reshaped_data = np.reshape(data,(num_samples,128))
-#to have 128 rows
-reshaped_data_T= reshaped_data.T
-data = None
-reshaped_data = None
-
-# Extract data chunk for single channel
-channel = 1
-minutes = np.int(recording_time_min)
-seconds = minutes*60
-num_samples_per_chunk = seconds*freq
-channel_data = reshaped_data_T[channel,:num_samples_per_chunk]
-reshaped_data_T = None
-
-# Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
-channel_data = None
-
-# FILTERS (one ch at the time)
-lowcut = 250
-highcut = 2000
-channel_data_highpass = butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order=3, btype='bandpass')
-
-abs_channel_data_highpass = np.abs(channel_data_highpass)
 
 
 
