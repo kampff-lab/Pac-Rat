@@ -41,7 +41,7 @@ lowcut = 250
 highcut = 2000
 
 
-
+binned_signal = np.zeros((121,len(samples_for_frames)))
 for ch,channel in enumerate(flatten_probe):
     
     data = np.memmap(recording, dtype = np.uint16, mode = 'r')
@@ -69,12 +69,7 @@ for ch,channel in enumerate(flatten_probe):
     
     #lowcut = 500
     #highcut = 2000
-    #channel_data_bandpass =  butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order=3, btype='bandstop')
-
-    # RASTER CODE
-    
-    binned_signal = np.zeros((121,len(samples_for_frames)))
-    
+    #channel_data_bandpass =  butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order=3, btype='bandstop')    
     
     # Determine high and low threshold
     abs_channel_data_MUA = np.abs(channel_data_MUA_bandpass)
@@ -88,13 +83,73 @@ for ch,channel in enumerate(flatten_probe):
         signal_to_bin = abs_channel_data_MUA[sample:(sample + sample_diff[s])]
         avg = np.mean(signal_to_bin)
         binned_signal[ch][s] = avg
-        
+    
+            
     print(ch)
 
+event_file ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/RatTouchBall.csv'
+video_csv ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Video.csv'
+touching_light = event_finder(event_file,video_csv,samples_for_frames_file_path)
+
+event_file ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/TrialEnd.csv'
+reward_tone = event_finder(event_file,video_csv,samples_for_frames_file_path)
+
+
+video_time = timestamp_CSV_to_pandas(video_csv)
+touch_time = timestamp_CSV_to_pandas(event_file)
+reward_time = timestamp_CSV_to_pandas(event_file)
+touching_light = closest_timestamps_to_events(video_time, touch_time)
+reward = closest_timestamps_to_events(video_time, reward_time)
 
 
 
 
+event = reward
+
+
+offset = 360
+
+
+#avg_MUA_around_ball = [[] for _ in range(121)] 
+avg_MUA_around_reward = [[] for _ in range(121)] 
+
+for count in np.arange(121):
+    
+    binned_signal_ch = binned_signal[count]
+    try:
+       
+        ch_MUA = [[] for _ in range(len(event))] 
+    
+        for e, event in enumerate(event):
+          
+            ch_MUA[e] = binned_signal_ch[(event-offset):(event+offset)]   
+                         
+        #avg_MUA_around_ball[count]= np.mean(ch_MUA, axis=0)
+        avg_MUA_around_reward[count]= np.mean(ch_MUA, axis=0)
+        
+    except Exception: 
+            
+        continue
+
+
+avg_MUA_around_ball_array= np.array(avg_MUA_around_ball)
+avg_MUA_around_reward_array = np.array(avg_MUA_around_reward)
+
+# Plot raster
+plt.figure()
+plt.vlines(360, 0, len(range(20)), 'r')
+for index, mua in enumerate(avg_MUA_around_ball_array):
+    
+    plt.plot(mua, alpha = 0.1)
+    plt.yticks(index+1)
+
+fig = plt.figure()
+ax = fig.add_axes([0.1,0.1,0.6,0.8])
+image = avg_MUA_around_ball_array
+i = ax.imshow(image, aspect='auto', interpolation='gaussian')
+colorbar_ax = fig.add_axes([0.7, 0.1, 0.05, 0.8])
+fig.colorbar(i, cax=colorbar_ax)
+ax.vlines(360, 0, len(range(120)), 'r')
 
 
 
