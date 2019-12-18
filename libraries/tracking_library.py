@@ -345,10 +345,10 @@ def motion(video, background, output_name):
         # Threshold
         level, threshed = cv2.threshold(back_sub, 15, 255, cv2.THRESH_BINARY)
         
-        smooth = cv2.blur(threshed, (15,15))
+        #smooth = cv2.blur(threshed, (15,15))
                 
         #pixel above the th (mostly the rat)
-        count_foreground = np.sum(np.sum(smooth))
+        count_foreground = np.sum(np.sum(threshed))
         
 
 

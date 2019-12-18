@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-base_path = r'E:/AK_33.2_test/2018_04_29-15_43'
+base_path = r'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/'
 
 # Load sampes_for_frames
 samples_for_frames_file_path = base_path + r'Analysis/samples_for_frames.csv'

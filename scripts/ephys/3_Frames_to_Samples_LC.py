@@ -33,4 +33,6 @@ sync_indices_for_video_frames = (video_counter-video_counter[0]).astype(np.uint3
 sample_for_each_video_frame = frame_starts[sync_indices_for_video_frames]
 np.savetxt(base_path + r'Analysis/samples_for_frames.csv', sample_for_each_video_frame, delimiter=',')
 
+
+
 # FIN                                

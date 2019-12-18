@@ -10,6 +10,10 @@ import matplotlib.pyplot as plt
 import random
 import seaborn as sns
 from filters import *
+import os
+#os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+import parser_library as prs
 
 ### Load and pre-process data
 
@@ -26,25 +30,37 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [117,85,124,106,72,63,36,0,41,15,16],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
+flatten_probe = probe_map.flatten()
+
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+hardrive_path = r'F:/' 
+
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post
+
+session = sessions_subset[1]
+
+session_path = os.path.join(hardrive_path, session )
+
+recording_path = os.path.join( session_path + '/Amplifier.bin')
+# - use read-only mode "r+" to prevent overwriting the original file
+
+samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
-#   - use read-only mode "r+" to prevent overwriting the original file
-recording = 'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Amplifier.bin'
-samples_for_frames_file_path ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Analysis/samples_for_frames.csv'
-samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype=int)
 
 num_channels = 128
 freq = 30000
-
-flatten_probe = probe_map.flatten()
 lowcut = 250
 highcut = 2000
 
 
 binned_signal = np.zeros((121,len(samples_for_frames)))
+
 for ch,channel in enumerate(flatten_probe):
     
-    data = np.memmap(recording, dtype = np.uint16, mode = 'r')
+    data = np.memmap(recording_path, dtype = np.uint16, mode = 'r')
     num_samples = int(int(len(data))/num_channels)
     recording_time_sec = num_samples/freq
     recording_time_min = recording_time_sec/60
@@ -87,65 +103,99 @@ for ch,channel in enumerate(flatten_probe):
             
     print(ch)
 
-event_file ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/RatTouchBall.csv'
-video_csv ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/Video.csv'
-touching_light = event_finder(event_file,video_csv,samples_for_frames_file_path)
 
-event_file ='F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/TrialEnd.csv'
-reward_tone = event_finder(event_file,video_csv,samples_for_frames_file_path)
 
+#events of interest
+    
+touch_path = os.path.join(session_path +  '/events/RatTouchBall.csv')
+reward_path = os.path.join(session_path +  '/events/TrialEnd.csv')
+ball_on_path = os.path.join(session_path +  '/events/BallON.csv')
+video_csv = os.path.join(session_path + '/Video.csv')
 
 video_time = timestamp_CSV_to_pandas(video_csv)
-touch_time = timestamp_CSV_to_pandas(event_file)
-reward_time = timestamp_CSV_to_pandas(event_file)
+touch_time = timestamp_CSV_to_pandas(touch_path)
+reward_time = timestamp_CSV_to_pandas(reward_path)
+ball_time = timestamp_CSV_to_pandas(ball_on_path)
+
+
 touching_light = closest_timestamps_to_events(video_time, touch_time)
 reward = closest_timestamps_to_events(video_time, reward_time)
+ball_on = closest_timestamps_to_events(video_time, ball_time)
 
 
 
+events_list = [touching_light,reward,ball_on]
 
-event = reward
-
+events = events_list[2]
 
 offset = 360
+avg_MUA_around_event = [[] for _ in range(121)] 
 
-
-#avg_MUA_around_ball = [[] for _ in range(121)] 
-avg_MUA_around_reward = [[] for _ in range(121)] 
-
+#plt.figure()
 for count in np.arange(121):
     
     binned_signal_ch = binned_signal[count]
     try:
        
-        ch_MUA = [[] for _ in range(len(event))] 
+        ch_MUA = [[] for _ in range(len(events))]
+        valid = []
     
-        for e, event in enumerate(event):
-          
-            ch_MUA[e] = binned_signal_ch[(event-offset):(event+offset)]   
-                         
-        #avg_MUA_around_ball[count]= np.mean(ch_MUA, axis=0)
-        avg_MUA_around_reward[count]= np.mean(ch_MUA, axis=0)
-        
-    except Exception: 
+        for e, event in enumerate(events):
+            ch_MUA[e] = binned_signal_ch[(event-offset):(event+offset)]
             
+            if np.max(ch_MUA[e]) < 40:
+                valid.append(e)
+#                if count == 52:  
+#                    plt.plot(ch_MUA[e] + (e*10), alpha =0.5)
+#                    plt.vlines(360, 0,( e*10), 'r')
+                    
+        ch_MUA_array = np.array(ch_MUA)
+        ch_MUA_valid = ch_MUA_array[np.array(valid),:]
+        avg_MUA_around_event[count]= np.mean(ch_MUA_valid, axis=0)
+                
+    except Exception:             
         continue
 
 
-avg_MUA_around_ball_array= np.array(avg_MUA_around_ball)
-avg_MUA_around_reward_array = np.array(avg_MUA_around_reward)
+
+
+
+avg_MUA_around_event_array= np.array(avg_MUA_around_event)
+
+
+norm_MUA_around_event = [[] for _ in range(121)] 
+
+for count in np.arange(121):
+    
+    avg_MUA_around_event_ch = avg_MUA_around_event_array[count]
+    median_MUA = np.median(avg_MUA_around_event_ch)
+    norm_MUA_around_event[count] = avg_MUA_around_event_ch-median_MUA
+    
+    
+norm_MUA_around_event_array = np.array(norm_MUA_around_event)    
+    
+
+
+
 
 # Plot raster
 plt.figure()
-plt.vlines(360, 0, len(range(20)), 'r')
-for index, mua in enumerate(avg_MUA_around_ball_array):
-    
-    plt.plot(mua, alpha = 0.1)
-    plt.yticks(index+1)
+plt.vlines(360, -1.0, len(range(121)), 'r')
+for index, mua in enumerate(norm_MUA_around_event_array):   
+    plt.plot(mua + (index), alpha = 0.5)
+
+plt.plot(np.mean(norm_MUA_around_event_array[0:121:11, :], axis=0),'b')
+plt.plot(np.mean(norm_MUA_around_event_array[5:121:11, :], axis=0), 'c')
+plt.plot(np.mean(norm_MUA_around_event_array[10:121:11, :], axis=0), 'r')
+#plt.plot(np.mean(norm_MUA_around_event_array[], axis=0))
+
+
+
+
 
 fig = plt.figure()
 ax = fig.add_axes([0.1,0.1,0.6,0.8])
-image = avg_MUA_around_ball_array
+image = avg_MUA_around_event_array
 i = ax.imshow(image, aspect='auto', interpolation='gaussian')
 colorbar_ax = fig.add_axes([0.7, 0.1, 0.05, 0.8])
 fig.colorbar(i, cax=colorbar_ax)
@@ -153,11 +203,11 @@ ax.vlines(360, 0, len(range(120)), 'r')
 
 
 
+#test = norm_MUA_around_event_array.astype('int16').tofile(r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test.bin')
 
 
 
-
-
+#data_test = open('C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test.bin',encoding='utf-16', mode = 'r')
 
 
 
