@@ -306,14 +306,15 @@ def motion(video, background, output_name):
 
     # Create output filenames
     csv_path = output_name + '.csv'
-              
+
     # Read current frame
-    success, image = video.read()
-     
+    success, image = video.read()    
+    blue, green, red = cv2.split(image)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     #store the first frame only to make the loop working for frame=0
     previous = np.copy(gray)
+    previous_green = np.copy(green)
     
     # Measure dimensions
     width = image.shape[1]
@@ -325,6 +326,7 @@ def motion(video, background, output_name):
     
     # Empty list to be filled with motion values
     motion = []
+    stimulus_motion = []
 
     # Read and process each frame
     cv2.namedWindow("Display")
@@ -333,7 +335,7 @@ def motion(video, background, output_name):
 
         # Read current frame
         success, image = video.read()
-
+        blue, green, red = cv2.split(image)
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -364,12 +366,24 @@ def motion(video, background, output_name):
         
         norm_motion = count_motion/count_foreground
         
-        
         # Store motion in list
         motion.append(norm_motion)
 
+
+        # detect changed green pixels
+        motion_diff = cv2.absdiff(green, previous_green)
+        
+        # Threshold
+        level, threshed = cv2.threshold(motion_diff, 120, 255, cv2.THRESH_BINARY)
+        count_green_motion = np.sum(np.sum(threshed))
+        
+        # Store motion in list
+        stimulus_motion.append(count_green_motion)
+
+
         
         previous = np.copy(gray)
+        previous_green = np.copy(green)
          
         print(norm_motion)    
         # Display (occasionally)
@@ -382,8 +396,8 @@ def motion(video, background, output_name):
 #            print("Frame %d of %d" % (frame, num_frames))
 
     # Save csv file containing the centroids coordinates    
-    np.savetxt(csv_path, motion, delimiter=',')    
-
+    #np.savetxt(csv_path, motion, delimiter=',')    
+    np.savetxt(csv_path, np.vstack((motion,stimulus_motion)).T, delimiter=',', fmt='%s')
     # Cleanup
     cv2.destroyAllWindows()
      

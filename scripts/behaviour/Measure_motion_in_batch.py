@@ -34,7 +34,7 @@ import importlib
 importlib.reload(tracking)
 
 
-session_list = Level_2_pre[-1]
+session_list = Level_2_pre[0]
 
 for session in session_list:
     video_path = os.path.join(hardrive_path, session +'/Video.avi')
@@ -50,7 +50,7 @@ for session in session_list:
         
         # Specify outout movie/data folder and filename
         output_folder = os.path.join(hardrive_path, session)
-        output_name = r'F:\Videogame_Assay/AK_33.2/2018_04_24-17_02/motion_smooth' #output_folder + '/motion'
+        output_name = os.path.join(hardrive_path, session +' /motions') #output_folder + '/motion'
         
         #measure motion 
         tracking.motion(video, background, output_name)

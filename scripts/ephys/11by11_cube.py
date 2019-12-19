@@ -36,9 +36,19 @@ rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-sessions_subset = Level_2_post
+sessions_subset = Level_2_post[:2]
 
-session = sessions_subset[1]
+num_channels = 128
+freq = 30000
+lowcut = 250
+highcut = 2000
+
+hardrive_path = 'F:/'
+
+
+
+for session in sessions_subset:
+    try:
 
 session_path = os.path.join(hardrive_path, session )
 
@@ -50,10 +60,6 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
 
-num_channels = 128
-freq = 30000
-lowcut = 250
-highcut = 2000
 
 
 binned_signal = np.zeros((121,len(samples_for_frames)))
@@ -202,8 +208,19 @@ fig.colorbar(i, cax=colorbar_ax)
 ax.vlines(360, 0, len(range(120)), 'r')
 
 
+np.savetxt(r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test2.csv',test, delimiter=',', fmt='%1.3f')
 
-#test = norm_MUA_around_event_array.astype('int16').tofile(r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test.bin')
+ 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test.csv'
+
+
+# Save as binary file
+test_f32 = np.float32(test)
+save_path = r'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_f32.bin'
+test_f32.tofile(save_path)
+
+# Open from binary file
+retest_f32 = np.fromfile(save_path, dtype=np.float32)
+reshaped_f32 = np.reshape(retest_f32, (121,-1))
 
 
 
