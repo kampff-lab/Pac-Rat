@@ -336,30 +336,41 @@ def motion(video, background, output_name):
         # Read current frame
         success, image = video.read()
         blue, green, red = cv2.split(image)
+        
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-
 
         # Subtract background (darker values positive)
         back_sub = cv2.subtract(background, gray)
 
         # Threshold
-        level, threshed = cv2.threshold(back_sub, 15, 255, cv2.THRESH_BINARY)
-        
+        level, threshed = cv2.threshold(back_sub, 5, 255, cv2.THRESH_BINARY)
+        cv2.imshow('',threshed)
         #smooth = cv2.blur(threshed, (15,15))
                 
-        #pixel above the th (mostly the rat)
-        count_foreground = np.sum(np.sum(threshed))
         
-
-
-
+        # Open (Erode then Dialate) to remove tail and noise
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
+        opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
+        
+        # Find Binary Contours            
+        ret, contours, hierarchy = cv2.findContours(np.copy(opened),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)   
+        if len(contours) == 0:
+            area = 0
+        else:
+            # Get largest particle
+            largest_cnt, area = get_largest_contour(contours)
+        
+        
+        #pixel above the th (mostly the rat)
+        count_foreground = area
+                
+        
         # detect changed pixels
         motion_diff = cv2.absdiff(gray, previous)
         
         # Threshold
-        level, threshed = cv2.threshold(motion_diff, 15, 255, cv2.THRESH_BINARY)
+        level, threshed = cv2.threshold(motion_diff, 5, 255, cv2.THRESH_BINARY)
 
         count_motion = np.sum(np.sum(threshed))
         
@@ -370,11 +381,12 @@ def motion(video, background, output_name):
         motion.append(norm_motion)
 
 
+        #stimulus motion 
         # detect changed green pixels
-        motion_diff = cv2.absdiff(green, previous_green)
+        green_motion_diff = cv2.absdiff(green, previous_green)
         
         # Threshold
-        level, threshed = cv2.threshold(motion_diff, 120, 255, cv2.THRESH_BINARY)
+        level, threshed = cv2.threshold(green_motion_diff, 120, 255, cv2.THRESH_BINARY)
         count_green_motion = np.sum(np.sum(threshed))
         
         # Store motion in list

@@ -36,7 +36,7 @@ rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-sessions_subset = Level_2_post[:2]
+sessions_subset = Level_2_post
 
 num_channels = 128
 freq = 30000
@@ -46,68 +46,72 @@ highcut = 2000
 hardrive_path = 'F:/'
 
 
-
 for session in sessions_subset:
     try:
 
-session_path = os.path.join(hardrive_path, session )
+        session_path = os.path.join(hardrive_path, session )
+        save_path = os.path.join(session_path + '/MUA_250_to_2000.bin')
+        recording_path = os.path.join( session_path + '/Amplifier.bin')
+        # - use read-only mode "r+" to prevent overwriting the original file
 
-recording_path = os.path.join( session_path + '/Amplifier.bin')
-# - use read-only mode "r+" to prevent overwriting the original file
-
-samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
-samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
-
-
+        samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+        samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
+        binned_signal = np.zeros((121,len(samples_for_frames)))
 
-binned_signal = np.zeros((121,len(samples_for_frames)))
-
-for ch,channel in enumerate(flatten_probe):
-    
-    data = np.memmap(recording_path, dtype = np.uint16, mode = 'r')
-    num_samples = int(int(len(data))/num_channels)
-    recording_time_sec = num_samples/freq
-    recording_time_min = recording_time_sec/60
-    reshaped_data = np.reshape(data,(num_samples,128))
-    #to have 128 rows
-    reshaped_data_T= reshaped_data.T
-    data = None
-    reshaped_data = None
-
-    # Extract data chunk for single channel
-    channel_data = reshaped_data_T[channel,:]
-    reshaped_data_T = None
-
-    # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-    channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
-    channel_data = None
-    
-    # FILTERS (one ch at the time)
-    #channel_data_highpass = highpass(channel_data_uV,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
-    #data_lowpass = butter_filter_lowpass(data_zero_mean[channel_number,:], lowcut=250,  fs=30000, order=3, btype='lowpass')
-    channel_data_MUA_bandpass = butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order = 3, btype = 'bandpass')
-    
-    #lowcut = 500
-    #highcut = 2000
-    #channel_data_bandpass =  butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order=3, btype='bandstop')    
-    
-    # Determine high and low threshold
-    abs_channel_data_MUA = np.abs(channel_data_MUA_bandpass)
-    
-    
-    sample_diff = np.diff(samples_for_frames)
-    sample_diff = np.hstack((sample_diff,250))
-
-    for s in np.arange(len(samples_for_frames)):
-        sample = samples_for_frames[s]
-        signal_to_bin = abs_channel_data_MUA[sample:(sample + sample_diff[s])]
-        avg = np.mean(signal_to_bin)
-        binned_signal[ch][s] = avg
-    
+        for ch, channel in enumerate(flatten_probe):
             
-    print(ch)
+            data = np.memmap(recording_path, dtype = np.uint16, mode = 'r')
+            num_samples = int(int(len(data))/num_channels)
+            recording_time_sec = num_samples/freq
+            recording_time_min = recording_time_sec/60
+            reshaped_data = np.reshape(data,(num_samples,128))
+            #to have 128 rows
+            reshaped_data_T= reshaped_data.T
+            data = None
+            reshaped_data = None
+        
+            # Extract data chunk for single channel
+            channel_data = reshaped_data_T[channel,:]
+            reshaped_data_T = None
+        
+            # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+            channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
+            channel_data = None
+            
+            # FILTERS (one ch at the time)
+            #channel_data_highpass = highpass(channel_data_uV,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+            #data_lowpass = butter_filter_lowpass(data_zero_mean[channel_number,:], lowcut=250,  fs=30000, order=3, btype='lowpass')
+            channel_data_MUA_bandpass = butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order = 3, btype = 'bandpass')
+            
+            #lowcut = 500
+            #highcut = 2000
+            #channel_data_bandpass =  butter_filter(channel_data_uV, lowcut, highcut, fs=30000, order=3, btype='bandstop')    
+            
+            # Determine high and low threshold
+            abs_channel_data_MUA = np.abs(channel_data_MUA_bandpass)
+            
+            
+            sample_diff = np.diff(samples_for_frames)
+            sample_diff = np.hstack((sample_diff,250))
+        
+            for s in np.arange(len(samples_for_frames)):
+                sample = samples_for_frames[s]
+                signal_to_bin = abs_channel_data_MUA[sample:(sample + sample_diff[s])]
+                avg = np.mean(signal_to_bin)
+                binned_signal[ch][s] = avg
+                
+            print(ch)
+            
+        mua_array = np.float32(binned_signal)
+        mua_array.tofile(save_path)
+        
+    except Exception: 
+        print('error'+ session)
+    continue
+
+
 
 
 

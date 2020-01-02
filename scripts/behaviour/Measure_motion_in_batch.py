@@ -36,6 +36,8 @@ importlib.reload(tracking)
 
 session_list = Level_2_pre[0]
 
+
+
 for session in session_list:
     video_path = os.path.join(hardrive_path, session +'/Video.avi')
     try:
@@ -50,7 +52,7 @@ for session in session_list:
         
         # Specify outout movie/data folder and filename
         output_folder = os.path.join(hardrive_path, session)
-        output_name = os.path.join(hardrive_path, session +' /motions') #output_folder + '/motion'
+        output_name = os.path.join(hardrive_path, session +'/motions_clips_42') #output_folder + '/motion'
         
         #measure motion 
         tracking.motion(video, background, output_name)
@@ -64,7 +66,15 @@ for session in session_list:
      
               
 
+video_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Clips/Clip42.avi'
 
-             
+test= 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motions_clips_42.csv'
+test_clip = np.genfromtxt(test, delimiter=',',usecols=0)            
+
+
+
+
+
+
 
 
