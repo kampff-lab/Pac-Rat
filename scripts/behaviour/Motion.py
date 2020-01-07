@@ -14,21 +14,30 @@ import pandas as pd
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import behaviour_library as behaviour
 
-motion_stimulus_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motion_new.csv'
+motion_stimulus_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motions.csv'
 motion_stimulus= np.genfromtxt(motion_stimulus_path, delimiter = ',', usecols = 1) 
 
 
 video_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Video.csv'
 ball_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/events/BallOn.csv'
+touch_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/events/RatTouchBall.csv'
+
 
 
 video = behaviour.timestamp_CSV_to_pandas(video_path)
 ball = behaviour.timestamp_CSV_to_pandas(ball_path)
+touch = behaviour.timestamp_CSV_to_pandas(touch_path)
 
 ball_idx = behaviour.closest_timestamps_to_events(video,ball)
-
+touch_idx = behaviour.closest_timestamps_to_events(video,touch)
 # stimulus 
 
+
+
+events_list = [touch_idx,ball_idx]
+
+
+event = events_list[0]
 #extract motion chunk around ball on 
 
 before = 0
@@ -36,11 +45,11 @@ after = 60
 
 n = len(ball_idx)
 
-motion_around_ball = [[] for _ in range(n)] 
+motion_around_event = [[] for _ in range(n)] 
                        
 
-for i, idx in enumerate(ball_idx):
-    motion_around_ball[i] = motion_stimulus[idx-before:idx+after]
+for i, idx in enumerate(event):
+    motion_around_event[i] = motion_stimulus[idx-before:idx+after]
 #   plt.figure()
 #   plt.plot(motion_stimulus[idx-before:idx+after])
     
@@ -48,12 +57,12 @@ for i, idx in enumerate(ball_idx):
 
 
 
-motion_around_ball_array = np.array(motion_around_ball)
+motion_around_event_array = np.array(motion_around_event)
 
 correction_idx = []
 
-for chunk in motion_around_ball_array:
-    idx = next(x[0] for x in enumerate(chunk) if x[1] > 200000)
+for chunk in motion_around_event_array:
+    idx = next(x[0] for x in enumerate(chunk) if x[1] > 100000)
     correction_idx.append(idx)
 
     

@@ -11,17 +11,29 @@ import random
 import seaborn as sns
 from filters import *
 import os
-os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
-#os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+#os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import parser_library as prs
 import behaviour_library as behaviour
 
 ### Load pre-processed data
 
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+hardrive_path = r'F:/' 
+
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post
+
+
+
+
+
 # Specify paths
-session_path  = '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
-mua_path = '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43/MUA_250_to_2000.bin'
-save_path = '/home/kampff/Data/Ephys'
+session  = sessions_subset[1]
+session_path =  os.path.join(hardrive_path,session)
+mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
+
+save_path = os.path.join(hardrive_path, session_path +'/mua')
 
 # Probe from superficial to deep electrode, left side is shank 11 (far back)
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],

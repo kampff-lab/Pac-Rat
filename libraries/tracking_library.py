@@ -419,7 +419,7 @@ def motion(video, background, output_name):
         
 
 # Crop video around rat centroid
-def motion_new(video, background, output_name):
+def motion(video, background, output_name):
 
     # Create output filenames
     csv_path = output_name + '.csv'
