@@ -14,24 +14,25 @@ import pandas as pd
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import behaviour_library as behaviour
 
-motion_stimulus_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motions.csv'
+motion_stimulus_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motion_new.csv'
 motion_stimulus= np.genfromtxt(motion_stimulus_path, delimiter = ',', usecols = 1) 
+
 
 video_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/Video.csv'
 ball_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/events/BallOn.csv'
 
-motion = np.genfromtxt(motion_stimulus_path,dtype=float,delimiter = ',', usecols = 0 ) 
+
 video = behaviour.timestamp_CSV_to_pandas(video_path)
 ball = behaviour.timestamp_CSV_to_pandas(ball_path)
 
 ball_idx = behaviour.closest_timestamps_to_events(video,ball)
 
-
+# stimulus 
 
 #extract motion chunk around ball on 
 
-before = 240
-after = 480
+before = 0
+after = 60
 
 n = len(ball_idx)
 
@@ -39,45 +40,103 @@ motion_around_ball = [[] for _ in range(n)]
                        
 
 for i, idx in enumerate(ball_idx):
-    motion_around_ball[i] = motion[idx-before:idx+after]
+    motion_around_ball[i] = motion_stimulus[idx-before:idx+after]
 #   plt.figure()
 #   plt.plot(motion_stimulus[idx-before:idx+after])
     
 # = next(x[0] for x in enumerate(motion_around_ball[40]) if x[1] > 200000)
 
 
+
+motion_around_ball_array = np.array(motion_around_ball)
+
 correction_idx = []
 
-for chunk in motion_around_ball:
+for chunk in motion_around_ball_array:
     idx = next(x[0] for x in enumerate(chunk) if x[1] > 200000)
     correction_idx.append(idx)
+
     
 corrected_ball_idx = np.array(ball_idx) + np.array(correction_idx)
     
-next(x[0] for x in enumerate(values) if x[1] > 0.9)    
-    
-
-motion_around_ball = motion_around_ball[1:]
 
 
-plt.plot(motion_around_ball[40])
-plt.vlines(8,0,1000000,'k')
-    
-motion_array = np.array(new_motion_around_ball) 
-motion_array2 = np.array(motion_around_ball2) 
+before = 0
+after = 60
 
-plt.figure()
-plt.plot(motion_array[39], alpha= 0.4)
-#plt.plot(motion_array2[25], alpha= 0.9)
-plt.ylim(0,0.02)
-#plt.vlines(240,0,0.2,'k', alpha= 0.5)
+n = len(ball_idx)
+
+motion_around_corrected_ball = [[] for _ in range(n)] 
+                       
+
+for i, idx in enumerate(corrected_ball_idx):
+    motion_around_corrected_ball[i] = motion_stimulus[idx-before:idx+after]
 
 
-avg_motion_around_ball= np.mean(motion_array[1:], axis  = 0)
 
-plt.plot(avg_motion_around_ball)
-plt.ylim(0,1)
-plt.vlines(240,0,1,'k', alpha= 0.5)
+
+
+
+
+
+
+
+#rat motion 
+
+motion_stimulus_path = 'F:/Videogame_Assay/AK_33.2/2018_04_06-15_13/motion_new.csv'
+motion = np.genfromtxt(motion_stimulus_path,dtype=float,delimiter = ',', usecols = 0 ) 
+
+
+
+
+before = 240
+after = 480
+
+n = len(ball_idx)
+
+rat_motion_around_ball = [[] for _ in range(n)] 
+                       
+
+for i, idx in enumerate(ball_idx):
+    rat_motion_around_ball[i] = motion[idx-before:idx+after]
+#   plt.figure()
+
+
+correction = []
+
+for chunk in rat_motion_around_ball:
+    idx = next(x[0] for x in enumerate(chunk) if x[1] > 0.2)
+    correction.append(idx)
+
+
+
+
+
+
+
+
+
+#motion_around_ball = motion_around_ball[1:]
+#
+#
+#plt.plot(motion_around_ball[40])
+#plt.vlines(8,0,1000000,'k')
+#    
+#motion_array = np.array(new_motion_around_ball) 
+#motion_array2 = np.array(motion_around_ball2) 
+#
+#plt.figure()
+#plt.plot(motion_array[39], alpha= 0.4)
+##plt.plot(motion_array2[25], alpha= 0.9)
+#plt.ylim(0,0.02)
+##plt.vlines(240,0,200000,'k', alpha= 0.5)
+#
+#
+#avg_motion_around_ball= np.mean(motion_array[1:], axis  = 0)
+#
+#plt.plot(avg_motion_around_ball)
+#plt.ylim(0,1)
+#plt.vlines(240,0,1,'k', alpha= 0.5)
 
 
 
