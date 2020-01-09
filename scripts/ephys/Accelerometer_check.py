@@ -28,6 +28,10 @@ session  = sessions_subset[1]
 session_path =  os.path.join(hardrive_path,session)
 accel_path = os.path.join(session_path +'/Accelerometer.bin')
 recording_path =  os.path.join(session_path +'/Amplifier.bin')
+touching_path =  os.path.join(session_path +'/events/RatTouchBall.csv')
+frame_to_sample_path =  os.path.join(session_path +'/Analysis/samples_for_frames.csv')
+video_csv_path = os.path.join(session_path +'/Video.csv')
+ball_path = os.path.join(session_path + '/events/BallOn.csv')
 
 num_channels = 128
 data = np.memmap(recording_path, dtype = np.uint16, mode = 'r')
@@ -67,6 +71,29 @@ for row, aux in enumerate(accel_channels):
 plt.figure()
 plt.plot(new_acce[:,180000:210000].T)
 
+
+
+
+touch_in_samples = event_finder(touching_path,video_csv_path,frame_to_sample_path)
+ball_in_samples = event_finder(ball_path,video_csv_path,frame_to_sample_path)
+
+
+events = [ball_in_samples,touch_in_samples]
+
+event = events[0]
+
+
+before = 240
+after = 240
+
+n = len(event)
+
+aux1 = [[] for _ in range(n)] 
+                      
+aux = new_acce[2]
+    
+for i, idx in enumerate(event):
+    aux1[i] = aux[idx-before:idx+after]
 
 
 
