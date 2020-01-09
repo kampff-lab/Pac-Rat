@@ -96,7 +96,7 @@ reward = behaviour.closest_timestamps_to_events(video_time, reward_time)
 ball_on = behaviour.closest_timestamps_to_events(video_time, ball_time)
 start = behaviour.closest_timestamps_to_events(video_time, trial_time)
 
-events_list = [touching_light,reward,ball_on,start]
+events_list = [touching_light,reward,ball_on,start,ball_noticed]
 
 # Average around event
 events = events_list[0]
@@ -107,6 +107,7 @@ mua_event1_avg = np.mean(mua_zeroed[:, :, events], 2)
 
 events = events_list[2]
 mua_event2_avg = np.mean(mua_zeroed[:, :, events], 2)
+
 
 # Display
 plt.figure()
@@ -199,53 +200,74 @@ final_avg = np.nanmean(final_array,2)
 
 label_ball_noticed =  'D:/ShaderNavigator/annotations/AK_33.2/2018_04_29-15_43/Video.csv'
 
-label = np.gemfromtxt(label_ball_noticed,)
+label = np.genfromtxt(label_ball_noticed,dtype=str,delimiter = ',', usecols = 0)
 
-frame = 
-
-
+ball_noticed = np.genfromtxt(label_ball_noticed,dtype=int,delimiter = ',', usecols = 1)
 
 
+yes_trials = []
+
+for l,lab in enumerate(label):
+    if lab == 'yes':
+        yes_trials.append(l)
 
 
-
-
-
-
-
-
+test_frames = frame[yes_trials]
 
 
 
+event_1_test= event_1[yes_trials]
+event_2_test= event_2[yes_trials]
 
-plt.plot(test_avg)
+
+
+#ball on to noticed
+
+
+event_1 = np.array(events_list[4])
+event_2 = np.array(events_list[0])
+
+event_1 = event_1[yes_trials]
+event_2 = event_2[yes_trials]
+
+
+
+
+
+#
+##if the lenght of the trial start is longer remove the last value 
+#if len(event_1)>len(event_2):
+#    event_1 = event_1[:-1]
+
+event_diff = abs(event_2 - event_1)
+
+final_array= np.zeros((11,11,len(event_1)))
+
+
+#i=15 has a problem it gives empty array.
+
+for i, idx  in enumerate(event_1):
     
-    l = len(sessions_subset)
-    Level_2_start_to_touch_speed = [[] for _ in range(l)]     
-    
-    for count in np.arange(l):
-        session = sessions_subset[count]
-        speed = sessions_speed[count]
-        
-        script_dir = os.path.join(hardrive_path + session) 
-        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
-        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
-        
-        #selecting the column of touch and start, calculate the abs diff in order to calculate the 
-        #how long it took to touch the ball from the start of the trial
-        start_touch_diff = abs(trial_idx[:,0] - trial_idx[:,2])
-    
-        n = len(trial_idx)
-        start_idx = trial_idx[:,0]        
-        start_to_touch_speed = [[] for _ in range(n)] 
-                       
-        count_1 = 0
-    
-        for start in start_idx:
-            start_to_touch_speed[count_1] = speed[start:start + start_touch_diff[count_1]]
-            count_1 += 1
-            
-        Level_2_start_to_touch_speed[count] = start_to_touch_speed                
+    test_avg = mua_zeroed[:, :, idx:idx+ event_diff[i]]
+    avg = np.nanmean(test_avg,2)
+    final_array[:,:,i]=avg
+
+
+
+final_avg = np.nanmean(final_array,2)
+
+
+
+
+
+
+
+
+
+#noticed to touch
+
+
+
 
 
 
