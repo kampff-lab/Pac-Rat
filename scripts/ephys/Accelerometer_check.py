@@ -72,8 +72,6 @@ plt.figure()
 plt.plot(new_acce[:,180000:210000].T)
 
 
-
-
 touch_in_samples = event_finder(touching_path,video_csv_path,frame_to_sample_path)
 ball_in_samples = event_finder(ball_path,video_csv_path,frame_to_sample_path)
 

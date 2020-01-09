@@ -79,7 +79,7 @@ outputVid = cv2.VideoWriter(save_path, fourcc, fps, (video_height, video_width),
 video.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
 # Draw MUA matrix on video frame
-num_frame = 100 # Just for testing
+#num_frame = 100 # Just for testing
 for i in range(num_frames):
 
     # Capture frame-by-frame
