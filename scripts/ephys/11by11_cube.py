@@ -14,7 +14,7 @@ import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import parser_library as prs
-
+import behaviour_library as behaviour
 ### Load and pre-process data
 
 # Probe from superficial to deep electrode, left side is shank 11 (far back)
@@ -116,23 +116,31 @@ for session in sessions_subset:
 
 
 #events of interest
-    
+
+
+
+
+
+mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')  
 touch_path = os.path.join(session_path +  '/events/RatTouchBall.csv')
 reward_path = os.path.join(session_path +  '/events/TrialEnd.csv')
 ball_on_path = os.path.join(session_path +  '/events/BallON.csv')
 video_csv = os.path.join(session_path + '/Video.csv')
 
-video_time = timestamp_CSV_to_pandas(video_csv)
-touch_time = timestamp_CSV_to_pandas(touch_path)
-reward_time = timestamp_CSV_to_pandas(reward_path)
-ball_time = timestamp_CSV_to_pandas(ball_on_path)
+video_time = behaviour.timestamp_CSV_to_pandas(video_csv)
+touch_time = behaviour.timestamp_CSV_to_pandas(touch_path)
+reward_time = behaviour.timestamp_CSV_to_pandas(reward_path)
+ball_time = behaviour.timestamp_CSV_to_pandas(ball_on_path)
 
 
-touching_light = closest_timestamps_to_events(video_time, touch_time)
-reward = closest_timestamps_to_events(video_time, reward_time)
-ball_on = closest_timestamps_to_events(video_time, ball_time)
+touching_light = behaviour.closest_timestamps_to_events(video_time, touch_time)
+reward = behaviour.closest_timestamps_to_events(video_time, reward_time)
+ball_on = behaviour.closest_timestamps_to_events(video_time, ball_time)
 
 
+
+binned_signal_to_reshape = np.fromfile(mua_path, dtype=np.float32)
+binned_signal = np.reshape(binned_signal_to_reshape, (121,-1))
 
 events_list = [touching_light,reward,ball_on]
 

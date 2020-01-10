@@ -73,7 +73,7 @@ num_frames = np.int32(num_frames)
 # Create output AVI
 fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
 fps = 120
-outputVid = cv2.VideoWriter(save_path, fourcc, fps, (video_height, video_width), True)
+outputVid = cv2.VideoWriter(save_path, fourcc, fps, (video_height, video_width))
 
 # Set to start frame
 video.set(cv2.CAP_PROP_POS_FRAMES, 0)
