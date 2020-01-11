@@ -96,7 +96,7 @@ reward = behaviour.closest_timestamps_to_events(video_time, reward_time)
 ball_on = behaviour.closest_timestamps_to_events(video_time, ball_time)
 start = behaviour.closest_timestamps_to_events(video_time, trial_time)
 
-events_list = [touching_light,reward,ball_on,start,ball_noticed]
+events_list = [touching_light,reward,ball_on,start]#ball_noticed]
 
 # Average around event
 events = events_list[0]
@@ -260,11 +260,44 @@ final_avg = np.nanmean(final_array,2)
 
 
 
+####################################################
+
+events_list = [touching_light, reward, ball_on, start, ball_noticed]
+
+
+event_1 = np.array(events_list[0])
+
+offset = 240
+
+new_mua = np.zeros((121,offset*2))
+
+
+mua_zeroed_reshaped = np.reshape(mua_zeroed, (121,-1))
+
+
+for ch, channel in enumerate(flatten_probe):
+    
+    intermediate_ch_mua = np.zeros((len(event_1),offset*2))
+
+    for i, idx  in enumerate(event_1):
+   
+        test = mua_zeroed_reshaped[ch, idx-offset:idx+offset]
+        intermediate_ch_mua[i,:]= test
+
+    
+    avg_mua = np.nanmean(intermediate_ch_mua,0)
+    new_mua[ch,:]=avg_mua
 
 
 
-
+for i, ch  in enumerate(new_mua):
+    plt.plot( ch+ i*2)
+    
+plt.figure()
+avg_new_mua=np.mean(new_mua,0)
 #noticed to touch
+
+
 
 
 
