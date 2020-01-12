@@ -8,15 +8,18 @@ and re-save as Amplifier_cleaned.bin
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
-#os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+#os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+import parser_library as prs
+import behaviour_library as behaviour
+
 
 # For Lory
-#rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
-#hardrive_path = r'F:/' 
-#Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-#sessions_subset = Level_2_post
-sessions_subset = [0]
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+hardrive_path = r'F:/' 
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post
+session = sessions_subset[1]
 
 # Ephys parameters
 num_channels = 128
@@ -27,9 +30,9 @@ for session in sessions_subset:
 
         # For testing...
         #session_path = '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
-        session_path = '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+        #session_path = '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
         
-        #session_path = os.path.join(hardrive_path, session )
+        session_path = os.path.join(hardrive_path, session )
         recording_path = os.path.join( session_path + '/Amplifier.bin')
         save_path = os.path.join(session_path + '/Amplifier_cleaned.bin')
 
@@ -44,7 +47,7 @@ for session in sessions_subset:
 
         # Loop through all samples in binary input file
         count = 0
-        while(count < 35600000):
+        while(True):
 
             # Load next sample
             sample = np.fromfile(in_file, count=num_channels, dtype=np.uint16)
@@ -103,7 +106,7 @@ reshaped_data_T = reshaped_data.T
 data = None
 reshaped_data = None
 
-chunk_data = reshaped_data_T[:, 35500000:35600000]
+chunk_data = reshaped_data_T[:, 35700000:35800000]
 #chunk_data = reshaped_data_T[:, 500000:530000]
 reshaped_data_T = None
 

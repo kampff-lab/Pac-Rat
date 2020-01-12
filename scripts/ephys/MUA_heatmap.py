@@ -96,7 +96,7 @@ reward = behaviour.closest_timestamps_to_events(video_time, reward_time)
 ball_on = behaviour.closest_timestamps_to_events(video_time, ball_time)
 start = behaviour.closest_timestamps_to_events(video_time, trial_time)
 
-events_list = [touching_light,reward,ball_on,start]#ball_noticed]
+events_list = [touching_light,ball_on,reward,start]#ball_noticed]
 
 # Average around event
 events = events_list[0]
@@ -113,14 +113,17 @@ mua_event2_avg = np.mean(mua_zeroed[:, :, events], 2)
 plt.figure()
 plt.subplot(1,3,1)
 plt.imshow(mua_event0_avg, vmin=-1.0, vmax=10.0)
+plt.title('touching_light')
 plt.subplot(1,3,2)
 plt.imshow(mua_event1_avg, vmin=-1.0, vmax=10.0)
+plt.title('ball_on')
 plt.subplot(1,3,3)
 plt.imshow(mua_event2_avg, vmin=-1.0, vmax=10.0)
+plt.title('reward')
 plt.show()
 
 # Save "movie around event"
-for i in range(-240, 600):
+for i in range(-240, 240):
     # Average around event (shifted by i)
     events = np.array(events_list[0]) + i
     mua_event0_avg = np.mean(mua_zeroed[:, :, events], 2)

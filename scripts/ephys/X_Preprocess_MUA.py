@@ -51,7 +51,7 @@ for session in sessions_subset:
         session_path = '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
         save_path = os.path.join(session_path + '/MUA_250_to_2000.bin')
-        recording_path = os.path.join( session_path + '/Amplifier.bin')
+        recording_path = os.path.join( session_path + '/Amplifier_bin')
         # - use read-only mode "r+" to prevent overwriting the original file
 
         samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')

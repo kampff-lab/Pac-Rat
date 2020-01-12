@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import seaborn as sns
-from filters import *
+#from filters import *
 import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
@@ -43,15 +43,13 @@ freq = 30000
 lowcut = 250
 highcut = 2000
 
-hardrive_path = 'F:/'
-
 
 for session in sessions_subset:
     try:
 
         session_path = os.path.join(hardrive_path, session )
         save_path = os.path.join(session_path + '/MUA_250_to_2000.bin')
-        recording_path = os.path.join( session_path + '/Amplifier.bin')
+        recording_path = os.path.join( session_path + '/Amplifier_cleaned.bin')
         # - use read-only mode "r+" to prevent overwriting the original file
 
         samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
