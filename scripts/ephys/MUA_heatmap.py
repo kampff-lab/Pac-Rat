@@ -18,7 +18,7 @@ import behaviour_library as behaviour
 
 ### Load pre-processed data
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -29,7 +29,7 @@ sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[1]
+session  = sessions_subset[2]
 session_path =  os.path.join(hardrive_path,session)
 mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
 
@@ -96,7 +96,7 @@ reward = behaviour.closest_timestamps_to_events(video_time, reward_time)
 ball_on = behaviour.closest_timestamps_to_events(video_time, ball_time)
 start = behaviour.closest_timestamps_to_events(video_time, trial_time)
 
-events_list = [touching_light,ball_on,reward,start]#ball_noticed]
+events_list = [touching_light,reward]#ball_noticed]
 
 # Average around event
 events = events_list[0]
@@ -105,22 +105,45 @@ mua_event0_avg = np.mean(mua_zeroed[:, :, events], 2)
 events = events_list[1]
 mua_event1_avg = np.mean(mua_zeroed[:, :, events], 2)
 
-events = events_list[2]
-mua_event2_avg = np.mean(mua_zeroed[:, :, events], 2)
+
+#events = events_list[2]
+#mua_event2_avg = np.mean(mua_zeroed[:, :, events], 2)
 
 
 # Display
-plt.figure(figsize=(12,7))
-plt.subplot(1,3,1)
-plt.imshow(mua_event0_avg, vmin=-1.0, vmax=10.0)
+plt.figure(figsize=(13,4))
+plt.subplot(1,2,1)
+plt.imshow(mua_event0_avg, vmin=-2.0, vmax=7)
 plt.title('touching_light')
-plt.subplot(1,3,2)
+plt.colorbar(fraction=0.046, pad=0.04)
+#plt.colorbar()
+plt.subplot(1,2,2)
+plt.imshow(mua_event1_avg, vmin=-2.0, vmax=7)
+plt.colorbar(fraction=0.046, pad=0.04)
+plt.title('reward')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plt.subplot(1,3,3)
 plt.imshow(mua_event1_avg, vmin=-1.0, vmax=10.0)
 plt.title('ball_on')
 plt.subplot(1,3,3)
-plt.imshow(mua_event2_avg, vmin=-1.0, vmax=10.0)
-plt.title('reward')
-plt.show()
 
 # Save "movie around event"
 for i in range(-240, 240):

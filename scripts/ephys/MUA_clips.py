@@ -16,6 +16,8 @@ os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import parser_library as prs
 import behaviour_library as behaviour
 import seaborn as sns
+import cv2
+
 
 ### Load pre-processed data
 
@@ -93,34 +95,30 @@ trial_lenght_end_to_end = np.diff(np.hstack((0, ends)))
 start_clip = ends[21]
 end_clip = trial_lenght_end_to_end[22]
 
-video=cv2.VideoCapture(clip)
 
-#success=True
+
+
+video=cv2.VideoCapture(clip)
+video.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
 # Save "movie around event"
 for i in range(start_clip,start_clip + end_clip ):
-    
-    video.set(cv2.CAP_PROP_POS_FRAMES, i)
+  
     success, image = video.read()
-    success=True
     
     fig = plt.figure(figsize=(7,12))
     a = fig.add_subplot(2, 1, 1)
     imgplot = plt.imshow(image)
-    plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
-    ax = fig.add_subplot(2, 1, 1)
-    fig, axes = plt.subplots(nrows=1, ncols=2)
-    ax = sns.heatmap(mua_zeroed[:, :, i], cmap="BuPu", vmin=-1, vmax=12)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    
+    #plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
+    ax = fig.add_subplot(2, 1, 2)
+    ax = plt.imshow(mua_zeroed[:, :, i], cmap="viridis", vmin=-2, vmax=7)
+    plt.colorbar()
+
     plt.savefig(results_dir +'/Clip%d.png' %i)
     plt.close('all')
     
     
-
+video.release()
 
 
 
