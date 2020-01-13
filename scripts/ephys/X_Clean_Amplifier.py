@@ -19,7 +19,7 @@ rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
-session = sessions_subset[1]
+session = sessions_subset[2]
 
 # Ephys parameters
 num_channels = 128

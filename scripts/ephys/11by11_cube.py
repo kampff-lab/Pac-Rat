@@ -32,11 +32,12 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
+session= sessions_subset[2]
 
 num_channels = 128
 freq = 30000

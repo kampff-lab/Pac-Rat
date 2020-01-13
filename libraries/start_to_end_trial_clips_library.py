@@ -145,15 +145,17 @@ def CLIPS_end_trial_before_to_end_current_trial(sessions_subset):
                 start_frame = startFrames[e]
                 inputVid.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
                 if e < 10:
-                    outputFilename= results_dir +'/Clip0%d.avi' %start_frame
+                    outputFilename= results_dir +'/Clip00%d.avi' %e
+                elif e < 100:
+                    outputFilename= results_dir +'/Clip0%d.avi' %e
                 else:
-                    outputFilename= results_dir +'/Clip%d.avi' %start_frame
+                     outputFilename= results_dir +'/Clip%d.avi' %e                    
                 outputVid = cv2.VideoWriter(outputFilename, fourcc, fps, (inputWidth, inputHeight))
                 
                 for i in range(numFrames[e]):
                     ret, im = inputVid.read()
                     outputVid.write(im)
-                print (i)
+                print (e)
                 outputVid.release()
              
             inputVid.release()

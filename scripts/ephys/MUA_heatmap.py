@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import seaborn as sns
-from filters import *
+#from filters import *
 import os
 #os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
@@ -110,7 +110,7 @@ mua_event2_avg = np.mean(mua_zeroed[:, :, events], 2)
 
 
 # Display
-plt.figure()
+plt.figure(figsize=(12,7))
 plt.subplot(1,3,1)
 plt.imshow(mua_event0_avg, vmin=-1.0, vmax=10.0)
 plt.title('touching_light')
