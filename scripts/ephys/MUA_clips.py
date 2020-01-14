@@ -111,7 +111,7 @@ for i in range(start_clip,start_clip + end_clip ):
     imgplot = plt.imshow(image)
     #plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
     ax = fig.add_subplot(2, 1, 2)
-    ax = plt.imshow(mua_zeroed[:, :, i], cmap="viridis", vmin=-2, vmax=7)
+    ax = plt.imshow(mua_zeroed[:, :, i], cmap="BuPu", vmin=-2, vmax=7)
     plt.colorbar()
 
     plt.savefig(results_dir +'/Clip%d.png' %i)
