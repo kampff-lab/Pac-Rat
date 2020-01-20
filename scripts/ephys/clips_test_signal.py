@@ -17,7 +17,7 @@ import parser_library as prs
 import behaviour_library as behaviour
 import seaborn as sns
 import cv2
-
+import ephys_library as ephys 
 
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
@@ -26,7 +26,6 @@ rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
-
 
 
 # Specify paths
@@ -58,26 +57,6 @@ samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_fo
 samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
-# Probe from superficial to deep electrode, left side is shank 11 (far back)
-probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
-                    [121,80,79,102,64,52,32,8,47,48,25],
-                    [123,83,71,104,66,84,38,6,26,59,23],
-                    [105,69,100,120,88,42,60,22,57,45,5],
-                    [101,76,89,127,92,67,56,29,4,37,9],
-                    [119,91,122,99,70,61,34,1,39,50,27],
-                    [112,82,73,97,68,93,40,3,28,51,21],
-                    [107,77,98,125,86,35,58,31,55,44,14],
-                    [110,113,87,126,90,65,54,20,2,43,11],
-                    [117,85,124,106,72,63,36,0,41,15,16],
-                    [114,111,75,96,116,95,33,10,30,53,17]])
-
-flatten_probe = probe_map.flatten()
-
-
-num_channels = 128
-freq = 30000
-channel = 21
-
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 
 end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
@@ -89,54 +68,65 @@ clip_sample_lenght = samples_lenght_end_to_end[22]
 
 #Load raw data
 
-raw_data =  np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(raw_data))/num_channels)
-recording_time_sec = num_samples/freq
-recording_time_min = recording_time_sec/60
-reshaped_data = np.reshape(raw_data,(num_samples,128))
-#to have 128 rows
-reshaped_data_T= reshaped_data.T
-raw_data = None
-reshaped_data = None
+start_sample = sample_start_clip
+num_samples = clip_sample_lenght
 
-# Extract data chunk for single channel with the clip lenght
+depth = 6
+shank = 10
 
-channel_data = reshaped_data_T[channel,sample_start_clip : sample_start_clip + clip_sample_lenght]
-reshaped_data_T = None
+#Load raw data
 
 
-
-
-
+raw_uV = ephys.get_channel_raw_clip_from_amplifier(raw_recording, depth, shank, start_sample, num_samples)
 
 
 #load cleaned data (not binned to frames)
 
-data_cleaned = np.memmap(cleaned_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data_cleaned))/num_channels)
-recording_time_sec = num_samples/freq
-recording_time_min = recording_time_sec/60
-reshaped_data = np.reshape(data_cleaned,(num_samples,128))
-reshaped_data_T = reshaped_data.T
-data_cleaned = None
-reshaped_data = None
 
-channel_cleaned_data = reshaped_data_T[channel, sample_start_clip:sample_start_clip + clip_sample_lenght]
-#chunk_data = reshaped_data_T[:, 500000:530000]
-reshaped_data_T = None
-
-# Plot
-for ch, channel in enumerate(flatten_probe):
-    plt.plot((ch*1000) + np.float32(chunk_data[channel, :]))
-plt.show()
+cleaned_uV = ephys.get_channel_raw_clip_from_amplifier(cleaned_recording, depth, shank, start_sample, num_samples)
 
 
 
-lowcut = 48
-highcut = 52
+#remove 50
+lowcut= 48
+highcut= 52
 
-wo_50 = butter_filter(channel_cleaned_data, lowcut, highcut, fs=30000, order = 3, btype = 'bandstop')
-w50 = np.apply_along_axis(butter_filter, lowcut = 48, highcut = 52, btype='bandstop', arr = channel_data, axis = 0)
+wo50 = ephys.butter_bandstop(raw_uV,lowcut, highcut, fs=30000, order=3, btype='bandstop')
+
+
+# highpass
+
+highpass_cleaned = ephys.highpass(wo50,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+
+
+#lowpass
+lowcut = 250
+
+lowpass_cleaned = ephys.butter_filter_lowpass(wo50,lowcut, fs=30000, order=3, btype='lowpass')
+
+
+#bandpass
+
+lowcut=
+hightcut = 
+
+bandpass_cleaned = ephys.butter_bandpass(wo50,lowcut, highcut, fs=30000, order=3, btype='bandpass')
+
+
+
+
+
+
+
+
+
+
+## Plot
+#for ch, channel in enumerate(flatten_probe):
+#    plt.plot((ch*1000) + np.float32(chunk_data[channel, :]))
+#plt.show()
+
+
 
 
 #####################MUA#################

@@ -9,6 +9,9 @@ os.sys.path.append('/home/kampff/Repos/Pac-Rat/libraries')
 #os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import math
+import scipy.signal as signal
+from scipy.signal import butter, filtfilt
+
 
 # Ephys Constants
 num_raw_channels = 128
@@ -55,11 +58,56 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
     
     return raw_uV
 
+
+
 # Low pass single channel raw ephys (in uV)
+
+
+def butter_filter_lowpass(data,lowcut, fs=30000, order=3, btype='lowpass'):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    b, a = butter(order, low, btype=btype)
+    y = filtfilt(b, a, data)
+    return y
+    
 
 # High pass single channel raw ephys (in uV)
 
+
+def highpass(data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500):
+    b, a = signal.butter(BUTTER_ORDER,(passFreq/(sampleFreq/2), F_HIGH/(sampleFreq/2)),'pass')
+    return signal.filtfilt(b,a,data)
+
+
 # Add filters...
+
+
+def butter_bandstop(data,lowcut, highcut, fs=30000, order=3, btype='bandstop'):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype=btype)
+    y = filtfilt(b, a, data)
+    return y
+
+
+
+def butter_bandpass(data,lowcut, highcut, fs=30000, order=3, btype='bandpass'):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype=btype)
+    y = filtfilt(b, a, data)
+    return y
+
+
+
+
+
+
+
+
+
 
 
 #FIN

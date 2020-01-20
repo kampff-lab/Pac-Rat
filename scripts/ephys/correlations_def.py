@@ -89,6 +89,20 @@ def butter_filter_lowpass(data, lowcut,  fs=30000, order=3, btype='lowpass'):
     y = filtfilt(b, a, data)
     return y
 
+def butter_filer_lowpass(lowcut, fs=30000, order=3, btype='lowpass'):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    b, a = butter(order, low, btype=btype)
+    y = filtfilt(b, a, data)
+    return y
+    
+
+
+
+
+
+
+
 
 def butter_filter(data, lowcut, highcut, fs=30000, order=3, btype='bandstop'):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order, btype=btype)
