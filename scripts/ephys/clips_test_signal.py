@@ -132,6 +132,11 @@ plt.show()
 
 
 
+lowcut = 48
+highcut = 52
+
+wo_50 = butter_filter(channel_cleaned_data, lowcut, highcut, fs=30000, order = 3, btype = 'bandstop')
+w50 = np.apply_along_axis(butter_filter, lowcut = 48, highcut = 52, btype='bandstop', arr = channel_data, axis = 0)
 
 
 #####################MUA#################
