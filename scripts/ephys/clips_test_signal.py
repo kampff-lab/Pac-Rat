@@ -80,6 +80,14 @@ shank = 10
 raw_uV = ephys.get_channel_raw_clip_from_amplifier(raw_recording, depth, shank, start_sample, num_samples)
 
 
+mean_raw_ch = np.mean(raw_uV)
+median_raw_ch = np.median(raw_uV)
+
+test_raw = raw_uV - mean_raw_ch
+
+plt.plot(raw_uV[:150000],alpha = 0.4)
+plt.plot(test_raw[:150000],alpha = 0.4)
+
 #load cleaned data (not binned to frames)
 
 
@@ -87,22 +95,48 @@ cleaned_uV = ephys.get_channel_raw_clip_from_amplifier(cleaned_recording, depth,
 
 
 
+mean_raw_ch = np.mean(raw_uV)
+median_raw_ch = np.median(raw_uV)
+
+test_cleaned = cleaned_uV - mean_raw_ch
+
+plt.plot(cleaned_uV[:150000],alpha = 0.4)
+plt.plot(test_cleaned[:150000],alpha = 0.4) 
+
+
 #remove 50
 lowcut= 48
 highcut= 52
 
 wo50 = ephys.butter_bandstop(raw_uV,lowcut, highcut, fs=30000, order=3, btype='bandstop')
+plt.plot(wo50[:150000],alpha = 0.4)
+
+
+raw_diff = raw_uV - wo50
+cleaned_diff = cleaned_uV - wo50
+
+plt.plot(raw_diff[:150000],alpha = 0.4)
+plt.plot(cleaned_diff[:150000],alpha = 0.4)
 
 
 # highpass
 
 highpass_cleaned = ephys.highpass(wo50,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+plt.plot(highpass_cleaned[:150000],alpha = 0.4)
+
+
+
 
 
 #lowpass
 lowcut = 250
 
 lowpass_cleaned = ephys.butter_filter_lowpass(wo50,lowcut, fs=30000, order=3, btype='lowpass')
+plt.plot(lowpass_cleaned[:150000],alpha = 0.4)
+
+
+
+
 
 
 #bandpass

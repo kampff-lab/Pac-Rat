@@ -55,8 +55,13 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
     
     # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
     raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+    #mean_raw_ch = np.mean(raw_uV)
+    #median_raw_ch = np.median(raw_uV)
     
-    return raw_uV
+    return raw_uV #, mean_raw_ch, median_raw_ch
+
+
+
 
 
 
