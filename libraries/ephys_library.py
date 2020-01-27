@@ -32,7 +32,29 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
-# Get raw ephys clip from amplifier.bin
+# Get raw ephys clip from amplifier.bin (all channels)
+def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
+
+    # Compute offset in binary file
+    offset = start_sample * num_raw_channels * bytes_per_sample
+    
+    # Open file and jump to offset
+    f = open(filename, "rb")
+    f.seek(offset, os.SEEK_SET)
+
+    # Load data from this file position
+    data = np.fromfile(f, dtype=np.uint16, count=(num_raw_channels * num_samples))
+    f.close()
+    
+    # Reshape data to have 128 rows
+    reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+    
+    # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+    raw_uV = (reshaped_data.astype(np.float32) - 32768) * 0.195
+    
+    return raw_uV
+
+# Get raw ephys clip from amplifier.bin (single channel)
 def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, num_samples):
 
     # Compute offset in binary file
@@ -55,10 +77,16 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
     
     # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
     raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-    #mean_raw_ch = np.mean(raw_uV)
-    #median_raw_ch = np.median(raw_uV)
     
-    return raw_uV #, mean_raw_ch, median_raw_ch
+    return raw_uV
+
+# Apply probe map
+def apply_probe_map_to_amplifier(amp_data):
+    num_samples = np.size(amp_data, 1)
+    probe_data = np.zeros((121, num_samples))
+    for i, ch in enumerate(flatten_probe):
+        probe_data[i,:] = amp_data[ch,:]
+    return probe_data
 
 # Low pass single channel raw ephys (in uV)
 def butter_filter_lowpass(data,lowcut, fs=30000, order=3, btype='lowpass'):
