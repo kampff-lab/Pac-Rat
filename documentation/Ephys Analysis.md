@@ -4,16 +4,17 @@ Stages of Ephys processing (DRAFT)
 
 ## Pre-processing
 
-These steps produce a "cleaned" binary file with the original (128-channel) numbering of the InTan raw data
+These steps produce a "cleaned" or "downsampled" binary file with the original (128-channel) numbering of the InTan raw data
 
-1. Re-referencing
+1. Re-referencing (high frequency)
     * Operates on raw amplifier data (Amplifier.bin)
     * Compute per-headstage mean for each sample (ignore bad channels)
     * Subtract headstage mean from all of its channels
     * Compute linear scaling per channel (gain and offset compensation) w.r.t. mean reference
     * Store as "Amplifier_cleaned.bin"
 
-2. (Optional) Remove 50 Hz noise with IIR notch filter
+2. Re-sampling (low frequency)
+    * Downsample (using averaging) from 30 kHz to 1 kHz
 
 ## Intermediates
 

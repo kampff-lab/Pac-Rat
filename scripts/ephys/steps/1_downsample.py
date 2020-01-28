@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 1: median/mean rereferencing
+Ephys Analysis: Step 1: downsample to 1 kHz
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
@@ -126,15 +126,12 @@ for depth in range(11):
     ch = (depth * 11) + shank
     f, t, Sxx = signal.spectrogram(probe_Z[ch,:], fs, nperseg=30000, nfft=30000, noverlap=27000)
     plt.pcolormesh(t, f, Sxx)
-    plt.ylim([0, 25])
+    plt.ylim([0, 30])
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
+
     plt.subplot(11,2,depth*2 + 2)
     plt.plot(probe_Z[ch,:])
 plt.show()
 
 #FIN
-
-#    samples_fft = np.fft.rfft(probe_Z[ch,:])
-#    frequencies = np.abs(samples_fft)
-#    plt.plot(frequencies)
