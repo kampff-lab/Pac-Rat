@@ -11,7 +11,7 @@ import numpy as np
 import math
 import scipy.signal as signal
 from scipy.signal import butter, filtfilt
-
+import matplotlib.pyplot as plt
 
 # Ephys Constants
 num_raw_channels = 128
@@ -32,7 +32,29 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
-# Get raw ephys clip from amplifier.bin
+# Get raw ephys clip from amplifier.bin (all channels)
+def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
+
+    # Compute offset in binary file
+    offset = start_sample * num_raw_channels * bytes_per_sample
+    
+    # Open file and jump to offset
+    f = open(filename, "rb")
+    f.seek(offset, os.SEEK_SET)
+
+    # Load data from this file position
+    data = np.fromfile(f, dtype=np.uint16, count=(num_raw_channels * num_samples))
+    f.close()
+    
+    # Reshape data to have 128 rows
+    reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+    
+    # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+    raw_uV = (reshaped_data.astype(np.float32) - 32768) * 0.195
+    
+    return raw_uV
+
+# Get raw ephys clip from amplifier.bin (single channel)
 def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, num_samples):
 
     # Compute offset in binary file
@@ -55,15 +77,16 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
     
     # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
     raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-    #mean_raw_ch = np.mean(raw_uV)
-    #median_raw_ch = np.median(raw_uV)
     
-    return raw_uV #, mean_raw_ch, median_raw_ch
+    return raw_uV
 
-
-
-
-
+# Apply probe map
+def apply_probe_map_to_amplifier(amp_data):
+    num_samples = np.size(amp_data, 1)
+    probe_data = np.zeros((121, num_samples))
+    for i, ch in enumerate(flatten_probe):
+        probe_data[i,:] = amp_data[ch,:]
+    return probe_data
 
 
 
@@ -72,8 +95,6 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
 
 
 # Low pass single channel raw ephys (in uV)
-
-
 def butter_filter_lowpass(data,lowcut, fs=30000, order=3, btype='lowpass'):
     nyq = 0.5 * fs
     low = lowcut / nyq
@@ -83,24 +104,37 @@ def butter_filter_lowpass(data,lowcut, fs=30000, order=3, btype='lowpass'):
     
 
 # High pass single channel raw ephys (in uV)
-
-
 def highpass(data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500):
     b, a = signal.butter(BUTTER_ORDER,(passFreq/(sampleFreq/2), F_HIGH/(sampleFreq/2)),'pass')
     return signal.filtfilt(b,a,data)
 
 
 # Add filters...
-
-
-def butter_bandstop(data,lowcut, highcut, fs=30000, order=3, btype='bandstop'):
+def butter_bandstop(data,lowcut, highcut, fs=30000, order=3):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = butter(order, [low, high], btype=btype)
-    y = filtfilt(b, a, data)
-    return y
+    b, a = butter(order, [low, high], btype='bandstop')
+    y = filtfilt(b, a, data)    
 
+    freq, h = signal.freqz(b, a, fs=fs)
+    fig, ax = plt.subplots(2, 1, figsize=(8, 6))
+    ax[0].plot(freq, 20*np.log10(abs(h)), color='blue')
+    ax[0].set_title("Frequency Response")
+    ax[0].set_ylabel("Amplitude (dB)", color='blue')
+    ax[0].set_xlim([0, 100])
+    ax[0].set_ylim([-25, 10])
+    ax[0].grid()
+    ax[1].plot(freq, np.unwrap(np.angle(h))*180/np.pi, color='green')
+    ax[1].set_ylabel("Angle (degrees)", color='green')
+    ax[1].set_xlabel("Frequency (Hz)")
+    ax[1].set_xlim([0, 100])
+    ax[1].set_yticks([-90, -60, -30, 0, 30, 60, 90])
+    ax[1].set_ylim([-90, 90])
+    ax[1].grid()
+    plt.show()
+
+    return y
 
 
 def butter_bandpass(data,lowcut, highcut, fs=30000, order=3, btype='bandpass'):
@@ -111,7 +145,34 @@ def butter_bandpass(data,lowcut, highcut, fs=30000, order=3, btype='bandpass'):
     y = filtfilt(b, a, data)
     return y
 
+def iirnotch_50(data, fs=30000, quality=30):
+    fs = 2000
+    quality = 30
 
+    f0 = 60.0  # Frequency to be removed from signal (Hz)
+    w0 = f0 / (fs / 2 )  # Normalized Frequency
+    b, a = signal.iirnotch(w0, quality)
+    y = filtfilt(b, a, data)
+
+
+    freq, h = signal.freqz(b, a, fs=fs)
+    fig, ax = plt.subplots(2, 1, figsize=(8, 6))
+    ax[0].plot(freq, 20*np.log10(abs(h)), color='blue')
+    ax[0].set_title("Frequency Response")
+    ax[0].set_ylabel("Amplitude (dB)", color='blue')
+    ax[0].set_xlim([0, 100])
+    ax[0].set_ylim([-25, 10])
+    ax[0].grid()
+    ax[1].plot(freq, np.unwrap(np.angle(h))*180/np.pi, color='green')
+    ax[1].set_ylabel("Angle (degrees)", color='green')
+    ax[1].set_xlabel("Frequency (Hz)")
+    ax[1].set_xlim([0, 100])
+    ax[1].set_yticks([-90, -60, -30, 0, 30, 60, 90])
+    ax[1].set_ylim([-90, 90])
+    ax[1].grid()
+    plt.show()
+
+    return y
 
 
       # convert from rad/sample to Hz
