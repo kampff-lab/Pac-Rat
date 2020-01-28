@@ -88,6 +88,27 @@ test_raw = raw_uV - mean_raw_ch
 plt.plot(raw_uV[:150000],alpha = 0.4)
 plt.plot(test_raw[:150000],alpha = 0.4)
 
+
+#load 1 shank of raw data
+
+depth = range(11)
+shank = 10
+
+shank_raw = np.zeros((11,num_samples))
+
+
+for d in depth:
+    channel_raw = ephys.get_channel_raw_clip_from_amplifier(raw_recording, d, shank, start_sample, num_samples)
+    shank_raw[d,:]=channel_raw
+
+
+#Plot shank
+for ch, channel in enumerate(shank_raw):    
+    plt.plot((ch*1000) + np.float32(channel[:150000]))
+plt.title('raw_data_shank'+ np.str(shank))
+#plt.show()
+
+
 #load cleaned data (not binned to frames)
 
 
@@ -102,6 +123,28 @@ test_cleaned = cleaned_uV - mean_raw_ch
 
 plt.plot(cleaned_uV[:150000],alpha = 0.4)
 plt.plot(test_cleaned[:150000],alpha = 0.4) 
+
+
+#load 1 shank of cleaned data
+
+depth = range(11)
+shank = 10
+
+shank_cleaned = np.zeros((11,num_samples))
+
+
+for d in depth:
+    channel_cleaned = ephys.get_channel_raw_clip_from_amplifier(cleaned_recording, d, shank, start_sample, num_samples)
+    shank_cleaned[d,:]=channel_cleaned
+
+
+#Plot shank
+for ch, channel in enumerate(shank_cleaned):    
+    plt.plot((ch*1000) + np.float32(channel[:150000]))
+plt.title('cleaned_data_shank'+ np.str(shank))
+
+
+
 
 
 #remove 50
@@ -119,10 +162,31 @@ plt.plot(raw_diff[:150000],alpha = 0.4)
 plt.plot(cleaned_diff[:150000],alpha = 0.4)
 
 
+
+
 # highpass
 
 highpass_cleaned = ephys.highpass(wo50,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
 plt.plot(highpass_cleaned[:150000],alpha = 0.4)
+
+#load 1 shank of highpass data
+
+depth = range(11)
+shank = 10
+
+shank_highpass = np.zeros((11,num_samples))
+
+
+for d in depth:
+    channel_cleaned = ephys.get_channel_raw_clip_from_amplifier(cleaned_recording, d, shank, start_sample, num_samples)
+    highpass_cleaned = ephys.highpass(channel_cleaned,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+    shank_highpass[d,:]=highpass_cleaned
+
+
+#Plot shank
+for ch, channel in enumerate(shank_highpass):    
+    plt.plot((ch*1000) + np.float32(channel[:150000]))
+plt.title('highpass_data_shank'+ np.str(shank))
 
 
 
@@ -131,10 +195,84 @@ plt.plot(highpass_cleaned[:150000],alpha = 0.4)
 #lowpass
 lowcut = 250
 
-lowpass_cleaned = ephys.butter_filter_lowpass(wo50,lowcut, fs=30000, order=3, btype='lowpass')
+
+
+
+
+lowpass_cleaned = ephys.butter_filter_lowpass(cleaned_uV,lowcut, fs=30000, order=3, btype='lowpass')
 plt.plot(lowpass_cleaned[:150000],alpha = 0.4)
 
 
+
+
+
+noisy_data = cleaned_uV + x
+noisy_lowpass = ephys.butter_filter_lowpass(noisy_data,lowcut, fs=30000, order=3, btype='lowpass')
+plt.plot(noisy_lowpass[:150000],alpha = 0.4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+nyquist = fs/2
+fSpaceSignal = np.fft.fft(lowpass_cleaned)/num_samples
+fBase = np.linspace(0,nyquist,np.floor(len(lowpass_cleaned)/2)+1)
+powerPlot = plt.subplot(3,1,3)
+halfTheSignal = fSpaceSignal[:len(fBase)]
+complexConjugate = np.conj(halfTheSignal)
+powe = halfTheSignal*complexConjugate
+powerPlot.plot(fBase,powe,c='k',lw=2)
+powerPlot.set_xlim([0,20])
+powerPlot.set_xticks(range(20))
+powerPlot.set_xlabel('Frequency')
+powerPlot.set_ylabel('power')
+plt.plot(fSpaceSignal)
+plt.plot(abs(fSpaceSignal))
+
+
+
+windlength = 1024
+wind = np.kaiser(windlength,0)
+overl = len(wind)-1
+yFreqs = range(21)
+fig=plt.figure()
+plt.subplot(1,2,1)
+f,tt,Sxx = signal.spectrogram(lowpass_cleaned,fs,wind,len(wind),overl)
+plt.pcolormesh(tt,f,Sxx,cmap='hot')
+plt.ylim([0,20])
+
+# assumed sample rate of OpenBC
+
+
+
+
+
+#load 1 shank of lowpass data
+
+depth = range(11)
+shank = 10
+
+shank_lowpass = np.zeros((11,num_samples))
+
+
+for d in depth:
+    channel_cleaned = ephys.get_channel_raw_clip_from_amplifier(cleaned_recording, d, shank, start_sample, num_samples)
+    lowpass_cleaned = ephys.butter_filter_lowpass(channel_cleaned,lowcut, fs=30000, order=3, btype='lowpass')
+    shank_lowpass[d,:]=lowpass_cleaned
+
+
+#Plot shank
+for ch, channel in enumerate(shank_lowpass):    
+    plt.plot((ch*1000) + np.float32(channel[:150000]))
+plt.title('lowpass_data_shank'+ np.str(shank))
 
 
 
@@ -145,15 +283,6 @@ lowcut=
 hightcut = 
 
 bandpass_cleaned = ephys.butter_bandpass(wo50,lowcut, highcut, fs=30000, order=3, btype='bandpass')
-
-
-
-
-
-
-
-
-
 
 ## Plot
 #for ch, channel in enumerate(flatten_probe):

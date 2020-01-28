@@ -65,6 +65,12 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
 
 
 
+
+
+
+
+
+
 # Low pass single channel raw ephys (in uV)
 
 
@@ -105,6 +111,10 @@ def butter_bandpass(data,lowcut, highcut, fs=30000, order=3, btype='bandpass'):
     y = filtfilt(b, a, data)
     return y
 
+
+
+
+      # convert from rad/sample to Hz
 
 
 
