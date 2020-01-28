@@ -179,6 +179,28 @@ def iirnotch_50(data, fs=30000, quality=30):
 
 
 
+# Are spikes downward or upward?
+def threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft):
+    
+    spike_start_times = []
+    spike_stop_times = []
+    spiking = False
+    
+    for i, voltage in enumerate(channel_data_highpass):
+        # Look for a new spike
+        if(not spiking):
+            if(voltage < spike_threshold_hard):
+                spiking = True
+                spike_start_times.append(i)
+        # Track ongoing spike            
+        else:
+            # Keep track of max (negative) voltage until npo longer spiking
+            if(voltage > spike_threshold_soft):
+                spiking = False       
+                spike_stop_times.append(i)
+                  
+    return spike_start_times, spike_stop_times
+
 
 
 

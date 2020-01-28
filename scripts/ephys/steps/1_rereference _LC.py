@@ -5,28 +5,78 @@ Ephys Analysis: Step 1: median/mean rereferencing
 @author: KAMPFF-LAB-ANALYSIS3
 """
 import os
-os.sys.path.append('/home/kampff/Repos/Kampff-Lab/Pac-Rat/libraries')
-#os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
-import parser_library as parser
+import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
 
 # Reload modules
 import importlib
-importlib.reload(parser)
+importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
 
-# Specify session folder
-#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+
+#test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
+
+
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+hardrive_path = r'F:/' 
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post
+
+
+# Specify paths
+session  = sessions_subset[1]
+session_path =  os.path.join(hardrive_path,session)
+
+#recording data path
+raw_recording = os.path.join(session_path +'/Amplifier.bin')
+cleaned_recording = os.path.join(session_path +'/Amplifier_cleaned.bin')
+mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
+
+
+#clip of interest 
+clip_number = 'Clip022.avi'
+clips_path = os.path.join(session_path + '/Clips/')
+clip = os.path.join(clips_path + clip_number)
+
+
+
+#idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
+csv_dir_path = os.path.join(session_path + '/events/')
+trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
+trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+
+video_csv = os.path.join(session_path + '/Video.csv')
+
+samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+
+
+#trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
+
+end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+sample_start_clip = end_samples[21]
+clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+
+#Load raw data
+
+start_sample = sample_start_clip
+num_samples = clip_sample_lenght
+
+
 
 # Specify data paths
-raw_path = os.path.join(session_path +'/Amplifier.bin')
+raw_path = raw_recording
 
 # Specify sample range for clip
 start_sample = 32837802
@@ -111,6 +161,124 @@ plt.show()
 ### LORY add threshold crossing spike counter
 probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
 
+n = len(probe_Z)   
+spike_times = [[] for _ in range(n)] 
+  
+
+for channel in np.arange(len(probe_Z)):
+
+    try:
+    
+        channel_data = probe_Z[channel,:]
+        
+        # FILTERS (one ch at the time)
+        channel_data_highpass = ephys.highpass(channel_data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+    
+        # Determine high and low threshold
+        abs_channel_data_highpass = np.abs(channel_data_highpass)
+        sigma_n = np.median(abs_channel_data_highpass) / 0.6745
+        
+        #adaptive th depending of ch noise
+        spike_threshold_hard = -5.0 * sigma_n
+        spike_threshold_soft = -3.0 * sigma_n
+        
+        #fixed th given we have Zscored the data
+        
+        #spike_threshold_hard_fixed = -1.5
+        #spike_threshold_soft_fixed = -.5
+        
+        
+        # Find threshold crossings
+        spike_start_times, spike_stop_times = threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft)
+        
+        # Find threshold crossings with fixed th 
+    
+        #spike_start_times_fixed, spike_stop_times_fixed = threshold_crossing(channel_data_highpass,spike_threshold_hard_fixed,spike_threshold_soft_fixed)
+        
+        
+        # Find peak voltages and times
+        spike_peak_voltages = []
+        spike_peak_times = []
+        for start, stop in zip(spike_start_times,spike_stop_times):
+            peak_voltage = np.min(channel_data_highpass[start:stop]) 
+            peak_voltage_idx = np.argmin(channel_data_highpass[start:stop])
+            spike_peak_voltages.append(peak_voltage)
+            spike_peak_times.append(start + peak_voltage_idx)
+          
+        # Remove too early and too late spikes
+        spike_starts = np.array(spike_start_times)
+        spike_stops = np.array(spike_stop_times)
+        peak_times = np.array(spike_peak_times)
+        peak_voltages = np.array(spike_peak_voltages)
+        good_spikes = (spike_starts > 100) * (spike_starts < (len(channel_data_highpass)-200))
+    
+        # Select only good spikes
+        spike_starts = spike_starts[good_spikes]
+        spike_stops = spike_stops[good_spikes]
+        peak_times = peak_times[good_spikes]
+        peak_voltages = peak_voltages[good_spikes]
+        
+        peak_times_corrected  = start_sample + peak_times
+        spike_times[channel] = peak_times_corrected
+        print(channel)
+        
+    except Exception:
+        continue
+     
+
+
+ # Plot raster
+f = plt.figure()
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+for index, spikes in enumerate(spike_times):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -132,6 +300,47 @@ for depth in range(11):
     plt.subplot(11,2,depth*2 + 2)
     plt.plot(probe_Z[ch,:])
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #FIN
 

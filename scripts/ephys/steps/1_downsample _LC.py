@@ -5,28 +5,79 @@ Ephys Analysis: Step 1: downsample to 1 kHz
 @author: KAMPFF-LAB-ANALYSIS3
 """
 import os
-os.sys.path.append('/home/kampff/Repos/Kampff-Lab/Pac-Rat/libraries')
-#os.sys.path.append('D:/Repos/Pac-Rat/libraries')
+os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
-import parser_library as parser
+import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
 
 # Reload modules
 import importlib
-importlib.reload(parser)
+importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
 
-# Specify session folder
-#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+
+#test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
+
+
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+hardrive_path = r'F:/' 
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post
+
+
+# Specify paths
+session  = sessions_subset[1]
+session_path =  os.path.join(hardrive_path,session)
+
+#recording data path
+raw_recording = os.path.join(session_path +'/Amplifier.bin')
+cleaned_recording = os.path.join(session_path +'/Amplifier_cleaned.bin')
+mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
+
+
+#clip of interest 
+clip_number = 'Clip022.avi'
+clips_path = os.path.join(session_path + '/Clips/')
+clip = os.path.join(clips_path + clip_number)
+
+
+
+#idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
+csv_dir_path = os.path.join(session_path + '/events/')
+trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
+trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+
+video_csv = os.path.join(session_path + '/Video.csv')
+
+samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+
+
+#trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
+
+end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+sample_start_clip = end_samples[21]
+clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+
+#Load raw data
+
+start_sample = sample_start_clip
+num_samples = clip_sample_lenght
+
+
 
 # Specify data paths
-raw_path = os.path.join(session_path +'/Amplifier.bin')
+raw_path = raw_recording
+
 
 # Specify sample range for clip
 start_sample = 32837802
@@ -88,6 +139,9 @@ plt.figure()
 
 # cleaned
 probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
+
+
+
 plt.subplot(1,2,1)
 offset = 0
 colors = cm.get_cmap('tab20b', 11)
@@ -108,13 +162,40 @@ for shank in range(11):
         offset += 2
 plt.show()
 
-### LORY add threshold crossing spike counter
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
+
+
+### lowpass filter LFP
+
+lowcut = 250
+
+lowpass_data = np.zeros((len(probe_Z),num_samples))
+for channel in np.arange(len(probe_Z)):
+
+    try:
+    
+        channel_data = probe_Z[channel,:]
+        lowpass_cleaned = ephys.butter_filter_lowpass(channel_data,lowcut, fs=30000, order=3, btype='lowpass')
+        lowpass_data[channel] = lowpass_cleaned
+        print(channel)
+        
+    except Exception:
+        continue
+     
+        
+#2 and 65 opposite phase        
+        
+        
+plt.plot(lowpass_data[100,:150000],alpha = 0.4)
 
 
 
 
-### LATER
+##### downsampling from 30kHz to 1kHz
+
+
+
+
+
 
 # Spectrogram test
 plt.figure()
