@@ -88,6 +88,12 @@ def apply_probe_map_to_amplifier(amp_data):
         probe_data[i,:] = amp_data[ch,:]
     return probe_data
 
+
+
+
+
+
+
 # Low pass single channel raw ephys (in uV)
 def butter_filter_lowpass(data,lowcut, fs=30000, order=3, btype='lowpass'):
     nyq = 0.5 * fs
@@ -167,6 +173,10 @@ def iirnotch_50(data, fs=30000, quality=30):
     plt.show()
 
     return y
+
+
+      # convert from rad/sample to Hz
+
 
 
 
