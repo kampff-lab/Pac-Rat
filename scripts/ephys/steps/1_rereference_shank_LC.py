@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 1: downsample to 1 kHz
+Ephys Analysis: Step 1: median/mean rereferencing per shank
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
@@ -83,18 +83,12 @@ raw_path = raw_recording
 start_sample = 32837802
 num_samples = 657331
 
-# Specify channel of interest
-depth = 6
-shank = 10
-
 # Load raw data and convert to microvolts
 raw_uV = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
 
 # Compute mean and standard deviation for each channel
 raw_mean = np.mean(raw_uV, axis=1)
 raw_std = np.std(raw_uV, axis=1)
-
-
 
 # Z-score each channel
 raw_Z = np.zeros(raw_uV.shape)
@@ -104,46 +98,37 @@ for ch in range(128):
 # Specify channels to exclude
 #exlcude_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
 exlcude_channels = np.array([12, 13, 18, 54, 108, 109 ,115])
+include_channels = np.delete(np.arange(128), exlcude_channels)
 
-# Determine channels to exclude on each headstage
-A_exclude_channels = exlcude_channels[exlcude_channels < 64]
-B_exclude_channels = exlcude_channels[exlcude_channels >= 64]
+# Retreive probe map
+probe_map = ephys.get_probe_map()
 
-# Determine headstage channels
-A_channels = np.arange(64)
-B_channels = np.arange(64, 128)
+# Measure shank means and medians
+shank_means = np.zeros((11, num_samples))
+shank_medians = np.zeros((11, num_samples))
+for sh in range(1,10,1):
+    shank_channels = probe_map[(sh-1):(sh+1),sh]
+    shank_means[sh,:] = np.mean(raw_Z[shank_channels,:], axis=0)
+    shank_medians[sh,:] = np.median(raw_Z[shank_channels,:], axis=0)
 
-# Remove excluded channels
-A_channels = np.delete(A_channels, A_exclude_channels)
-B_channels = np.delete(B_channels, B_exclude_channels)
+# Measure probe mean and median
+probe_mean = np.mean(raw_Z[include_channels,:], axis=0)
+probe_median = np.median(raw_Z[include_channels,:], axis=0)
 
-# Compute median values for each headstage
-A_median = np.median(raw_Z[A_channels,:], axis=0)
-B_median = np.median(raw_Z[B_channels,:], axis=0)
-
-# Compute mean values for each headstage
-A_mean = np.mean(raw_Z[A_channels,:], axis=0)
-B_mean = np.mean(raw_Z[B_channels,:], axis=0)
-
-# Rereference each channel
+# Rereference each channel using its shank mean/median
 clean_Z = np.zeros(raw_Z.shape)
-for ch in A_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - A_mean
-    clean_Z[ch,:] = clean_Z_ch
-for ch in B_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - B_mean
-    clean_Z[ch,:] = clean_Z_ch
+for sh in range(11):
+    shank_channels = probe_map[:,sh]
+    for ch in shank_channels:
+        raw_Z_ch = raw_Z[ch, :]
+        clean_Z_ch = raw_Z_ch - probe_mean
+        clean_Z[ch,:] = clean_Z_ch
 
 # Plot Z-scored ephys data
 plt.figure()
 
 # cleaned
 probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-
-
-
 plt.subplot(1,2,1)
 offset = 0
 colors = cm.get_cmap('tab20b', 11)
@@ -162,88 +147,6 @@ for shank in range(11):
         ch = (depth * 11) + shank
         plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
         offset += 2
-plt.show()
-
-
-
-### lowpass filter LFP
-
-lowcut = 250
-
-lowpass_data = np.zeros((len(probe_Z),num_samples))
-for channel in np.arange(len(probe_Z)):
-
-    try:
-    
-        channel_data = probe_Z[channel,:]
-        lowpass_cleaned = ephys.butter_filter_lowpass(channel_data,lowcut, fs=30000, order=3, btype='lowpass')
-        lowpass_data[channel] = lowpass_cleaned
-        print(channel)
-        
-    except Exception:
-        continue
-
-
-
-
-
-# Downsample each channel
-num_ds_samples = np.int(np.floor(num_samples / 30))
-downsampled = np.zeros((128, num_ds_samples))
-for ch in range(128):
-    raw_ch = raw[ch,:]
-    lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
-    downsampled_ch = lowpass_ch[::30]
-    downsampled[ch, :] = downsampled_ch[:num_ds_samples]
-
-# Store downsampled data in a binary file
-
-# Report
-ch = 21
-raw_ch = raw[ch,:]
-lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
-downsampled_ch = downsampled[ch, :]
-plt.figure()
-plt.plot(raw_ch, 'r')
-plt.plot(lowpass_ch, 'g')
-plt.plot(np.arange(num_ds_samples) * 30, downsampled_ch, 'b')
-plt.show()
-
-# LORY (spectral analysis, LFP, etc.)
-
-#FIN    
-        
-#2 and 65 opposite phase        
-        
-        
-plt.plot(lowpass_data[100,:150000],alpha = 0.4)
-
-
-
-
-##### downsampling from 30kHz to 1kHz
-
-
-
-
-
-
-# Spectrogram test
-plt.figure()
-shank = 4
-for depth in range(11):
-    plt.subplot(11,2,depth*2 + 1)
-    probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-    fs = 30000
-    ch = (depth * 11) + shank
-    f, t, Sxx = signal.spectrogram(probe_Z[ch,:], fs, nperseg=30000, nfft=30000, noverlap=27000)
-    plt.pcolormesh(t, f, Sxx)
-    plt.ylim([0, 30])
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-
-    plt.subplot(11,2,depth*2 + 2)
-    plt.plot(probe_Z[ch,:])
 plt.show()
 
 #FIN

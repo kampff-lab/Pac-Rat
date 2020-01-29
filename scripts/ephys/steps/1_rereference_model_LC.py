@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 1: downsample to 1 kHz
+Ephys Analysis: Step 1: median/mean rereferencing
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
@@ -13,6 +13,7 @@ from scipy import signal
 import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
+from scipy import stats
 
 # Reload modules
 import importlib
@@ -83,23 +84,8 @@ raw_path = raw_recording
 start_sample = 32837802
 num_samples = 657331
 
-# Specify channel of interest
-depth = 6
-shank = 10
-
 # Load raw data and convert to microvolts
-raw_uV = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
-
-# Compute mean and standard deviation for each channel
-raw_mean = np.mean(raw_uV, axis=1)
-raw_std = np.std(raw_uV, axis=1)
-
-
-
-# Z-score each channel
-raw_Z = np.zeros(raw_uV.shape)
-for ch in range(128):
-    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
+raw = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
 
 # Specify channels to exclude
 #exlcude_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
@@ -118,132 +104,93 @@ A_channels = np.delete(A_channels, A_exclude_channels)
 B_channels = np.delete(B_channels, B_exclude_channels)
 
 # Compute median values for each headstage
-A_median = np.median(raw_Z[A_channels,:], axis=0)
-B_median = np.median(raw_Z[B_channels,:], axis=0)
+A_median = np.median(raw[A_channels,:], axis=0)
+B_median = np.median(raw[B_channels,:], axis=0)
 
 # Compute mean values for each headstage
-A_mean = np.mean(raw_Z[A_channels,:], axis=0)
-B_mean = np.mean(raw_Z[B_channels,:], axis=0)
+A_mean = np.mean(raw[A_channels,:], axis=0)
+B_mean = np.mean(raw[B_channels,:], axis=0)
 
-# Rereference each channel
-clean_Z = np.zeros(raw_Z.shape)
+
+
+
+
+# Determine linear scaling model for each channel
+clean = np.zeros(raw.shape)
 for ch in A_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - A_mean
-    clean_Z[ch,:] = clean_Z_ch
+    raw_ch = raw[ch, :]
+    mean_ch = A_mean
+    median_ch = A_median
+    sorted_ch = np.sort(raw_ch)
+    lower_thresh = sorted_ch[np.int(num_samples * 0.01)]
+    upper_thesh = sorted_ch[np.int(num_samples * 0.99)]
+    valid = (raw_ch < lower_thresh) + (raw_ch > upper_thesh)
+    m, b, r_value, p_value, std_err = stats.linregress(raw_ch[valid], mean_ch[valid])
+    scaled_ch = m*raw_ch + b
+    clean_ch = scaled_ch - mean_ch
+    clean[ch,:] = clean_ch
 for ch in B_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - B_mean
-    clean_Z[ch,:] = clean_Z_ch
+    raw_ch = raw[ch, :]
+    mean_ch = B_mean
+    median_ch = B_median
+    sorted_ch = np.sort(raw_ch)
+    lower_thresh = sorted_ch[np.int(num_samples * 0.01)]
+    upper_thesh = sorted_ch[np.int(num_samples * 0.99)]
+    valid = (raw_ch < lower_thresh) + (raw_ch > upper_thesh)
+    m, b, r_value, p_value, std_err = stats.linregress(raw_ch[valid], mean_ch[valid])
+    scaled_ch = m*raw_ch + b
+    clean_ch = scaled_ch - mean_ch
+    clean[ch,:] = clean_ch
 
-# Plot Z-scored ephys data
+# Report cleaning
+ch = 21
+raw_ch = raw[ch, :]
+mean_ch = A_mean
+median_ch = A_median
+sorted_ch = np.sort(raw_ch)
+lower_thresh = sorted_ch[np.int(num_samples * 0.01)]
+upper_thesh = sorted_ch[np.int(num_samples * 0.99)]
+valid = (raw_ch < lower_thresh) + (raw_ch > upper_thesh)
+m, b, r_value, p_value, std_err = stats.linregress(raw_ch[valid], mean_ch[valid])
+scaled_ch = m*raw_ch + b
+clean_ch = scaled_ch - mean_ch
+
+plt.figure()
+plt.plot(raw_ch[valid], mean_ch[valid], 'k.')
+plt.show()
+
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(raw_ch, 'r')
+plt.plot(mean_ch, 'g')
+plt.plot(scaled_ch, 'b')
+plt.subplot(2,1,2)
+plt.plot(clean_ch, 'k')
+plt.show()
+
+# Plot cleaned vs. raw ephys data
 plt.figure()
 
 # cleaned
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-
-
-
+probe = ephys.apply_probe_map_to_amplifier(clean)
 plt.subplot(1,2,1)
 offset = 0
 colors = cm.get_cmap('tab20b', 11)
 for shank in range(11):
     for depth in range(11):
         ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
+        plt.plot(probe[ch, 142000:155000] + offset, color=colors(shank))
+        offset += 100
 # raw
 plt.subplot(1,2,2)
-probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
+probe = ephys.apply_probe_map_to_amplifier(raw)
 offset = 0
 colors = cm.get_cmap('tab20b', 11)
 for shank in range(11):
     for depth in range(11):
         ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-plt.show()
-
-
-
-### lowpass filter LFP
-
-lowcut = 250
-
-lowpass_data = np.zeros((len(probe_Z),num_samples))
-for channel in np.arange(len(probe_Z)):
-
-    try:
-    
-        channel_data = probe_Z[channel,:]
-        lowpass_cleaned = ephys.butter_filter_lowpass(channel_data,lowcut, fs=30000, order=3, btype='lowpass')
-        lowpass_data[channel] = lowpass_cleaned
-        print(channel)
-        
-    except Exception:
-        continue
-
-
-
-
-
-# Downsample each channel
-num_ds_samples = np.int(np.floor(num_samples / 30))
-downsampled = np.zeros((128, num_ds_samples))
-for ch in range(128):
-    raw_ch = raw[ch,:]
-    lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
-    downsampled_ch = lowpass_ch[::30]
-    downsampled[ch, :] = downsampled_ch[:num_ds_samples]
-
-# Store downsampled data in a binary file
-
-# Report
-ch = 21
-raw_ch = raw[ch,:]
-lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
-downsampled_ch = downsampled[ch, :]
-plt.figure()
-plt.plot(raw_ch, 'r')
-plt.plot(lowpass_ch, 'g')
-plt.plot(np.arange(num_ds_samples) * 30, downsampled_ch, 'b')
-plt.show()
-
-# LORY (spectral analysis, LFP, etc.)
-
-#FIN    
-        
-#2 and 65 opposite phase        
-        
-        
-plt.plot(lowpass_data[100,:150000],alpha = 0.4)
-
-
-
-
-##### downsampling from 30kHz to 1kHz
-
-
-
-
-
-
-# Spectrogram test
-plt.figure()
-shank = 4
-for depth in range(11):
-    plt.subplot(11,2,depth*2 + 1)
-    probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-    fs = 30000
-    ch = (depth * 11) + shank
-    f, t, Sxx = signal.spectrogram(probe_Z[ch,:], fs, nperseg=30000, nfft=30000, noverlap=27000)
-    plt.pcolormesh(t, f, Sxx)
-    plt.ylim([0, 30])
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-
-    plt.subplot(11,2,depth*2 + 2)
-    plt.plot(probe_Z[ch,:])
+        plt.plot(probe[ch, 142000:155000] + offset, color=colors(shank))
+        offset += 100
 plt.show()
 
 #FIN

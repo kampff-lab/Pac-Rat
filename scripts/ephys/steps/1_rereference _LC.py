@@ -161,15 +161,34 @@ plt.show()
 ### LORY add threshold crossing spike counter
 probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
 
-n = len(probe_Z)   
-spike_times = [[] for _ in range(n)] 
+clean_model  = ephys.apply_probe_map_to_amplifier(clean)
+
+raw_signal = ephys.apply_probe_map_to_amplifier(raw_uV)
+
+shank_ref =  ephys.apply_probe_map_to_amplifier(clean_Z)
+probe_no_Z = ephys.apply_probe_map_to_amplifier(clean_no_Z)
+
+
+n = len(probe_Z)  
+
+spike_times_no_Z = [[] for _ in range(n)]  
+
+spike_times_Z = [[] for _ in range(n)]  
+
+spike_times_clean_model = [[] for _ in range(n)] 
   
+spike_times_raw = [[] for _ in range(n)] 
+
+spike_times_shank =  [[] for _ in range(n)] 
+
+signal = probe_no_Z
+
 
 for channel in np.arange(len(probe_Z)):
 
     try:
     
-        channel_data = probe_Z[channel,:]
+        channel_data = signal[channel,:]
         
         # FILTERS (one ch at the time)
         channel_data_highpass = ephys.highpass(channel_data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
@@ -219,7 +238,11 @@ for channel in np.arange(len(probe_Z)):
         peak_voltages = peak_voltages[good_spikes]
         
         peak_times_corrected  = start_sample + peak_times
-        spike_times[channel] = peak_times_corrected
+        #spike_times_Z[channel] = peak_times_corrected
+        #spike_times_clean_model[channel] = peak_times_corrected
+        #spike_times_raw[channel] = peak_times_corrected
+        #spike_times_shank[channel] = peak_times_corrected
+        spike_times_no_Z[channel] = peak_times_corrected
         print(channel)
         
     except Exception:
@@ -234,9 +257,57 @@ sns.set()
 sns.set_style('white')
 sns.axes_style('white')
 sns.despine() 
-for index, spikes in enumerate(spike_times):
+for index, spikes in enumerate(spike_times_Z):
+    plt.vlines(spikes, index, index+1, color = [0,1,0,0.1])
+plt.title('headstage')
+
+# Plot raster
+f = plt.figure()
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+for index, spikes in enumerate(spike_times_raw):
     plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
+plt.title('raw')   
    
+
+f = plt.figure()
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+for index, spikes in enumerate(spike_times_clean_model):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
+plt.title('model')   
+   
+
+f = plt.figure()
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+for index, spikes in enumerate(spike_times_shank):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
+plt.title('shank')   
+   
+
+
+f = plt.figure()
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+for index, spikes in enumerate(spike_times_no_Z):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
+plt.title('no_Z')   
+   
+
+
 
 
 
