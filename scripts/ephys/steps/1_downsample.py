@@ -22,8 +22,8 @@ importlib.reload(behaviour)
 importlib.reload(ephys)
 
 # Specify session folder
-#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+#session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify data paths
 raw_path = os.path.join(session_path +'/Amplifier.bin')
@@ -32,106 +32,35 @@ raw_path = os.path.join(session_path +'/Amplifier.bin')
 start_sample = 32837802
 num_samples = 657331
 
-# Specify channel of interest
-depth = 6
-shank = 10
-
 # Load raw data and convert to microvolts
-raw_uV = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
-
-# Compute mean and standard deviation for each channel
-raw_mean = np.mean(raw_uV, axis=1)
-raw_std = np.std(raw_uV, axis=1)
-
-# Z-score each channel
-raw_Z = np.zeros(raw_uV.shape)
-for ch in range(128):
-    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
+raw = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
 
 # Specify channels to exclude
 #exlcude_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
 exlcude_channels = np.array([12, 13, 18, 54, 108, 109 ,115])
 
-# Determine channels to exclude on each headstage
-A_exclude_channels = exlcude_channels[exlcude_channels < 64]
-B_exclude_channels = exlcude_channels[exlcude_channels >= 64]
+# Downsample each channel
+num_ds_samples = np.int(np.floor(num_samples / 30))
+downsampled = np.zeros((128, num_ds_samples))
+for ch in range(128):
+    raw_ch = raw[ch,:]
+    lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
+    downsampled_ch = lowpass_ch[::30]
+    downsampled[ch, :] = downsampled_ch[:num_ds_samples]
 
-# Determine headstage channels
-A_channels = np.arange(64)
-B_channels = np.arange(64, 128)
+# Store downsampled data in a binary file
 
-# Remove excluded channels
-A_channels = np.delete(A_channels, A_exclude_channels)
-B_channels = np.delete(B_channels, B_exclude_channels)
-
-# Compute median values for each headstage
-A_median = np.median(raw_Z[A_channels,:], axis=0)
-B_median = np.median(raw_Z[B_channels,:], axis=0)
-
-# Compute mean values for each headstage
-A_mean = np.mean(raw_Z[A_channels,:], axis=0)
-B_mean = np.mean(raw_Z[B_channels,:], axis=0)
-
-# Rereference each channel
-clean_Z = np.zeros(raw_Z.shape)
-for ch in A_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - A_mean
-    clean_Z[ch,:] = clean_Z_ch
-for ch in B_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - B_mean
-    clean_Z[ch,:] = clean_Z_ch
-
-# Plot Z-scored ephys data
+# Report
+ch = 21
+raw_ch = raw[ch,:]
+lowpass_ch = ephys.butter_filter_lowpass(raw_ch, 500)
+downsampled_ch = downsampled[ch, :]
 plt.figure()
-
-# cleaned
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-plt.subplot(1,2,1)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-# raw
-plt.subplot(1,2,2)
-probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
+plt.plot(raw_ch, 'r')
+plt.plot(lowpass_ch, 'g')
+plt.plot(np.arange(num_ds_samples) * 30, downsampled_ch, 'b')
 plt.show()
 
-### LORY add threshold crossing spike counter
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-
-
-
-
-### LATER
-
-# Spectrogram test
-plt.figure()
-shank = 4
-for depth in range(11):
-    plt.subplot(11,2,depth*2 + 1)
-    probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-    fs = 30000
-    ch = (depth * 11) + shank
-    f, t, Sxx = signal.spectrogram(probe_Z[ch,:], fs, nperseg=30000, nfft=30000, noverlap=27000)
-    plt.pcolormesh(t, f, Sxx)
-    plt.ylim([0, 30])
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-
-    plt.subplot(11,2,depth*2 + 2)
-    plt.plot(probe_Z[ch,:])
-plt.show()
+# LORY (spectral analysis, LFP, etc.)
 
 #FIN

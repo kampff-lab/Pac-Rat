@@ -80,6 +80,10 @@ def get_channel_raw_clip_from_amplifier(filename, depth, shank, start_sample, nu
     
     return raw_uV
 
+# Get probe map
+def get_probe_map():
+    return probe_map
+
 # Apply probe map
 def apply_probe_map_to_amplifier(amp_data):
     num_samples = np.size(amp_data, 1)
