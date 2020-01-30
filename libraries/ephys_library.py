@@ -178,11 +178,6 @@ def iirnotch_50(data, fs=30000, quality=30):
 
     return y
 
-
-      # convert from rad/sample to Hz
-
-
-
 # Are spikes downward or upward?
 def threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft):
     
