@@ -47,7 +47,7 @@ raw_std = np.std(raw_uV, axis=1)
 # Z-score each channel
 raw_Z = np.zeros(raw_uV.shape)
 for ch in range(128):
-    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
+    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch])# / raw_std[ch]
 
 # Store raw Z-scored as raw
 raw = np.copy(raw_Z)
@@ -175,7 +175,7 @@ for channel in np.arange(num_channels):
         continue
 
 # Remove artifacts
-bin_size = 260
+bin_size = 1
 num_bins = np.int(np.ceil((num_samples / bin_size)))
 
 # Count spikes in each bin
@@ -197,6 +197,23 @@ peak_bins[spiking_bins] = peak_bins[spiking_bins] / count_bins[spiking_bins]
 active_channels = np.sum(spiking_bins, axis=0)
 average_peak = np.mean(peak_bins, axis=0)
 
+# Classify spike times as artifact or real (based on number of simultanouesly active channels)
+max_active = 50
+real_times = [[] for _ in range(num_channels)]  
+artifact_times = [[] for _ in range(num_channels)]
+for channel in np.arange(num_channels):
+    real_times_channel = []
+    artifact_times_channel = []
+    for index, spike_time in enumerate(spike_times[channel]):
+        bin_time = np.int(np.round(spike_time / bin_size))
+        num_active = active_channels[bin_time]
+        if num_active <= max_active:
+            real_times_channel.append(spike_time)
+        else:
+            artifact_times_channel.append(spike_time)
+    real_times[channel] = real_times_channel
+    artifact_times[channel] = artifact_times_channel
+
 # Plot bins
 plt.figure()
 plt.plot(average_peak, active_channels, 'k.', alpha=0.01)
@@ -210,22 +227,45 @@ plt.show()
 # Filter bins with artifacts (using simple threshold)
 count_bins[:, active_channels > 64] = 0
 
-# Plot raster
+# Plot raster (real spikes)
 f = plt.figure()
-for index, spikes in enumerate(spike_times):
-    plt.vlines(spikes, index, index+1, color = [0,0,0,1])
+plt.subplot(1,2,1)
+for index, spikes in enumerate(real_times):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
 plt.title('Spikes!')   
+plt.subplot(1,2,2)
+for index, spikes in enumerate(artifact_times):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,.1])
+plt.title('Artifacts!')   
 plt.show()   
 
+# Compute MUA (without artifacts)
+bin_size = 260
+num_bins = np.int(np.ceil((num_samples / bin_size)))
 
+# Count spikes in each bin
+mua = np.zeros((num_channels, num_bins))
+for channel in np.arange(num_channels):
+    for index, spike_time in enumerate(real_times[channel]):
+        bin_time = np.int(np.round(spike_time / bin_size))
+        mua[channel, bin_time] = mua[channel, bin_time] + 1
 
-
-
-
-
-
-
-
+# Plot MUA (for each shank)
+offset = 0
+new_bin = 10
+colors = cm.get_cmap('tab20b', 11)
+plt.figure()
+for shank in range(11):
+    shank_channels = (np.arange(11) * 11) + shank
+    shank_data = mua[shank_channels, :]
+    shank_mean = np.mean(shank_data, axis=0)
+    num_truncate = len(shank_mean) % new_bin
+    if num_truncate > 0:
+        shank_mean = shank_mean[:-num_truncate]
+    binned_shank_mean = np.mean(np.reshape(shank_mean, (new_bin,-1)), axis=0)
+    plt.plot(binned_shank_mean + offset, color=colors(shank))
+    offset += 0.5
+plt.show()
 
 
 
