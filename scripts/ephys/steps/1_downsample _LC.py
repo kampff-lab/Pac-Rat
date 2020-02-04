@@ -5,11 +5,13 @@ Ephys Analysis: Step 1: downsample to 1 kHz
 @author: KAMPFF-LAB-ANALYSIS3
 """
 import os
+import mne
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
+from mne import time_frequency
 import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
@@ -49,6 +51,7 @@ clip = os.path.join(clips_path + clip_number)
 
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
 csv_dir_path = os.path.join(session_path + '/events/')
+touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
 trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
 trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
 trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
@@ -60,11 +63,17 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
+touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
 
 end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
 sample_start_clip = end_samples[21]
 clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+
+
+
 
 
 
@@ -144,25 +153,25 @@ probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
 
 
 
-plt.subplot(1,2,1)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-# raw
-plt.subplot(1,2,2)
-probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-plt.show()
+#plt.subplot(1,2,1)
+#offset = 0
+#colors = cm.get_cmap('tab20b', 11)
+#for shank in range(11):
+#    for depth in range(11):
+#        ch = (depth * 11) + shank
+#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
+#        offset += 2
+## raw
+#plt.subplot(1,2,2)
+#probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
+#offset = 0
+#colors = cm.get_cmap('tab20b', 11)
+#for shank in range(11):
+#    for depth in range(11):
+#        ch = (depth * 11) + shank
+#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
+#        offset += 2
+#plt.show()
 
 
 
@@ -171,20 +180,93 @@ plt.show()
 lowcut = 250
 
 lowpass_data = np.zeros((len(probe_Z),num_samples))
-for channel in np.arange(len(probe_Z)):
+lowpass_downsampled = [[] for _ in range(len(probe_Z))]  
 
-    try:
-    
+for channel in np.arange(len(probe_Z)):
+    try:  
         channel_data = probe_Z[channel,:]
         lowpass_cleaned = ephys.butter_filter_lowpass(channel_data,lowcut, fs=30000, order=3, btype='lowpass')
-        lowpass_data[channel] = lowpass_cleaned
+        downsampled_ch = lowpass_cleaned[::30]
+        lowpass_data[channel,:] = lowpass_cleaned
+        lowpass_downsampled[channel] = downsampled_ch
         print(channel)
         
     except Exception:
         continue
 
 
+trial_touch_idx = touching_light[22]
+offset = 60000
+trial_chunks = np.zeros((len(probe_Z),(offset*2)))
 
+for ch in np.arange(len(probe_Z)):
+   
+    try:
+        lowpass_chunk = lowpass_data[ch],trial_touch_idx-offset:trial_touch_idx+offset]
+        trial_chunks[ch,:] = lowpass_chunk
+        
+    except Exception:
+        continue
+
+
+ ch = 0        
+
+
+
+
+
+
+lowpass_downsampled_array = np.array(lowpass_downsampled)
+
+
+channel = 0 
+
+#test mne fx for multitaper 
+        
+    
+
+p, f = time_frequency.psd_array_multitaper(lowpass_data[59,:15000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 15, n_jobs = 8)
+
+plt.figure()
+plt.plot(f,p)
+
+
+
+pd, fd = time_frequency.psd_array_multitaper(lowpass_downsampled_array[22,:], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 15, n_jobs = 2)
+
+plt.figure()
+
+plt.plot(fd,pd)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ f, t, Zxx = signal.stft(lowpass_cleaned, fs, nperseg=20000)
+
+plt.pcolormesh(t, f, np.abs(Zxx))
 
 
 # Downsample each channel
@@ -196,7 +278,18 @@ for ch in range(128):
     downsampled_ch = lowpass_ch[::30]
     downsampled[ch, :] = downsampled_ch[:num_ds_samples]
 
+
+
+
+lowpass_data[22,:]
+
 # Store downsampled data in a binary file
+
+
+
+
+
+
 
 # Report
 ch = 21

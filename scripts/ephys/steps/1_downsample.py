@@ -50,6 +50,10 @@ for ch in range(128):
 
 # Store downsampled data in a binary file
 
+
+
+
+
 # Report
 ch = 21
 raw_ch = raw[ch,:]

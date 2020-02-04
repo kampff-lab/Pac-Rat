@@ -47,6 +47,7 @@ clip = os.path.join(clips_path + clip_number)
 
 
 
+
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
 csv_dir_path = os.path.join(session_path + '/events/')
 trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
@@ -65,6 +66,8 @@ end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
 sample_start_clip = end_samples[21]
 clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
 
 
 
@@ -98,6 +101,9 @@ raw_Z = np.zeros(raw_uV.shape)
 for ch in range(128):
     raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
 
+# Store raw Z-scored as raw
+raw = np.copy(raw_Z)
+
 # Specify channels to exclude
 #exlcude_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
 exlcude_channels = np.array([12, 13, 18, 54, 108, 109 ,115])
@@ -123,71 +129,51 @@ A_mean = np.mean(raw_Z[A_channels,:], axis=0)
 B_mean = np.mean(raw_Z[B_channels,:], axis=0)
 
 # Rereference each channel
-clean_Z = np.zeros(raw_Z.shape)
+clean = np.zeros(raw.shape)
 for ch in A_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - A_mean
-    clean_Z[ch,:] = clean_Z_ch
+    raw_ch = raw[ch, :]
+    clean_ch = raw_ch - A_mean
+    clean[ch,:] = clean_ch
 for ch in B_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - B_mean
-    clean_Z[ch,:] = clean_Z_ch
+    raw_ch = raw[ch, :]
+    clean_ch = raw_ch - B_mean
+    clean[ch,:] = clean_ch
 
 # Plot Z-scored ephys data
-plt.figure()
+#plt.figure()
 
-# cleaned
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
-plt.subplot(1,2,1)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-# raw
-plt.subplot(1,2,2)
-probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
-offset = 0
-colors = cm.get_cmap('tab20b', 11)
-for shank in range(11):
-    for depth in range(11):
-        ch = (depth * 11) + shank
-        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-        offset += 2
-plt.show()
+## cleaned
+#probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
+#plt.subplot(1,2,1)
+#offset = 0
+#colors = cm.get_cmap('tab20b', 11)
+#for shank in range(11):
+#    for depth in range(11):
+#        ch = (depth * 11) + shank
+#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
+#        offset += 2
+## raw
+#plt.subplot(1,2,2)
+#probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
+#offset = 0
+#colors = cm.get_cmap('tab20b', 11)
+#for shank in range(11):
+#    for depth in range(11):
+#        ch = (depth * 11) + shank
+#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
+#        offset += 2
+#plt.show()
 
-### LORY add threshold crossing spike counter
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
+# Measure threshold crossings
+signal = ephys.apply_probe_map_to_amplifier(clean)
+num_channels = len(signal)
+spike_times = [[] for _ in range(num_channels)]  
+spike_peaks = [[] for _ in range(num_channels)]  
 
-clean_model  = ephys.apply_probe_map_to_amplifier(clean)
-
-raw_signal = ephys.apply_probe_map_to_amplifier(raw_uV)
-
-shank_ref =  ephys.apply_probe_map_to_amplifier(clean_Z)
-probe_no_Z = ephys.apply_probe_map_to_amplifier(clean_no_Z)
-
-
-n = len(probe_Z)  
-
-spike_times_no_Z = [[] for _ in range(n)]  
-
-spike_times_Z = [[] for _ in range(n)]  
-
-spike_times_clean_model = [[] for _ in range(n)] 
-  
-spike_times_raw = [[] for _ in range(n)] 
-
-spike_times_shank =  [[] for _ in range(n)] 
-
-signal = probe_no_Z
-
-
-for channel in np.arange(len(probe_Z)):
+for channel in np.arange(num_channels):
 
     try:
-    
+        # Extract data for single channel
         channel_data = signal[channel,:]
         
         # FILTERS (one ch at the time)
@@ -198,22 +184,11 @@ for channel in np.arange(len(probe_Z)):
         sigma_n = np.median(abs_channel_data_highpass) / 0.6745
         
         #adaptive th depending of ch noise
-        spike_threshold_hard = -5.0 * sigma_n
-        spike_threshold_soft = -3.0 * sigma_n
-        
-        #fixed th given we have Zscored the data
-        
-        #spike_threshold_hard_fixed = -1.5
-        #spike_threshold_soft_fixed = -.5
-        
+        spike_threshold_hard = -3.0 * sigma_n
+        spike_threshold_soft = -1.0 * sigma_n
         
         # Find threshold crossings
-        spike_start_times, spike_stop_times = threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft)
-        
-        # Find threshold crossings with fixed th 
-    
-        #spike_start_times_fixed, spike_stop_times_fixed = threshold_crossing(channel_data_highpass,spike_threshold_hard_fixed,spike_threshold_soft_fixed)
-        
+        spike_start_times, spike_stop_times = threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft)    
         
         # Find peak voltages and times
         spike_peak_voltages = []
@@ -223,7 +198,7 @@ for channel in np.arange(len(probe_Z)):
             peak_voltage_idx = np.argmin(channel_data_highpass[start:stop])
             spike_peak_voltages.append(peak_voltage)
             spike_peak_times.append(start + peak_voltage_idx)
-          
+        
         # Remove too early and too late spikes
         spike_starts = np.array(spike_start_times)
         spike_stops = np.array(spike_stop_times)
@@ -237,82 +212,77 @@ for channel in np.arange(len(probe_Z)):
         peak_times = peak_times[good_spikes]
         peak_voltages = peak_voltages[good_spikes]
         
-        peak_times_corrected  = start_sample + peak_times
+        #peak_times_corrected  = start_sample + peak_times
         #spike_times_Z[channel] = peak_times_corrected
         #spike_times_clean_model[channel] = peak_times_corrected
         #spike_times_raw[channel] = peak_times_corrected
         #spike_times_shank[channel] = peak_times_corrected
-        spike_times_no_Z[channel] = peak_times_corrected
+        #spike_times_no_Z[channel] = peak_times_corrected
+        
+        spike_times[channel] = peak_times
+        spike_peaks[channel] = peak_voltages
         print(channel)
         
     except Exception:
         continue
-     
 
+# Remove artifacts
+bin_size = 260
+num_bins = np.int(np.ceil((num_samples / bin_size)))
 
- # Plot raster
-f = plt.figure()
+# Count spikes in each bin
+count_bins = np.zeros((num_channels, num_bins))
+peak_bins = np.zeros((num_channels, num_bins))
+for channel in np.arange(num_channels):
+    for index, spike_time in enumerate(spike_times[channel]):
+        bin_time = np.int(np.round(spike_time / bin_size))
+        count_bins[channel, bin_time] = count_bins[channel, bin_time] + 1
+        peak_bins[channel, bin_time] = peak_bins[channel, bin_time] + spike_peaks[channel][index]
 
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-for index, spikes in enumerate(spike_times_Z):
-    plt.vlines(spikes, index, index+1, color = [0,1,0,0.1])
-plt.title('headstage')
+# Find bins with spikes
+spiking_bins = count_bins > 0
+
+# Compute average peak values for each bin
+peak_bins[spiking_bins] = peak_bins[spiking_bins] / count_bins[spiking_bins]
+
+# Look for the number of spiking channels for each bin
+active_channels = np.sum(spiking_bins, axis=0)
+average_peak = np.mean(peak_bins, axis=0)
+
+# Plot bins
+plt.figure()
+plt.plot(average_peak, active_channels, 'k.', alpha=0.01)
+plt.show()
+
+# Plot MUA
+plt.figure()
+plt.plot(active_channels)
+plt.show()
+
+# Filter bins with artifacts (using simple threshold)
+count_bins[:, active_channels > 64] = 0
 
 # Plot raster
 f = plt.figure()
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-for index, spikes in enumerate(spike_times_raw):
-    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
-plt.title('raw')   
-   
-
-f = plt.figure()
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-for index, spikes in enumerate(spike_times_clean_model):
-    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
-plt.title('model')   
-   
-
-f = plt.figure()
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-for index, spikes in enumerate(spike_times_shank):
-    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
-plt.title('shank')   
-   
-
-
-f = plt.figure()
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-for index, spikes in enumerate(spike_times_no_Z):
-    plt.vlines(spikes, index, index+1, color = [0,0,0,0.1])
-plt.title('no_Z')   
-   
+for index, spikes in enumerate(spike_times):
+    plt.vlines(spikes, index, index+1, color = [0,0,0,1])
+plt.title('Spikes!')   
+plt.show()   
 
 
 
 
 
 
-
+            sample_diff = np.diff(samples_for_frames)
+            sample_diff = np.hstack((sample_diff,250))
+        
+            for s in np.arange(len(samples_for_frames)):
+                sample = samples_for_frames[s]
+                signal_to_bin = abs_channel_data_MUA[sample:(sample + sample_diff[s])]
+                avg = np.mean(signal_to_bin)
+                binned_signal[ch][s] = avg
+                
 
 
 
@@ -371,22 +341,6 @@ for depth in range(11):
     plt.subplot(11,2,depth*2 + 2)
     plt.plot(probe_Z[ch,:])
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
