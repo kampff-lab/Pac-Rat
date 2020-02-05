@@ -38,15 +38,6 @@ session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
 raw_recording = os.path.join(session_path +'/Amplifier.bin')
-cleaned_recording = os.path.join(session_path +'/Amplifier_cleaned.bin')
-mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
-
-
-#clip of interest 
-clip_number = 'Clip022.avi'
-clips_path = os.path.join(session_path + '/Clips/')
-clip = os.path.join(clips_path + clip_number)
-
 
 
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
@@ -65,115 +56,135 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
 
-end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
-samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
-sample_start_clip = end_samples[21]
-clip_sample_lenght = samples_lenght_end_to_end[22]
+#end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+#samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+#sample_start_clip = end_samples[21]
+#clip_sample_lenght = samples_lenght_end_to_end[22]
 
 
 
 
+num_channels = 128
+data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data))/num_channels)
+freq = 30000
+recording_time_sec = num_samples/freq
+recording_time_min = recording_time_sec/60
+reshaped_data = np.reshape(data,(num_samples,128))
+#to have 128 rows
+#reshaped_data_T= reshaped_data.T
+data = None
 
 
+signal_reshaped = ephys.apply_probe_map_to_amplifier(reshaped_data)
+reshaped_data = None
+
+# Extract data chunk for single channel
+channel = 37
+
+channel_data = signal_reshaped[channel,:]
+signal_reshaped = None
 
 
-#Load raw data
+#ch_mean = np.mean(channel_data, axis=0)
 
-start_sample = sample_start_clip
-num_samples = clip_sample_lenght
+#ch_std = np.std(channel_data, axis=0)
 
-
-
-# Specify data paths
-raw_path = raw_recording
-
-
-# Specify sample range for clip
-start_sample = 32837802
-num_samples = 657331
-
-# Specify channel of interest
-depth = 6
-shank = 10
-
-# Load raw data and convert to microvolts
-raw_uV = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
-
-# Compute mean and standard deviation for each channel
-raw_mean = np.mean(raw_uV, axis=1)
-raw_std = np.std(raw_uV, axis=1)
+#channel_data_Z = channel_data - ch_mean
 
 
 
 # Z-score each channel
-raw_Z = np.zeros(raw_uV.shape)
-for ch in range(128):
-    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
+
+
+
+#raw_Z = np.zeros(raw_uV.shape)
+#for ch in range(128):
+#    raw_Z[ch,:] = (raw_uV[ch,:] - raw_mean[ch]) / raw_std[ch]
 
 # Specify channels to exclude
-#exlcude_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
-exlcude_channels = np.array([12, 13, 18, 54, 108, 109 ,115])
 
-# Determine channels to exclude on each headstage
-A_exclude_channels = exlcude_channels[exlcude_channels < 64]
-B_exclude_channels = exlcude_channels[exlcude_channels >= 64]
+# Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
+channel_data = None
 
-# Determine headstage channels
-A_channels = np.arange(64)
-B_channels = np.arange(64, 128)
 
-# Remove excluded channels
-A_channels = np.delete(A_channels, A_exclude_channels)
-B_channels = np.delete(B_channels, B_exclude_channels)
 
-# Compute median values for each headstage
-A_median = np.median(raw_Z[A_channels,:], axis=0)
-B_median = np.median(raw_Z[B_channels,:], axis=0)
 
-# Compute mean values for each headstage
-A_mean = np.mean(raw_Z[A_channels,:], axis=0)
-B_mean = np.mean(raw_Z[B_channels,:], axis=0)
 
-# Rereference each channel
-clean_Z = np.zeros(raw_Z.shape)
-for ch in A_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - A_mean
-    clean_Z[ch,:] = clean_Z_ch
-for ch in B_channels:
-    raw_Z_ch = raw_Z[ch, :]
-    clean_Z_ch = raw_Z_ch - B_mean
-    clean_Z[ch,:] = clean_Z_ch
-
-# Plot Z-scored ephys data
+data_lowpass = butter_filter_lowpass(channel_data_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
+#channel_data_highpass = butter_filter(channel_data_uV, 500, 5000, fs=30000, order=3, btype='bandpass')
 plt.figure()
-
-# cleaned
-probe_Z = ephys.apply_probe_map_to_amplifier(clean_Z)
+plt.plot(data_lowpass[30000:45000])
 
 
 
-#plt.subplot(1,2,1)
-#offset = 0
-#colors = cm.get_cmap('tab20b', 11)
-#for shank in range(11):
-#    for depth in range(11):
-#        ch = (depth * 11) + shank
-#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-#        offset += 2
-## raw
-#plt.subplot(1,2,2)
-#probe_Z = ephys.apply_probe_map_to_amplifier(raw_Z)
-#offset = 0
-#colors = cm.get_cmap('tab20b', 11)
-#for shank in range(11):
-#    for depth in range(11):
-#        ch = (depth * 11) + shank
-#        plt.plot(probe_Z[ch, 142000:155000] + offset, color=colors(shank))
-#        offset += 2
-#plt.show()
+data_downsampled = data_lowpass[::30]
+
+plt.figure()
+plt.plot(data_downsampled[1000:1500])
 
 
+
+#test mne fx for multitaper 
+        
+   
+
+p, f = time_frequency.psd_array_multitaper(data_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+
+plt.figure()
+plt.plot(f,p)
+
+
+
+pd, fd = time_frequency.psd_array_multitaper(data_downsampled[500:1000], sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+plt.figure()
+plt.plot(fd,pd)
+
+
+offset = 3000
+
+downsampled_touch = np.uint32(np.array(touching_light)/30)
+
+chunk_around_event =np.zeros((len(downsampled_touch),offset*2))
+
+for e, event in enumerate(downsampled_touch):
+    try:  
+        chunk_around_event[e,:] = data_downsampled[event-offset : event+offset]
+        print(e)
+    except Exception:
+        continue
+ 
+
+chunk_lenght = offset*2
+
+p_test, f_test = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+plt.figure()
+plt.plot(f_test,p_test[1,:])
+
+
+p_avg = np.mean(p_test, axis =0)
+f_avg  = np.mean(f_test)
+
+
+
+plt.figure()
+plt.plot(f_test,p_avg[:])
+plt.title('ch_'+str(channel))
+
+
+
+
+#samples_fft = np.fft.rfft(chunk_around_event)
+#frequencies = np.abs(samples_fft)
+freq_mean = np.mean(frequencies, axis=0)
+plt.plot(freq_mean[:100])
+
+
+
+
+#f, t, Sxx = signal.spectrogram(chunk_around_event, 1000, nperseg=1000, nfft=1000, noverlap=500)
 
 ### lowpass filter LFP
 
@@ -192,76 +203,12 @@ for channel in np.arange(len(probe_Z)):
         print(channel)
         
     except Exception:
-        continue
 
 
-trial_touch_idx = touching_light[22]
-offset = 60000
-trial_chunks = np.zeros((len(probe_Z),(offset*2)))
 
-for ch in np.arange(len(probe_Z)):
-   
-    try:
-        lowpass_chunk = lowpass_data[ch],trial_touch_idx-offset:trial_touch_idx+offset]
-        trial_chunks[ch,:] = lowpass_chunk
+
         
-    except Exception:
-        continue
-
-
- ch = 0        
-
-
-
-
-
-
-lowpass_downsampled_array = np.array(lowpass_downsampled)
-
-
-channel = 0 
-
-#test mne fx for multitaper 
         
-    
-
-p, f = time_frequency.psd_array_multitaper(lowpass_data[59,:15000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 15, n_jobs = 8)
-
-plt.figure()
-plt.plot(f,p)
-
-
-
-pd, fd = time_frequency.psd_array_multitaper(lowpass_downsampled_array[22,:], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 15, n_jobs = 2)
-
-plt.figure()
-
-plt.plot(fd,pd)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
  f, t, Zxx = signal.stft(lowpass_cleaned, fs, nperseg=20000)

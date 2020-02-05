@@ -65,13 +65,12 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 
 #touch_samples = event_finder(touch_ball_path,video_csv,samples_for_frames_file_path)
-#touch = touch_samples
-#touch_in_trial = (end_samples - touch)/260
-#test = (samples_lenght_end_to_end+touch_in_trial)/260
+touch = touch_samples
 end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
 
-
+touch_in_trial = (end_samples - touch)/260
+#test = (samples_lenght_end_to_end + touch_in_trial)/260
 
 
 
@@ -130,8 +129,8 @@ for trial in np.arange(len(trial_end_and_lenght)):
     B_channels = np.delete(B_channels, B_exclude_channels)
 
     # Compute median values for each headstage
-    A_median = np.median(raw_Z[A_channels,:], axis=0)
-    B_median = np.median(raw_Z[B_channels,:], axis=0)
+    #A_median = np.median(raw_Z[A_channels,:], axis=0)
+    #B_median = np.median(raw_Z[B_channels,:], axis=0)
 
     # Compute mean values for each headstage
     A_mean = np.mean(raw_Z[A_channels,:], axis=0)

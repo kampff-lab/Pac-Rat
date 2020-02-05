@@ -223,13 +223,15 @@ def calculate_trial_speed_from_ball_touch(sessions_subset):
 #column 0 = start idx   
 #column 1 = end idx
 #column 2 = touch idx
+#column 3 = ball ON
 
-def start_touch_end_idx(sessions_subset):
+def start_end_touch_ball_idx(sessions_subset):
             
     for session in sessions_subset:
         start_idx = []
         end_idx = []
         touch_idx = []
+        ball_on_idx = []
         
         try:
            
@@ -242,6 +244,7 @@ def start_touch_end_idx(sessions_subset):
             trial_end_path = os.path.join(csv_dir_path + 'TrialEnd.csv')
             trial_start_path = os.path.join(csv_dir_path + 'TrialStart.csv')
             touch_path = os.path.join(csv_dir_path + 'RatTouchBall.csv')
+            ball_on_path = os.path.join(csv_dir_path + 'BallOn.csv')
             
             video_csv_path = os.path.join(script_dir + '/Video.csv')
             
@@ -249,6 +252,9 @@ def start_touch_end_idx(sessions_subset):
             start = timestamp_CSV_to_pandas(trial_start_path)
             end = timestamp_CSV_to_pandas(trial_end_path)
             touch = timestamp_CSV_to_pandas(touch_path)
+            ball =  timestamp_CSV_to_pandas(ball_on_path)
+      
+            
             #using colum 0 of the file contaning the timestamps
             video_time = timestamp_CSV_to_pandas(video_csv_path)
             
@@ -256,6 +262,7 @@ def start_touch_end_idx(sessions_subset):
             start_closest = closest_timestamps_to_events(video_time, start)
             end_closest = closest_timestamps_to_events(video_time, end)
             touch_closest = closest_timestamps_to_events(video_time, touch)
+            ball_closest = closest_timestamps_to_events(video_time, ball)
             
             #if the lenght of the files differs by 1 value it removes the last timestamp 
             #from both start and touch file 
@@ -263,15 +270,18 @@ def start_touch_end_idx(sessions_subset):
                 start_closest = start_closest[:-1]
                 if len(touch_closest)>len(end_closest): 
                     touch_closest = touch_closest[:-1]
-                                    
+            
+            if len(ball_closest)>len(end_closest):
+                ball_closest = ball_closest[:-1]
             
             start_idx.append(start_closest)
             end_idx.append(end_closest)
             touch_idx.append(touch_closest)
+            ball_on_idx.append(ball_closest)
             
             #saving a csv file containing the idx of start, end, touch
-            np.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx)).T, delimiter=',', fmt='%s')
-
+            np.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx,ball_on_idx)).T, delimiter=',', fmt='%s')
+            print(session)
         except Exception: 
             print('error'+ session)
         continue

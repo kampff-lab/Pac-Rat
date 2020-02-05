@@ -24,7 +24,7 @@ importlib.reload(ephys)
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
@@ -36,17 +36,19 @@ session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
 raw_recording = os.path.join(session_path +'/Amplifier.bin')
-cleaned_recording = os.path.join(session_path +'/Amplifier_cleaned.bin')
-mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
+#cleaned_recording = os.path.join(session_path +'/Amplifier_cleaned.bin')
+#mua_path = os.path.join(session_path +'/MUA_250_to_2000.bin')
 
 
 #clip of interest 
-clip_number = 'Clip022.avi'
-clips_path = os.path.join(session_path + '/Clips/')
-clip = os.path.join(clips_path + clip_number)
+#clip_number = 'Clip022.avi'
+#clips_path = os.path.join(session_path + '/Clips/')
+#clip = os.path.join(clips_path + clip_number)
 
 
+sessions_subset = session
 
+trial_idx = behaviour.start_touch_end_idx(sessions_subset)
 
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
 csv_dir_path = os.path.join(session_path + '/events/')
@@ -82,12 +84,12 @@ num_samples = clip_sample_lenght
 raw_path = raw_recording
 
 # Specify sample range for clip
-start_sample = 32837802
-num_samples = 657331
+#start_sample = 32837802
+#num_samples = 657331
 
 # Specify channel of interest
-depth = 6
-shank = 10
+#depth = 6
+#shank = 10
 
 # Load raw data and convert to microvolts
 raw_uV = ephys.get_raw_clip_from_amplifier(raw_path, start_sample, num_samples)
