@@ -17,8 +17,8 @@ import pandas as pd
 
 
 hardrive_path = r'F:/' 
-rat_ID = 'AK_33.2'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_ID = 'AK_40.2'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_40.2_Pt.csv'
 
 
 
@@ -44,7 +44,7 @@ sns.despine(left=True)
 
 #CALCULATING SUCCESS AND MISSED TRIALS PER EACH SESSION OF EACH LEVEL AND PLOT 4X4 FIG
 
-success_trials_L_1, missed_trials_L_1 = behaviour.PLOT_trial_and_misses(Level_1)
+success_trials_L_1, missed_trials_L_1 = behaviour.calculate_trial_and_misses(Level_1)
 
 x = np.array(range(len((Level_1))))
 
@@ -59,7 +59,7 @@ ax[0,0].set_ylabel('Trials / Session', fontsize = 10)
 
 
 
-success_trials_L_2_pre, missed_trials_L_2_pre = behaviour.PLOT_trial_and_misses(Level_2_pre)
+success_trials_L_2_pre, missed_trials_L_2_pre = behaviour.calculate_trial_and_misses(Level_2_pre)
 
 x = np.array(range(len((Level_2_pre))))
 ax[0,1].bar(x, success_trials_L_2_pre, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
@@ -73,7 +73,7 @@ ax[0,1].set_title('Level 2 pre surgery', fontsize = 13)
 
 
 
-success_trials_L_2_post, missed_trials_L_2_post = behaviour.PLOT_trial_and_misses(Level_2_post)
+success_trials_L_2_post, missed_trials_L_2_post = behaviour.calculate_trial_and_misses(Level_2_post)
 
 x = np.array(range(len((Level_2_post))))
 ax[1,0].bar(x, success_trials_L_2_post, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
@@ -99,9 +99,9 @@ ax[1,0].set_xlabel('Sessions', fontsize = 10)
 
 
 
-success_trials_L_3_post, missed_trials_L_3_post = behaviour.PLOT_trial_and_misses(Level_3_post)
+success_trials_L_3_post, missed_trials_L_3_post = behaviour.calculate_trial_and_misses(Level_3_moving)
 
-x = np.array(range(len((Level_3_post))))
+x = np.array(range(len((Level_3_moving))))
 ax[1,1].bar(x, success_trials_L_3_post, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
 # Create green bars (middle), on top of the firs ones
 ax[1,1].bar(x, missed_trials_L_3_post, bottom = success_trials_L_3_post, color ='b', edgecolor ='white', width = 1, label ='Missed trial', alpha = .6)
