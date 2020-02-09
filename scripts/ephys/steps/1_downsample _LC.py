@@ -27,14 +27,14 @@ importlib.reload(ephys)
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[2]
+session  = sessions_subset[1]
 session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
@@ -112,6 +112,7 @@ for ch, channel in enumerate(probe_map_flatten):
         # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
         ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
         raw = None
+        print('converted_in_uv')
         
         ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
         ch_raw_uV = None
@@ -119,7 +120,9 @@ for ch, channel in enumerate(probe_map_flatten):
         #plt.figure()
         #plt.plot(ch_lowpass[30000:45000])
         
-        ch_downsampled = ch_lowpass[::30]
+        ch_downsampled = ch_lowpass[::30]        
+        print('lowpassed_and_downsampled')
+        
         
         #plt.figure()
         #plt.plot(ch_downsampled[1000:1500])
