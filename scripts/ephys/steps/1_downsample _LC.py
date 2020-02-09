@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
+from scipy import stats 
 from mne import time_frequency
 import parser_library as prs
 import behaviour_library as behaviour
@@ -33,7 +34,7 @@ sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[1]
+session  = sessions_subset[2]
 session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
@@ -55,35 +56,271 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
+#generate random idx for baseline freq spectrum 
+downsampled_touch = np.uint32(np.array(touching_light)/30)
+
 
 #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
 #sample_start_clip = end_samples[21]
 #clip_sample_lenght = samples_lenght_end_to_end[22]
 
-
-
-
-num_channels = 128
-data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_channels)
 freq = 30000
-recording_time_sec = num_samples/freq
-recording_time_min = recording_time_sec/60
-reshaped_data = np.reshape(data,(num_samples,128))
-#to have 128 rows
-#reshaped_data_T= reshaped_data.T
+offset = 3000
+num_raw_channels = 128
+
+
+data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data))/num_raw_channels)
+
+down_sample_lenght = num_samples/30
+
 data = None
 
 
-signal_reshaped = ephys.apply_probe_map_to_amplifier(reshaped_data)
-reshaped_data = None
+baseline_random =  randint(60000, down_sample_lenght-offset*2, len(touching_light))
+baseline_idx = np.sort(baseline_random)
 
-# Extract data chunk for single channel
-channel = 37
 
-channel_data = signal_reshaped[channel,:]
-signal_reshaped = None
+test_baseline = touching_light - baseline_idx
+min_distance = np.min(abs(test_baseline))
+# Reshape data to have 128 rows
+#reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+#data = None
+
+probe_map_flatten = ephys.probe_map.flatten()
+
+
+
+
+for ch, channel in enumerate(probe_map_flatten):
+    try:
+        
+        
+        data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+        num_samples = int(int(len(data))/num_raw_channels)
+
+        # Reshape data to have 128 rows
+        reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+        data = None
+        
+        # Extract selected channel (using probe map)
+        # = probe_map[depth, shank]
+        raw = reshaped_data[channel, :]
+        reshaped_data = None
+        
+        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+        raw = None
+        
+        ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
+        ch_raw_uV = None
+        
+        #plt.figure()
+        #plt.plot(ch_lowpass[30000:45000])
+        
+        ch_downsampled = ch_lowpass[::30]
+        
+        #plt.figure()
+        #plt.plot(ch_downsampled[1000:1500])
+        
+
+
+        chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+        
+        baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+
+        for e, event in enumerate(downsampled_touch):
+             
+            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+            print(e)
+
+
+        baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+
+
+        for b, base in enumerate(baseline_idx):
+   
+            baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+            print(b)
+            
+            
+        ch_downsampled = None
+        
+        chunk_lenght = offset*2
+            
+        p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+        p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+
+        p_ch_avg = np.mean(p_ch, axis =0)
+        p_ch_sem = stats.sem(p_ch, axis = 0)
+
+        p_base_avg = np.mean(p_base, axis =0)
+        p_base_sem = stats.sem(p_base)
+
+        sns.set()
+        fig = plt.figure()
+        
+
+        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)    
+        plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')
+        
+        plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+        plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+                         alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')
+       
+        
+        plt.title('ch_'+ str(channel))
+        plt.legend(loc='best') 
+        
+        results_dir = 'F:/Videogame_Assay/test_plots/'
+        figure_name = 'Freq_spec_around_touch'+ str(channel) + '.png'
+        fig.savefig(results_dir + figure_name)
+        plt.close()    
+            
+    except Exception:
+        continue 
+       
+        
+
+
+    # Plot bins
+    fig = plt.figure()
+    plt.plot(average_peak, active_channels, 'k.', alpha=0.01)
+    plt.title(str(trial))
+    plt.close()
+
+    # Plot MUA
+    fig_1 =plt.figure()
+    plt.plot(active_channels)
+    plt.title(str(trial))
+    plt.close()
+    #plt.vlines(touch_in_trial[trial],0, len(range(120)), 'r')
+
+
+    results_dir = 'F:/Videogame_Assay/test_plots/'
+    figure_name = 'cluster_'+ str(trial) + '.png'
+    figure_name_1 = 'count_'+ str(trial) + '.png'
+    
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
+    #save the fig in .tiff
+    fig.savefig(results_dir + figure_name) #  transparent=True)
+    fig_1.savefig(results_dir + figure_name_1) #transparent=True)        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+test =  stats.sem(p_ch, axis = 0)
+test_b = stats.sem(p_base)
+
+std = p_ch_std
+std_base = p_base_std
+
+plt.plot(x, y, 'k-')
+plt.fill_between(x, y-error, y+error)
+plt.show()
+
+plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)    
+plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+    alpha=0.5, edgecolor='#1E90FF', facecolor='#00BFFF')
+
+plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+    alpha=0.5, edgecolor='#228B22', facecolor='#32CD32')
+    
+plt.legend()   
+ 
+
+
+
+
+   
+plt.figure()
+plt.plot(f_ch,p_ch_avg[:])
+plt.title('ch_'+str(channel))
+
+
+sns.set()
+
+
+
+p_avg_base = np.mean(p_base, axis =0)
+f_avg_base  = np.mean(f_base)
+
+
+sns.set()
+
+#plt.figure()
+plt.plot(f_base,p_base_avg[:],'r')
+plt.title('baseline_ch_'+str(channel))
+
+
+           
+            
+            
+            
+            
+    except Exception:
+        continue 
+
+
+sns.set()
+
+
+# same plotting code as above!
+plt.plot(x, y)
+plt.legend('ABCDEF', ncol=2, loc='upper left')
+
+    
+    
+    
+
+#num_channels = 128
+#data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+#num_samples = int(int(len(data))/num_channels)
+#freq = 30000
+#recording_time_sec = num_samples/freq
+#recording_time_min = recording_time_sec/60
+#reshaped_data = np.reshape(data,(num_samples,128))
+##to have 128 rows
+#reshaped_data_T= reshaped_data.T
+#data = None
+#
+#
+##signal_reshaped = ephys.apply_probe_map_to_amplifier(reshaped_data_T)
+##
+## Extract data chunk for single channel
+#channel = 4
+#
+#channel_data = reshaped_data_T[channel,:]
+#reshaped_data_T = None
 
 
 #ch_mean = np.mean(channel_data, axis=0)
@@ -125,28 +362,28 @@ plt.figure()
 plt.plot(data_downsampled[1000:1500])
 
 
-
-#test mne fx for multitaper 
-        
-   
-
-p, f = time_frequency.psd_array_multitaper(data_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
-
-plt.figure()
-plt.plot(f,p)
-
-
-
-pd, fd = time_frequency.psd_array_multitaper(data_downsampled[500:1000], sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
-plt.figure()
-plt.plot(fd,pd)
+#
+##working test mne fx for multitaper 
+#        
+#   
+#
+#p, f = time_frequency.psd_array_multitaper(data_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+#
+#plt.figure()
+#plt.plot(f,p)
+#
+#
+#
+#pd, fd = time_frequency.psd_array_multitaper(data_downsampled[500:1000], sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+#plt.figure()
+#plt.plot(fd,pd)
 
 
 offset = 3000
 
 downsampled_touch = np.uint32(np.array(touching_light)/30)
 
-chunk_around_event =np.zeros((len(downsampled_touch),offset*2))
+chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
 
 for e, event in enumerate(downsampled_touch):
     try:  
@@ -154,14 +391,42 @@ for e, event in enumerate(downsampled_touch):
         print(e)
     except Exception:
         continue
- 
+
+
+
+baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+
+
+for b, base in enumerate(baseline_idx):
+    try:  
+        baseline_chunk_around_event[b,:] = data_downsampled[base-offset : base+offset]
+        print(b)
+    except Exception:
+        continue 
+
+
+
+
+
+
+
+
+
 
 chunk_lenght = offset*2
 
 p_test, f_test = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
 
+p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+
+
+
 plt.figure()
-plt.plot(f_test,p_test[1,:])
+plt.plot(f_test,p_test[40,:])
+
+#plt.figure()
+plt.plot(f_base,p_base[40,:],'r')
 
 
 p_avg = np.mean(p_test, axis =0)
@@ -172,6 +437,133 @@ f_avg  = np.mean(f_test)
 plt.figure()
 plt.plot(f_test,p_avg[:])
 plt.title('ch_'+str(channel))
+
+
+
+
+p_avg_base = np.mean(p_base, axis =0)
+f_avg_base  = np.mean(f_base)
+
+
+
+#plt.figure()
+plt.plot(f_base,p_avg_base[:],'r')
+plt.title('baseline_ch_'+str(channel))
+
+
+
+
+
+
+    signal_cleaned = ephys.apply_probe_map_to_amplifier(clean)
+    num_channels = len(signal_cleaned)
+    spike_times = [[] for _ in range(num_channels)]  
+    spike_peaks = [[] for _ in range(num_channels)]  
+
+    
+    
+    for ch in np.arange(num_channels):
+    
+        try:
+            # Extract data for single channel
+            channel_data = signal_cleaned[ch,:]
+            
+            # FILTERS (one ch at the time)
+            channel_data_highpass = ephys.highpass(channel_data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+        
+            # Determine high and low threshold
+            abs_channel_data_highpass = np.abs(channel_data_highpass)
+            sigma_n = np.median(abs_channel_data_highpass) / 0.6745
+            
+            #adaptive th depending of ch noise
+            spike_threshold_hard = -3.0 * sigma_n
+            spike_threshold_soft = -1.0 * sigma_n
+            
+            # Find threshold crossings
+            spike_start_times, spike_stop_times = threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft)    
+            
+            # Find peak voltages and times
+            spike_peak_voltages = []
+            spike_peak_times = []
+            for start, stop in zip(spike_start_times,spike_stop_times):
+                peak_voltage = np.min(channel_data_highpass[start:stop]) 
+                peak_voltage_idx = np.argmin(channel_data_highpass[start:stop])
+                spike_peak_voltages.append(peak_voltage)
+                spike_peak_times.append(start + peak_voltage_idx)
+            
+            # Remove too early and too late spikes
+            spike_starts = np.array(spike_start_times)
+            spike_stops = np.array(spike_stop_times)
+            peak_times = np.array(spike_peak_times)
+            peak_voltages = np.array(spike_peak_voltages)
+            good_spikes = (spike_starts > 100) * (spike_starts < (len(channel_data_highpass)-200))
+        
+            # Select only good spikes
+            spike_starts = spike_starts[good_spikes]
+            spike_stops = spike_stops[good_spikes]
+            peak_times = peak_times[good_spikes]
+            peak_voltages = peak_voltages[good_spikes]
+            
+            #peak_times_corrected  = start_sample + peak_times
+            #spike_times_Z[channel] = peak_times_corrected
+            #spike_times_clean_model[channel] = peak_times_corrected
+            #spike_times_raw[channel] = peak_times_corrected
+            #spike_times_shank[channel] = peak_times_corrected
+            #spike_times_no_Z[channel] = peak_times_corrected
+            
+            spike_times[ch] = peak_times
+            spike_peaks[ch] = peak_voltages
+            print(ch)
+            
+        except Exception:
+            continue
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -211,6 +603,107 @@ for channel in np.arange(len(probe_Z)):
         
 
 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
  f, t, Zxx = signal.stft(lowpass_cleaned, fs, nperseg=20000)
 
 plt.pcolormesh(t, f, np.abs(Zxx))
@@ -262,10 +755,6 @@ plt.plot(lowpass_data[100,:150000],alpha = 0.4)
 
 
 ##### downsampling from 30kHz to 1kHz
-
-
-
-
 
 
 # Spectrogram test

@@ -20,7 +20,7 @@ importlib.reload(prs)
 importlib.reload(behaviour)
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_48.1_IrO2.csv'
 hardrive_path = r'F:/' 
 
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
@@ -32,4 +32,8 @@ sessions_subset = Level_2_post
 
 
 
-start_end_touch_ball_idx(sessions_subset)
+behaviour.start_end_touch_ball_idx(sessions_subset)
+
+
+
+
