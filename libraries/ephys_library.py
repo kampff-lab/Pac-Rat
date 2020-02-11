@@ -32,6 +32,37 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
+# Measure raw channel statistics for session (amplifier.bin)
+def measure_raw_channel_stats(filename, channel):
+
+    # Memory map raw data
+    data = np.memmap(filename, dtype = np.uint16, mode = 'r')
+
+    # Determine number of samples
+    num_samples = int(int(len(data))/num_raw_channels)
+
+    # Reshape data
+    reshaped_data = np.reshape(data,(num_samples, 128)).T
+    data = None
+
+    # Get data for selected channel (sub-select every 1000th samples)
+    channel_data = reshaped_data[channel, ::1000]
+    reshaped_data = None
+    print("ch data done")
+
+    # Convert to microvolts
+    channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
+    print("uV done")
+
+    # Measure channel mean and standard deviation
+    mean_int = np.int16(np.mean(channel_data))
+    std_int = np.int16(np.std(channel_data))
+    print("int stats done")
+    mean_uV = np.mean(channel_data_uV)
+    std_uV = np.std(channel_data_uV)
+
+    return mean_int, std_int, mean_uV, std_uV
+
 # Get raw ephys clip from amplifier.bin (all channels)
 def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
 
