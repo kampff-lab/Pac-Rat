@@ -190,6 +190,24 @@ for ch, channel in enumerate(probe_map_flatten):
         
 
 
+
+f,ax = plt.subplots(44,1,figsize=(25,25))
+
+
+
+            sns.set()
+            sns.axes_style('white')
+            for index, lfp in enumerate(chunk_around_event):
+                plt.figure()
+                plt.plot(lfp)
+
+
+
+
+
+
+
+
     # Plot bins
     fig = plt.figure()
     plt.plot(average_peak, active_channels, 'k.', alpha=0.01)
@@ -370,7 +388,7 @@ plt.plot(data_downsampled[1000:1500])
 #        
 #   
 #
-#p, f = time_frequency.psd_array_multitaper(data_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+p, f = time_frequency.psd_array_multitaper(ch_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
 #
 #plt.figure()
 #plt.plot(f,p)
@@ -426,10 +444,14 @@ p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event
 
 
 plt.figure()
-plt.plot(f_test,p_test[40,:])
+plt.plot(f_ch,p_ch[40,:],label='1')
+plt.label()
 
 #plt.figure()
 plt.plot(f_base,p_base[40,:],'r')
+
+
+
 
 
 p_avg = np.mean(p_test, axis =0)

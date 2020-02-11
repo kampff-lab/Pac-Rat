@@ -22,7 +22,11 @@ import matplotlib.ticker as mtick
 import matplotlib.colors
 import seaborn as sns
 import os
-import blob
+import glob
+from scipy import stats
+import ephys_library as ephys
+
+
 
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [121,80,79,102,64,52,32,8,47,48,25],
@@ -37,18 +41,16 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_41.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 
 sessions_subset = Level_2_post
 
-test = os.listdir(sessions_subset[0])
 
-s=0
-session= sessions_subset[s]
-flatten_probe=ephys.probe_map.flatten()
+
+flatten_probe = ephys.probe_map.flatten()
 
 
 mean_impedance_Level_2_post = np.zeros((len(sessions_subset),121))
@@ -58,11 +60,11 @@ for s, session in enumerate(sessions_subset):
     try:
         #list_impedance_path = []
         impedance_path = os.path.join(hardrive_path, session)
-        matching_files = glob.glob(impedance_path + "\*imp*") 
+        matching_files_daily_imp = glob.glob(impedance_path + "\*imp*") 
         #for matching_file in matching_files:
            # list_impedance_path.append(matching_file)
             
-        impedance_list_array=np.array(matching_files)
+        impedance_list_array=np.array(matching_files_daily_imp)
         session_all_measurements = np.zeros((len(impedance_list_array), 121))
         
         for i, imp in enumerate(impedance_list_array):
@@ -81,12 +83,99 @@ for s, session in enumerate(sessions_subset):
 
     except Exception: 
         continue       
-  
+
+mean_impedance_Level_2_post_list = mean_impedance_Level_2_post.tolist()
+
+plt.boxplot(mean_impedance_Level_2_post_list)
+plt.title('impedance_rat_48.4')
+plt.xlabel('days')
+plt.ylabel('impedance_(ohms)')
 
 
 
-test = [mean_impedance_Level_2_post[0], mean_impedance_Level_2_post[1], mean_impedance_Level_2_post[2],mean_impedance_Level_2_post[3], mean_impedance_Level_2_post[4],mean_impedance_Level_2_post[5],mean_impedance_Level_2_post[6]]
-plt.boxplot(test)
+
+
+
+
+
+#saline and first session 
+
+
+first_session = sessions_subset[0]      
+impedance_path_first_session = os.path.join(hardrive_path, first_session)    
+    
+matching_files_test_probe = glob.glob(impedance_path_first_session + "\*saline*") 
+matching_files_surgery_day = glob.glob(impedance_path_first_session + "\*surgery*") 
+
+
+#saline
+
+saline_all_measurements = np.zeros((len(matching_files_test_probe), 121))
+for i, imp in enumerate(matching_files_test_probe):
+    read_file = pd.read_csv(imp)
+    impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+    imp_remapped= impedance[flatten_probe]
+    saline_all_measurements[i,:] = imp_remapped
+        
+mean_saline = np.mean(saline_all_measurements,axis=0)
+sem_imp_saline = stats.sem(saline_all_measurements,axis=0)
+
+   
+#surgery 
+
+
+surgery_all_measurements = np.zeros((len(matching_files_surgery_day), 121))
+for i, imp in enumerate(matching_files_surgery_day):
+    read_file = pd.read_csv(imp)
+    impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+    imp_remapped= impedance[flatten_probe]
+    surgery_all_measurements[i,:] = imp_remapped
+        
+mean_surgery = np.mean(surgery_all_measurements,axis=0)
+sem_imp_surgery = stats.sem(surgery_all_measurements,axis=0)
+
+
+
+plt.figure()
+plt.boxplot(test2,showfliers=True)
+plt.title('impedance_rat_48.4')
+plt.xlabel('days')
+plt.ylabel('impedance_(ohms)')
+
+plt.yscale('log')
+
+
+
+test= np.vstack((mean_saline,mean_surgery,mean_impedance_Level_2_post))
+
+
+test2=test.tolist()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
