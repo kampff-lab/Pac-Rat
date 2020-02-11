@@ -22,7 +22,7 @@ importlib.reload(ephys)
 # Specify session folder
 #session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
 session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
-
+#
 # Specify data paths
 raw_path = os.path.join(session_path +'/Amplifier.bin')
 
