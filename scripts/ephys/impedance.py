@@ -41,7 +41,7 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_41.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -136,8 +136,21 @@ sem_imp_surgery = stats.sem(surgery_all_measurements,axis=0)
 
 
 
+
+
+
+
+data_stack = np.vstack((mean_saline,mean_surgery,mean_impedance_Level_2_post))
+
+
+data_to_plot = data_stack.tolist()
+
+
+
+
+
 plt.figure()
-plt.boxplot(test2,showfliers=True)
+plt.boxplot(data_to_plot, showfliers=True)
 plt.title('impedance_rat_48.4')
 plt.xlabel('days')
 plt.ylabel('impedance_(ohms)')
@@ -146,29 +159,80 @@ plt.yscale('log')
 
 
 
-test= np.vstack((mean_saline,mean_surgery,mean_impedance_Level_2_post))
 
-
-test2=test.tolist()
-
-
+# omnetics examples before and after pedot 
+#folder located at day 1 of recording together with the saline test and surgery impedances
 
 
 
+folder_list = '/Probe_61_rat_33.2' , '/Probe_62_rat_40.2', 
+
+first_session = sessions_subset[0]      
+probe_path_first_session = os.path.join(hardrive_path, first_session)  
+folder_name = ('/Probe_62_rat_40.2')
 
 
+probe_path =  os.path.join(probe_path_first_session + folder_name)
 
-
-
-
-
-
-
-
+omnetics_list = glob.glob(probe_path + "\*omnetics*") 
 
 
 
 
+saline_probe_mean, saline_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*sal*" )
+
+PEDOT_probe_mean, PEDOT_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*post*" )
+
+
+probe_stack = np.vstack((saline_probe_mean,PEDOT_probe_mean))
+
+
+probe_to_plot = probe_stack.tolist()
+
+
+plt.figure()
+plt.boxplot(probe_to_plot, showfliers=False)
+plt.title('impedance_rat_48.4')
+plt.xlabel('days')
+plt.ylabel('impedance_(ohms)')
+
+
+def avg_sem_omnetics_imp(omnetics_list, match = "\*sal*" ):
+
+    probe_mean = np.zeros((len(omnetics_list), 32))
+    probe_sem =  np.zeros((len(omnetics_list), 32))
+    
+    for o, omnetics in enumerate(omnetics_list):
+    
+        search_file = glob.glob(omnetics + match) 
+        avg_impedance =  avg_imp(search_file)
+        mean = np.mean(avg_impedance,axis =0)
+        probe_mean[o,:] = mean
+        sem = stats.sem(avg_impedance,axis =0)
+        probe_sem[o,:] = sem    
+        
+    return probe_mean, probe_sem
+    
+ 
+    i
+    
+    
+    
+    
+    
+    
+    
+def avg_imp(impedance_file):
+    
+    impedance = np.zeros((3,32))
+    
+    for f, file in enumerate(impedance_file):
+        open_file = np.genfromtxt(file, dtype=float, skip_header =2, usecols =1 )
+        final_file = open_file[:32]
+        impedance[f] = final_file
+    
+    return impedance
+    
 
 
 
@@ -179,12 +243,8 @@ test2=test.tolist()
 
 
 
-
-
-
-
-
-
+test = np.genfromtxt(saline[0],dtype=float,skip_header =2,usecols =1 )
+sub = test[:32]
 
 from scipy import stats
 

@@ -27,7 +27,7 @@ importlib.reload(ephys)
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
@@ -44,6 +44,7 @@ raw_recording = os.path.join(session_path +'/Amplifier.bin')
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
 csv_dir_path = os.path.join(session_path + '/events/')
 touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
+ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
 trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
 trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
 trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
@@ -56,9 +57,10 @@ samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
+ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
 #generate random idx for baseline freq spectrum 
 downsampled_touch = np.uint32(np.array(touching_light)/30)
-
+downsampled_ball = np.uint32(np.array(ball)/30)
 
 #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
@@ -66,55 +68,66 @@ downsampled_touch = np.uint32(np.array(touching_light)/30)
 #clip_sample_lenght = samples_lenght_end_to_end[22]
 
 freq = 30000
-offset = 3000
+offset = 6000
 num_raw_channels = 128
 
 
 data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
 num_samples = int(int(len(data))/num_raw_channels)
-
+reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
 down_sample_lenght = num_samples/30
 
-data = None
+# 60000 so it starts 1 min into the task
+
+start = 60000
+stop = down_sample_lenght-offset*2
+idx = len(touching_light)
 
 
-baseline_random =  randint(60000, down_sample_lenght-offset*2, len(touching_light))
+
+
+baseline_random = randint(start,stop,idx)
 baseline_idx = np.sort(baseline_random)
-
-
-test_baseline = touching_light - baseline_idx
+test_baseline = downsampled_touch - baseline_idx
 min_distance = np.min(abs(test_baseline))
-# Reshape data to have 128 rows
-#reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-#data = None
+max_distance = np.max(abs(test_baseline))
+print(min_distance)
+print(max_distance)
+#plt.figure()
+#plt.hist(baseline_random,bins=20)
+
+
+
+
+
+
 
 probe_map_flatten = ephys.probe_map.flatten()
+new_probe_flatten_test =probe_map_flatten[:11] #[103,7,21,90,75,30]
 
+downsampled_event_idx =downsampled_touch
 
-
-
-for ch, channel in enumerate(probe_map_flatten):
+for ch, channel in enumerate(new_probe_flatten_test):
     try:
-        
-        
-        data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
-        num_samples = int(int(len(data))/num_raw_channels)
+                
+        #data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+        #num_samples = int(int(len(data))/num_raw_channels)
 
         # Reshape data to have 128 rows
-        reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        data = None
+        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+        #data = None
         
         # Extract selected channel (using probe map)
         # = probe_map[depth, shank]
         raw = reshaped_data[channel, :]
-        reshaped_data = None
+        #reshaped_data = None
         
         # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
         ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
         raw = None
         print('converted_in_uv')
         
-        ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
+        ch_lowpass = ephys.butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
         ch_raw_uV = None
         
         #plt.figure()
@@ -129,17 +142,15 @@ for ch, channel in enumerate(probe_map_flatten):
         
 
 
-        chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
         
-        baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+        baseline_chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
 
-        for e, event in enumerate(downsampled_touch):
+        for e, event in enumerate(downsampled_event_idx):
              
             chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
             print(e)
 
-
-        baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
 
 
         for b, base in enumerate(baseline_idx):
@@ -188,7 +199,184 @@ for ch, channel in enumerate(probe_map_flatten):
         continue 
        
         
+    
+    
+for i, idx in enumerate(chunk_around_event):
+    plt.figure()
+    plt.plot(idx)
+    plt.title('i')
+    
+for i, idx in enumerate(baseline_chunk_around_event):
+    plt.figure()
+    plt.plot(idx)
+    plt.title('i')
+     
+    
+#create epochs 
+        
 
+test_epochs = np.zeros((len(downsampled_event_idx), len(probe_map_flatten),offset*2))  
+#new_probe_flatten_test = [103,7,21,90,75,30]    
+for ch, channel in enumerate(probe_map_flatten):
+    try:
+        
+        
+        data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+        num_samples = int(int(len(data))/num_raw_channels)
+
+        # Reshape data to have 128 rows
+        reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+        data = None
+        
+        # Extract selected channel (using probe map)
+        # = probe_map[depth, shank]
+        raw = reshaped_data[channel, :]
+        reshaped_data = None
+        
+        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+        raw = None
+        print('converted_in_uv')
+        
+        ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
+        ch_raw_uV = None
+        
+        #plt.figure()
+        #plt.plot(ch_lowpass[30000:45000])
+        
+        ch_downsampled = ch_lowpass[::30]        
+        print('lowpassed_and_downsampled')
+        
+        
+        #plt.figure()
+        #plt.plot(ch_downsampled[1000:1500])
+        
+
+
+        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+        
+        #baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+
+        for e, event in enumerate(downsampled_event_idx):
+             
+            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+            print(e)
+
+        test_epochs[:,ch,:] = chunk_around_event
+        print(ch)
+        #baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
+
+
+        #for b, base in enumerate(baseline_idx):
+   
+            #baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+            #print(b)
+            
+
+            
+    except Exception:
+        continue     
+    
+    
+#test = test_epochs[:,:,ch]    
+
+
+    
+freqs = np.arange(3.0, 100.0, 2.0)    
+    
+test = time_frequency.tfr_array_multitaper(test_epochs,sfreq= 1000,freqs = freqs, output= 'avg_power',n_jobs=8)   
+
+norm = np.mean(test[1,:20,:1000],axis=1)
+norm_expanded = np.repeat([norm], offset*2, axis=0).T
+
+ch_test_norm = test[1,:20,:]/norm_expanded
+
+
+ch_test = np.log(test[1,:20,:])
+plt.figure()
+plt.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
+plt.axvline(6000,20,color='k')
+plt.colorbar()
+
+   
+f0 =plt.figure(figsize=(20,20))
+#outer_grid = gridspec.GridSpec(11, 11, wspace=0.0, hspace=0.0)
+
+for i, ch in enumerate(test):
+    #inner_grid = gridspec.GridSpecFromSubplotSpec(1, 1,
+     #       subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
+
+    norm = np.mean(test[i,:20,:1000],axis=1)
+    norm_expanded = np.repeat([norm], offset*2, axis=0).T
+    ch_test_norm = test[i,:20,:]/norm_expanded
+    ch_test = np.log(test[i,:20,:])
+       
+    ax = f0.add_subplot(11, 11, 1+i, frameon=False)
+
+    plot = ax.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet',vmin=0.4, vmax =1.9)
+    cbar=plt.colorbar(plot,fraction=0.04, pad=0.04, aspect=10, orientation='horizontal')
+    ticklabs = cbar.ax.get_yticklabels()
+    cbar.ax.set_yticklabels(ticklabs, fontsize=5)
+    plt.xticks(fontsize=10, rotation=90)
+    plt.yticks(fontsize=10, rotation=0)
+    #ax.set_yticklabels([])
+    #ax.set_xticklabels([])
+   
+f0.subplots_adjust(wspace=.02, hspace=.02)
+
+
+
+outer_grid = gridspec.GridSpec(1, 11, wspace=0.0, hspace=0.0)
+
+for i in range(16):
+    inner_grid = gridspec.GridSpecFromSubplotSpec(3, 3,
+            subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
+    a = i // 4 + 1
+    b = i % 4 + 1
+    for j, (c, d) in enumerate(product(range(1, 4), repeat=2)):
+        ax = fig.add_subplot(inner_grid[j])
+        ax.plot(*squiggle_xy(a, b, c, d))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        fig.add_subplot(ax)
+ gridspec_kw={'hspace': 0}
+
+
+
+
+
+
+
+
+    ax.set_adjustable('box-forced')
+    ax.set_aspect('equal')
+f0.tight_layout()
+f0.subplots_adjust(top = 0.87)   
+    
+    
+f,ax = plt.subplots(1,11,figsize=(20,20))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+
+#CALCULATING SUCCESS AND MISSED TRIALS PER EACH SESSION OF EACH LEVEL AND PLOT 4X4 FIG
+
+success_trials_L_1, missed_trials_L_1 = behaviour.calculate_trial_and_misses(Level_1)
+
+x = np.array(range(len((Level_1))))
+
+ax[0,0].bar(x, success_trials_L_1, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
+# Create green bars (middle), on top of the firs ones
+ax[0,0].bar(x, missed_trials_L_1, bottom = success_trials_L_1, color ='b', edgecolor ='white', width = 1, label ='Missed trial', alpha = .6)
+ax[0,0].legend(loc ='best', frameon=False , fontsize = 'x-small') #ncol=2
+ax[0,0].set_title('Level 1', fontsize = 13)
+ax[0,0].set_ylabel('Trials / Session', fontsize = 10) 
+    
+    
 
 
 f,ax = plt.subplots(44,1,figsize=(25,25))
