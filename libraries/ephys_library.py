@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 # Ephys Constants
 num_raw_channels = 128
 bytes_per_sample = 2
+raw_sample_rate = 30000
 
 # Probe from superficial to deep electrode, left side is shank 11 (far back)
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
@@ -32,36 +33,138 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
-# Measure raw channel statistics for session (amplifier.bin)
-def measure_raw_channel_stats(filename, channel):
 
-    # Memory map raw data
-    data = np.memmap(filename, dtype = np.uint16, mode = 'r')
+# Clean raw binary data (Amplifier.bin) and save cleaned file (Amplifier_cleaned.bin)
+def measure_raw_amplifier_stats(filename):
 
-    # Determine number of samples
-    num_samples = int(int(len(data))/num_raw_channels)
+    # Specifiy paths
+    in_path = filename
+    out_path = in_path[:-4] + '_stats.csv'
 
-    # Reshape data
-    reshaped_data = np.reshape(data,(num_samples, 128)).T
-    data = None
+    # Measure file size (and number of samples)
+    statinfo = os.stat(in_path)
+    num_samples = np.int(statinfo.st_size / bytes_per_sample)
 
-    # Get data for selected channel (sub-select every 1000th samples)
-    channel_data = reshaped_data[channel, ::1000]
-    reshaped_data = None
-    print("ch data done")
+    # Determine number of full chunks (1 minute)
+    chunk_size = (num_raw_channels * raw_sample_rate * 60)
+    num_chunks = np.int(np.floor(num_samples / chunk_size))
 
-    # Convert to microvolts
-    channel_data_uV = (channel_data.astype(np.float32) - 32768) * 0.195
-    print("uV done")
+    # Create an array of chunk sizes (edit final chunk size)
+    chunk_sizes = np.ones(num_chunks, dtype=np.int) * chunk_size
 
-    # Measure channel mean and standard deviation
-    mean_int = np.int16(np.mean(channel_data))
-    std_int = np.int16(np.std(channel_data))
-    print("int stats done")
-    mean_uV = np.mean(channel_data_uV)
-    std_uV = np.std(channel_data_uV)
+    # Open input raw amplifier file (in binary read mode)
+    in_file = open(in_path, 'rb')
 
-    return mean_int, std_int, mean_uV, std_uV
+    # Allocate space for channel stats
+    chunk_channel_means = np.zeros((num_raw_channels, num_chunks))
+    chunk_channel_stds = np.zeros((num_raw_channels, num_chunks))
+
+    # Clean all raw data and store
+    for i, chunk_size in enumerate(chunk_sizes):
+        
+        # Load next chunk (1 second)
+        data = np.fromfile(in_file, count=chunk_size, dtype=np.uint16)
+
+        # Reshape
+        data = np.reshape(data, (-1, num_raw_channels)).T
+
+        # Measure channel stats
+        chunk_channel_means[:, i] = np.mean(data, axis=1)
+        chunk_channel_stds[:, i] = np.std(data, axis=1)
+
+        # Report progress
+        print("{0}: Chunk {1} of {2}".format(in_path, i, num_chunks))
+
+    # Close input file
+    in_file.close()
+
+    # Measure channel stats
+    channel_means = np.mean(chunk_channel_means, axis=1)
+    channel_stds = np.mean(chunk_channel_stds, axis=1)
+
+    # Save channel stats to CSV file
+    channel_stats = np.float32(np.vstack((channel_means, channel_stds)).T)
+    np.savetxt(out_path, channel_stats, delimiter=',', fmt='%.3f')
+
+    return
+
+# Clean raw data (Amplifier.bin) and save cleaned binary file (Amplifier_cleaned.bin)
+def clean_raw_amplifier(filename, exclude_channels):
+
+    # Specifiy paths
+    in_path = filename
+    out_path = in_path[:-4] + '_cleaned.bin'
+
+    # Measure file size (and number of samples)
+    statinfo = os.stat(in_path)
+    num_samples = np.int(statinfo.st_size / bytes_per_sample)
+
+    # Determine number of full chunks (1 minute) and final chunk size
+    chunk_size = (num_raw_channels * raw_sample_rate * 60)
+    num_full_chunks = np.int(np.floor(num_samples / chunk_size))
+    final_chunk_size = num_samples % chunk_size
+    num_chunks = num_full_chunks + 1
+
+    # Create an array of chunk sizes (edit final chunk size)
+    chunk_sizes = np.ones(num_chunks, dtype=np.int) * chunk_size
+    chunk_sizes[-1] = final_chunk_size
+
+    # Determine channels to exclude on each headstage
+    A_exclude_channels = exclude_channels[exclude_channels < 64]
+    B_exclude_channels = exclude_channels[exclude_channels >= 64]
+
+    # Determine headstage channels
+    A_channels = np.arange(64)
+    B_channels = np.arange(64, 128)
+
+    # Remove excluded channels
+    A_channels = np.delete(A_channels, A_exclude_channels)
+    B_channels = np.delete(B_channels, B_exclude_channels)
+
+    # Open input raw amplifier file (in binary read mode)
+    in_file = open(in_path, 'rb')
+
+    # Open output cleaned amplifier file (in binary write mode)
+    out_file = open(out_path, 'wb')
+
+    chunk_sizes = chunk_sizes[:3]
+
+    # Clean all raw data and store
+    for i, chunk_size in enumerate(chunk_sizes):
+        
+        # Load next chunk (1 second)
+        data = np.fromfile(in_file, count=chunk_size, dtype=np.uint16)
+
+        # Reshape
+        data = np.reshape(data, (-1, num_raw_channels)).T
+
+        # Compute mean values for each headstage relative to 0 (32767)
+        A_mean = np.int16(np.mean(data[A_channels,:], axis=0) - 32767) 
+        B_mean = np.int16(np.mean(data[B_channels,:], axis=0) - 32767)
+
+        # Rereference each channel
+        clean = np.zeros(data.shape, dtype=np.uint16)
+        for ch in A_channels:
+            raw_ch = data[ch, :]
+            clean_ch = raw_ch - A_mean
+            clean[ch,:] = clean_ch
+        for ch in B_channels:
+            raw_ch = data[ch, :]
+            clean_ch = raw_ch - B_mean
+            clean[ch,:] = clean_ch
+
+        # Store cleaned binary data
+        clean = clean.T
+        clean.tofile(out_file, )
+
+        # Report progress
+        print("{0}: Chunk {1} of {2}".format(in_path, i, num_chunks))
+
+    # Close files
+    in_file.close()
+    out_file.close()
+
+    return
 
 # Get raw ephys clip from amplifier.bin (all channels)
 def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
