@@ -23,8 +23,8 @@ importlib.reload(behaviour)
 importlib.reload(ephys)
 
 # Specify session folder
-session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-#session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify raw data path
 raw_path = os.path.join(session_path +'/Amplifier.bin')
@@ -36,11 +36,11 @@ exclude_channels = np.array([12, 13, 18, 54, 108, 109 ,115])
 ephys.clean_raw_amplifier(raw_path, exclude_channels)   
 
 # Load cleaned data and display
-data = np.fromfile(raw_path, count=(30000*3*128), offset=(30000*120*128), dtype=np.uint16)
+data = np.fromfile(raw_path, count=(30000*3*128), dtype=np.uint16)
 data = np.reshape(data, (-1, 128)).T
 plt.plot(data[21,:], 'r')
 cleaned_path = raw_path[:-4] + '_cleaned.bin'
-data = np.fromfile(cleaned_path, count=(30000*3*128), offset=(30000*120*128), dtype=np.uint16)
+data = np.fromfile(cleaned_path, count=(30000*3*128), dtype=np.uint16)
 data = np.reshape(data, (-1, 128)).T
 plt.plot(data[21,:], 'b')
 plt.show()

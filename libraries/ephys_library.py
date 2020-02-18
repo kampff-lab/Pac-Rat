@@ -33,7 +33,6 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 flatten_probe = probe_map.flatten()
 
-
 # Clean raw binary data (Amplifier.bin) and save cleaned file (Amplifier_cleaned.bin)
 def measure_raw_amplifier_stats(filename):
 
@@ -127,8 +126,6 @@ def clean_raw_amplifier(filename, exclude_channels):
     # Open output cleaned amplifier file (in binary write mode)
     out_file = open(out_path, 'wb')
 
-    chunk_sizes = chunk_sizes[:3]
-
     # Clean all raw data and store
     for i, chunk_size in enumerate(chunk_sizes):
         
@@ -155,7 +152,7 @@ def clean_raw_amplifier(filename, exclude_channels):
 
         # Store cleaned binary data
         clean = clean.T
-        clean.tofile(out_file, )
+        clean.tofile(out_file)
 
         # Report progress
         print("{0}: Chunk {1} of {2}".format(in_path, i, num_chunks))
