@@ -20,7 +20,7 @@ importlib.reload(prs)
 importlib.reload(behaviour)
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_48.1_IrO2.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_41.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)

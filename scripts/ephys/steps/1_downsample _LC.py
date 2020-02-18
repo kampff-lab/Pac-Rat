@@ -55,13 +55,14 @@ samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_fo
 samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
 
 
+trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
 #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
 touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
 ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
 #generate random idx for baseline freq spectrum 
 downsampled_touch = np.uint32(np.array(touching_light)/30)
 downsampled_ball = np.uint32(np.array(ball)/30)
-
+downsampled_end= np.uint32(np.array(trial_end)/30)
 #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
 #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
 #sample_start_clip = end_samples[21]
@@ -97,15 +98,15 @@ print(max_distance)
 #plt.hist(baseline_random,bins=20)
 
 
-
+baseline_idx = downsampled_touch + 6000
 
 
 
 
 probe_map_flatten = ephys.probe_map.flatten()
-new_probe_flatten_test =probe_map_flatten[:11] #[103,7,21,90,75,30]
+new_probe_flatten_test =probe_map_flatten[[103,7,21,90,75,30]] #[103,7,21,90,75,30]
 
-downsampled_event_idx =downsampled_touch
+downsampled_event_idx =downsampled_end
 
 for ch, channel in enumerate(new_probe_flatten_test):
     try:
@@ -213,6 +214,7 @@ for i, idx in enumerate(baseline_chunk_around_event):
      
     
 #create epochs 
+test_epochs= None
         
 
 test_epochs = np.zeros((len(downsampled_event_idx), len(probe_map_flatten),offset*2))  
@@ -280,36 +282,37 @@ for ch, channel in enumerate(probe_map_flatten):
     
 #test = test_epochs[:,:,ch]    
 
-
+test= None
     
 freqs = np.arange(3.0, 100.0, 2.0)    
     
-test = time_frequency.tfr_array_multitaper(test_epochs,sfreq= 1000,freqs = freqs, output= 'avg_power',n_jobs=8)   
+test_tfr = time_frequency.tfr_array_multitaper(test_epochs,sfreq= 1000,freqs = freqs, output= 'avg_power',n_jobs=8)   
 
-norm = np.mean(test[1,:20,:1000],axis=1)
+norm = np.mean(test_tfr[1,:20,:1000],axis=1)
+
 norm_expanded = np.repeat([norm], offset*2, axis=0).T
 
-ch_test_norm = test[1,:20,:]/norm_expanded
+ch_test_norm = test_tfr[1,:20,:]/norm_expanded
 
 
-ch_test = np.log(test[1,:20,:])
+ch_test = np.log(test_tfr[1,:20,:])
 plt.figure()
 plt.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
-plt.axvline(6000,20,color='k')
+#plt.axvline(6000,20,color='k')
 plt.colorbar()
 
    
 f0 =plt.figure(figsize=(20,20))
 #outer_grid = gridspec.GridSpec(11, 11, wspace=0.0, hspace=0.0)
 
-for i, ch in enumerate(test):
+for i, ch in enumerate(probe_map_flatten):
     #inner_grid = gridspec.GridSpecFromSubplotSpec(1, 1,
      #       subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
 
-    norm = np.mean(test[i,:20,:1000],axis=1)
+    norm = np.mean(test_tfr[i,:20,:1000],axis=1)
     norm_expanded = np.repeat([norm], offset*2, axis=0).T
-    ch_test_norm = test[i,:20,:]/norm_expanded
-    ch_test = np.log(test[i,:20,:])
+    ch_test_norm = test_tfr[i,:20,:]/norm_expanded
+    ch_test = np.log(test_tfr[i,:20,:])
        
     ax = f0.add_subplot(11, 11, 1+i, frameon=False)
 
@@ -323,6 +326,45 @@ for i, ch in enumerate(test):
     #ax.set_xticklabels([])
    
 f0.subplots_adjust(wspace=.02, hspace=.02)
+
+
+
+
+test= test_tfr
+
+
+
+tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/Tracking.csv'
+
+# Load Centroid tracking
+centroid_tracking = np.genfromtxt(tracking_path, delimiter = ' ', dtype = float)
+centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
+test = np.diff(centroid_tracking,axis=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
