@@ -126,6 +126,9 @@ def clean_raw_amplifier(filename, exclude_channels):
     # Open output cleaned amplifier file (in binary write mode)
     out_file = open(out_path, 'wb')
 
+    # Debug
+    #chunk_sizes = chunk_sizes[:5]
+
     # Clean all raw data and store
     for i, chunk_size in enumerate(chunk_sizes):
         
@@ -160,6 +163,52 @@ def clean_raw_amplifier(filename, exclude_channels):
     # Close files
     in_file.close()
     out_file.close()
+
+    return
+
+# Downsample 30 kHz data (Amplifier_cleaned.bin) to 1 kHz and save binary file (Amplifier_downsampled.bin)
+def downsample_amplifier(filename):
+
+    # Specifiy paths
+    in_path = filename
+    out_path = in_path[:-4] + '_downsampled.bin'
+
+    # Measure file size (and number of samples)
+    statinfo = os.stat(in_path)
+    num_samples = np.int(statinfo.st_size / bytes_per_sample)
+    num_samples_per_channel = np.int(num_samples / num_raw_channels)
+
+    # Allocate space for downsampled data
+    num_ds_samples = np.int(np.floor(num_samples_per_channel / 30))
+    downsampled = np.zeros((128, num_ds_samples), dtype=np.uint16)
+
+    # Memory map amplifier data
+    raw = np.memmap(in_path, dtype=np.uint16, mode = 'r')
+    data = np.reshape(raw,(num_samples_per_channel,128)).T
+    raw = None
+
+    # Downsample each channel
+    for ch in range(128):
+        # Extract channel data and convert to uV (float32)
+        data_ch = data[ch,:]
+        data_ch_uV = (data_ch.astype(np.float32) - 32768) * 0.195
+
+        # Low-pass (anti-alias) filter at 500 Hz
+        lowpass_ch_uV = butter_filter_lowpass(data_ch_uV, 500)
+
+        # Decimate to 1 kHz
+        downsampled_ch_uV = lowpass_ch_uV[::30]
+
+        # Convert back to uint16 and store
+        downsampled_ch = np.uint16((downsampled_ch_uV / 0.195) + 32768)
+        downsampled[ch, :] = downsampled_ch
+
+        # Report
+        print("Downsampling channel {0} or {1}".format(ch, num_raw_channels))
+
+    # Store downsampled data in a binary file
+    downsampled = downsampled.T
+    downsampled.tofile(out_path)
 
     return
 
