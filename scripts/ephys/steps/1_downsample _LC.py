@@ -34,7 +34,7 @@ sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[1]
+session  = sessions_subset[2]
 session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
@@ -106,7 +106,7 @@ baseline_idx = downsampled_touch + 6000
 probe_map_flatten = ephys.probe_map.flatten()
 new_probe_flatten_test =probe_map_flatten[[103,7,21,90,75,30]] #[103,7,21,90,75,30]
 
-downsampled_event_idx =downsampled_end
+downsampled_event_idx =downsampled_touch
 
 for ch, channel in enumerate(new_probe_flatten_test):
     try:
@@ -288,14 +288,14 @@ freqs = np.arange(3.0, 100.0, 2.0)
     
 test_tfr = time_frequency.tfr_array_multitaper(test_epochs,sfreq= 1000,freqs = freqs, output= 'avg_power',n_jobs=8)   
 
-norm = np.mean(test_tfr[1,:20,:1000],axis=1)
+norm = np.mean(test_tfr[94,:20,:1000],axis=1)
 
 norm_expanded = np.repeat([norm], offset*2, axis=0).T
 
-ch_test_norm = test_tfr[1,:20,:]/norm_expanded
+ch_test_norm = test_tfr[94,:20,:]/norm_expanded
 
 
-ch_test = np.log(test_tfr[1,:20,:])
+ch_test = np.log(test_tfr[94,:20,:])
 plt.figure()
 plt.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
 #plt.axvline(6000,20,color='k')
@@ -328,26 +328,23 @@ for i, ch in enumerate(probe_map_flatten):
 f0.subplots_adjust(wspace=.02, hspace=.02)
 
 
-
-
-test= test_tfr
-
-
-
-tracking_path = 'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43/events/Tracking.csv'
-
-# Load Centroid tracking
-centroid_tracking = np.genfromtxt(tracking_path, delimiter = ' ', dtype = float)
-centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
-test = np.diff(centroid_tracking,axis=0)
-
-
-
-
-
-
-
-
+#
+#test_plot 
+#
+#event = downsampled_end[20]
+#
+#
+#chunk_around_event_raw = np.zeros((len(probe_map_flatten),offset*2))
+#        
+#       
+#    for c, ch in enumerate(probe_map_flatten):
+#             
+#        chunk_around_event_raw[c,:] = ch_downsampled[event-offset : event+offset]
+#            print(e)
+#
+#
+#
+#
 
 
 
