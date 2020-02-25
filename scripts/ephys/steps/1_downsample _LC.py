@@ -404,7 +404,7 @@ for i, ch in enumerate(probe_map_flatten):
        
     ax = f0.add_subplot(11, 11, 1+i, frameon=False)
 
-    plot = ax.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet',vmin=0.4, vmax =1.9)
+    plot = ax.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
     cbar=plt.colorbar(plot,fraction=0.04, pad=0.04, aspect=10, orientation='horizontal')
     ticklabs = cbar.ax.get_yticklabels()
     cbar.ax.set_yticklabels(ticklabs, fontsize=5)
@@ -414,7 +414,7 @@ for i, ch in enumerate(probe_map_flatten):
     #ax.set_xticklabels([])
    
 f0.subplots_adjust(wspace=.02, hspace=.02)
-
+plt.title('raw')
 
 #
 #test_plot 
@@ -447,31 +447,39 @@ reshaped_raw_data = np.reshape(raw_data,(num_samples,num_raw_channels)).T
 raw = reshaped_raw_data[channel, :]
        
 ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-#raw = None
+raw = None
        
         
 ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
-        ch_raw_uV = None
         
-        #plt.figure()
-        #plt.plot(ch_lowpass[30000:45000])
         
-        ch_downsampled = ch_lowpass[::30]        
-        print('lowpassed_and_downsampled')
-
 plt.figure()
 plt.plot(ch_lowpass[30000:45000])
-
+plt.title('lowpass')
+        
 ch_downsampled = ch_lowpass[::30]        
-print('lowpassed_and_downsampled')
+ 
+
 
 plt.figure()
 plt.plot(ch_downsampled[1000:1500])
+plt.title('downsampled')
+    
 
 
+
+data_downsampled = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data_downsampled))/num_raw_channels)
+
+# Reshape data to have 128 rows
+reshaped_downsampled_data = np.reshape(data_downsampled,(num_samples,num_raw_channels)).T
+downsampled = reshaped_downsampled_data[channel, :]
+       
+ch_down_uV = (downsampled.astype(np.float32) - 32768) * 0.195
 
 plt.figure()
-plt.plot(ch_raw_uV[1000:1500])
+plt.plot(ch_down_uV[1000:1500])
+plt.title('downsampled_cleaned')
 
 
 
