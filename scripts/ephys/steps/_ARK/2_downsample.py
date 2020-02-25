@@ -29,7 +29,7 @@ session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
 data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
 
 # Downsample data 
-raw = ephys.downsample_amplifier(data_path)
+ephys.downsample_amplifier(data_path)
 
 # Load and display downsampled data
 ch = 21

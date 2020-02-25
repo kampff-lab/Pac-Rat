@@ -22,9 +22,11 @@ importlib.reload(behaviour)
 importlib.reload(ephys)
 
 # Specify session folder
-session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-#session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify data paths
 data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
 
+# Detect spikes 
+ephys.detect_spikes(data_path)
