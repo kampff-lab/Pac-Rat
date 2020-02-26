@@ -484,7 +484,116 @@ plt.title('downsampled_cleaned')
 
 
 
+#test different trial lenghts
 
+downsampled_touch = np.uint32(np.array(touching_light)/30)
+downsampled_ball = np.uint32(np.array(ball)/30)
+downsampled_end= np.uint32(np.array(trial_end)/30)
+downsampled_ball= downsampled_ball[:-1] #easy fix 
+
+
+len(downsampled_touch)
+len(downsampled_ball)
+len(downsampled_end)
+
+freq = 30000
+offset = 6000
+num_raw_channels = 128
+
+
+data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data))/num_raw_channels)
+reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+down_sample_lenght = num_samples/30
+
+probe_map_flatten = ephys.probe_map.flatten()
+
+channel = 103
+n = len(downsampled_touch)   
+ball_to_touch_chunks = [[] for _ in range(n)] 
+touch_to_reward =  [[] for _ in range(n)] 
+
+raw = reshaped_data[channel, :]
+      
+# Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+
+for trial in np.arange(n):
+    b = downsampled_ball[trial]
+    t = downsampled_touch[trial]
+    e = downsampled_end[trial]
+    ball_to_touch_chunks[trial]= ch_raw_uV[b:t]
+    touch_to_reward[trial]=ch_raw_uV[t:e]
+    
+
+test= ball_to_touch_chunks.pop(2)
+test2=ball_to_touch_chunks.pop(14)
+test3=touch_to_reward.pop(2)
+test4 = touch_to_reward.pop(14)
+
+
+test_trial =ball_to_touch_chunks[0]
+len(test_trial)
+
+
+#6000 2.5
+#10551 1.5
+# 26586 1.5
+p_all = []
+f_all = []
+
+for t in ball_to_touch_chunks:
+    
+    p_ch, f_ch = time_frequency.psd_array_multitaper(t, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+    p_all.append(p_ch)
+    f_all.append(f_ch)
+
+
+
+
+plt.figure()
+plt.plot(f_ch,p_ch)
+
+
+
+
+
+p, f = time_frequency.psd_array_multitaper(ch_lowpass[15000:30000], sfreq= 30000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+#
+#plt.figure()
+#plt.plot(f,p)
+#
+#
+#
+#pd, fd = time_frequency.psd_array_multitaper(data_downsampled[500:1000], sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+#plt.figure()
+#plt.plot(fd,pd)
+
+
+
+
+
+
+
+
+
+
+
+#create a list if tuples (end, lenght) for each trials excluding the first one
+
+#count = 0
+#trial_end_and_lenght = []
+#
+#for idx in np.arange(len(end_samples)):
+#    
+#    if idx == 0:
+#        count =+ 1
+#    else:          
+#        start_sample = end_samples[idx-1]
+#        num_samples = samples_lenght_end_to_end[idx]
+#        trial_end_and_lenght.append((start_sample, num_samples))
+#
+#
 
 
 
