@@ -204,11 +204,93 @@ def downsample_amplifier(filename):
         downsampled[ch, :] = downsampled_ch
 
         # Report
-        print("Downsampling channel {0} or {1}".format(ch, num_raw_channels))
+        print("Downsampling channel {0} of {1}".format(ch, num_raw_channels))
 
     # Store downsampled data in a binary file
     downsampled = downsampled.T
     downsampled.tofile(out_path)
+
+    return
+
+# Detect spikes on each channel and store List-of-Arrays as an npz file
+def detect_spikes(filename):
+
+    # Specifiy paths
+    in_path = filename
+    out_path = in_path[:-4] + '_spikes.npz'
+
+    # Measure file size (and number of samples)
+    statinfo = os.stat(in_path)
+    num_samples = np.int(statinfo.st_size / bytes_per_sample)
+    num_samples_per_channel = np.int(num_samples / num_raw_channels)
+
+    # Memory map amplifier data
+    raw = np.memmap(in_path, dtype=np.uint16, mode = 'r')
+    data = np.reshape(raw,(num_samples_per_channel,128)).T
+    raw = None
+
+    # Empty structure for storing detected spikes
+    spike_times = [[] for _ in range(num_raw_channels)]  
+    spike_peaks = [[] for _ in range(num_raw_channels)]  
+
+    # Detect spikes (threshold crossings) on each channel
+    for ch in range(128):
+        
+        # Report
+        print("Starting channel {0}".format(ch))
+
+        # Extract channel data and convert to uV (float32)
+        data_ch = data[ch,:]
+        data_ch_uV = (data_ch.astype(np.float32) - 32768) * 0.195
+        print("- converted to uV")
+
+        # High-pass filter at 500 Hz
+        highpass_ch_uV = highpass(data_ch_uV,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
+        print("- highpassed")
+
+        # Determine high and low threshold
+        abs_highpass_ch_uV = np.abs(highpass_ch_uV)
+        sigma_n = np.median(abs_highpass_ch_uV) / 0.6745
+        print("- threshold level set")
+        
+        #adaptive th depending of ch noise
+        spike_threshold_hard = -4.0 * sigma_n
+        spike_threshold_soft = -2.0 * sigma_n
+        
+        # Find threshold crossings
+        spike_start_times, spike_stop_times = threshold_crossing(highpass_ch_uV, spike_threshold_hard, spike_threshold_soft)    
+        print("- spikes found")
+
+        # Find peak voltages and times
+        spike_peak_voltages = []
+        spike_peak_times = []
+        for start, stop in zip(spike_start_times,spike_stop_times):
+            peak_voltage = np.min(highpass_ch_uV[start:stop]) 
+            peak_voltage_idx = np.argmin(highpass_ch_uV[start:stop])
+            spike_peak_voltages.append(peak_voltage)
+            spike_peak_times.append(start + peak_voltage_idx)
+        
+        # Remove too early and too late spikes
+        spike_starts = np.array(spike_start_times)
+        spike_stops = np.array(spike_stop_times)
+        peak_times = np.array(spike_peak_times)
+        peak_voltages = np.array(spike_peak_voltages)
+        good_spikes = (spike_starts > 100) * (spike_starts < (len(highpass_ch_uV)-200))
+    
+        # Select only good spikes
+        spike_starts = spike_starts[good_spikes]
+        spike_stops = spike_stops[good_spikes]
+        peak_times = peak_times[good_spikes]
+        peak_voltages = peak_voltages[good_spikes]
+                
+        spike_times[ch] = peak_times
+        spike_peaks[ch] = peak_voltages
+
+        # Report
+        print("Detected {0} spikes on channel {1} of {2}".format(len(spike_start_times), ch, num_raw_channels))
+
+    # Store detected spikes
+    np.savez(out_path, spike_times=spike_times, spike_peaks=spike_peaks)
 
     return
 
