@@ -41,7 +41,7 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -52,6 +52,7 @@ sessions_subset = Level_2_post
 
 flatten_probe = ephys.probe_map.flatten()
 
+np.set_printoptions(suppress=True)
 
 mean_impedance_Level_2_post = np.zeros((len(sessions_subset),121))
 sem_impedance_Level_2_post = np.zeros((len(sessions_subset),121))
@@ -83,6 +84,28 @@ for s, session in enumerate(sessions_subset):
 
     except Exception: 
         continue       
+
+#find outlier channels
+        
+bad_channels_idx = [[] for _ in range(len(sessions_subset))] 
+
+for s, session in enumerate(sessions_subset):
+
+    idx_bad_imp = [idx for idx, val in enumerate(mean_impedance_Level_2_post[s]) if val > 9000000 ]#or val < 150000] 
+    print (min(mean_impedance_Level_2_post[s]))
+    print (max(mean_impedance_Level_2_post[s]))
+    if idx_bad_imp == 0 :
+        
+        bad_channels_idx[s] = []
+    else:
+       bad_channels_idx[s] = idx_bad_imp 
+    
+
+
+
+
+
+
 
 mean_impedance_Level_2_post_list = mean_impedance_Level_2_post.tolist()
 

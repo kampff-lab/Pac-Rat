@@ -532,10 +532,10 @@ test3=touch_to_reward.pop(2)
 test4 = touch_to_reward.pop(14)
 
 
-test_trial =ball_to_touch_chunks[0]
+test_trial =ball_to_touch_chunks[24]
 len(test_trial)
 
-
+p_ch, f_ch = time_frequency.psd_array_multitaper(test_trial, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 100, n_jobs = 8)
 #6000 2.5
 #10551 1.5
 # 26586 1.5
