@@ -233,13 +233,13 @@ def DLC_coordinates_correction(session, crop_size = 640, dlc_x_column = 1, dlc_y
 #
 #
 ## Plot DLC likelihood ranges
-plt.figure()
-low_likelihood = np.where(dlc_tracking[:,3] < 0.999)[0]
-plt.plot(dlc_correct_x_nose[low_likelihood], dlc_correct_y_nose[low_likelihood], 'r.', alpha=0.1)
-high_likelihood = np.where(dlc_tracking[:,3] > 0.999)[0]
-plt.plot(dlc_correct_x_nose[high_likelihood], dlc_correct_y_nose[high_likelihood], 'b.', alpha=0.1)
-plt.show()
-#
+#plt.figure()
+#low_likelihood = np.where(dlc_tracking[:,3] < 0.999)[0]
+#plt.plot(dlc_correct_x_nose[low_likelihood], dlc_correct_y_nose[low_likelihood], 'r.', alpha=0.1)
+#high_likelihood = np.where(dlc_tracking[:,3] > 0.999)[0]
+#plt.plot(dlc_correct_x_nose[high_likelihood], dlc_correct_y_nose[high_likelihood], 'b.', alpha=0.1)
+#plt.show()
+##
 #plt.figure()
 #low_likelihood = np.where(dlc_tracking[:,3] < 0.9999)[0]
 #plt.plot(low_likelihood,dlc_correct_x_nose[low_likelihood], 'r.', alpha=0.1)

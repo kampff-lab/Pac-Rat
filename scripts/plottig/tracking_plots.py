@@ -16,11 +16,11 @@ from matplotlib.colors import PowerNorm
 from matplotlib.colors import LogNorm 
 from pylab import *
 from matplotlib.ticker import LogFormatterExponent
-import DLC_parser_library as DLC
+#import DLC_parser_library as DLC
 
 rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
-#rat_ID = 'AK_40.2'
+rat_ID = 'AK_33.2'
 
 
 Level_0 = prs.Level_0_paths(rat_summary_table_path)

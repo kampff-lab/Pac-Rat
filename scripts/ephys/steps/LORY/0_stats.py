@@ -26,7 +26,7 @@ importlib.reload(ephys)
 #session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
 #session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_31.1_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_41.1_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post

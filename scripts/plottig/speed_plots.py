@@ -21,9 +21,9 @@ import seaborn as sns
 
 
 
-rat_summary_table_path =r'F:/Videogame_Assay/AK_46.1_behaviour_only.csv'
+rat_summary_table_path =r'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
-RAT_ID = 'AK_46.1'
+RAT_ID = 'AK_33.2'
 
 
 #Level_0 = prs.Level_0_paths(rat_summary_table_path)
@@ -35,7 +35,7 @@ Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 
 #saving a Trial_idx_csv containing the idx of start-end-touch 0-1-2
 sessions_subset = Level_2_pre
-behaviour.start_touch_end_idx(sessions_subset)
+behaviour.start_end_touch_ball_idx(sessions_subset)
 
 
 #calculate speed for all the session (adapted to use nose corrected coordinates instead of the crop that we used originally)

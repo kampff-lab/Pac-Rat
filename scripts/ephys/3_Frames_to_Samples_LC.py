@@ -10,7 +10,7 @@ import numpy as np
 
 
 
-base_path = 'F:/Videogame_Assay/AK_48.4/2019_07_26-14_52/'
+base_path = 'F:/Videogame_Assay/AK_48.4/2019_07_29-16_33/'
 
 # Load Video File Details
 video_csv_file_path = base_path + 'video.csv'

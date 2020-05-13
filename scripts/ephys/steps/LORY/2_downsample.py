@@ -11,13 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
-import parser_library as parser
+import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
 
 # Reload modules
 import importlib
-importlib.reload(parser)
+importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
 
@@ -25,7 +25,7 @@ importlib.reload(ephys)
 #session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
 #session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
@@ -43,7 +43,7 @@ data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
 raw = ephys.downsample_amplifier(data_path)
 
 # Load and display downsampled data
-ch = 21
+ch = 24
 cleaned = np.fromfile(data_path, count=(30000*30*128), dtype=np.uint16)
 cleaned = np.reshape(cleaned, (-1, 128)).T
 downsampled_path = data_path[:-4] + '_downsampled.bin'

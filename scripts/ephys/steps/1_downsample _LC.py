@@ -27,27 +27,28 @@ importlib.reload(ephys)
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_41.1_Pt.csv'
 hardrive_path = r'F:/' 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
 sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[1]
+session  = sessions_subset[5]
 session_path =  os.path.join(hardrive_path,session)
 
 #recording data path
 raw_recording = os.path.join(session_path +'/Amplifier.bin')
 downsampled_recording = os.path.join(session_path +'/Amplifier_cleaned_downsampled.bin')
+cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
 
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
 csv_dir_path = os.path.join(session_path + '/events/')
 touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
 ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
-trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+#trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
 trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
-trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+#trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
 
 video_csv = os.path.join(session_path + '/Video.csv')
 
@@ -73,11 +74,11 @@ downsampled_end= np.uint32(np.array(trial_end)/30)
 #clip_sample_lenght = samples_lenght_end_to_end[22]
 
 freq = 30000
-offset = 6000
+offset = 3000
 num_raw_channels = 128
 
 
-data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+data = np.memmap(cleaned_recording, dtype = np.uint16, mode = 'r')
 num_samples = int(int(len(data))/num_raw_channels)
 reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
 down_sample_lenght = num_samples/30
@@ -486,44 +487,42 @@ plt.title('downsampled_cleaned')
 
 #test different trial lenghts
 
-downsampled_touch = np.uint32(np.array(touching_light)/30)
-downsampled_ball = np.uint32(np.array(ball)/30)
-downsampled_end= np.uint32(np.array(trial_end)/30)
-downsampled_ball= downsampled_ball[:-1] #easy fix 
 
-
-len(downsampled_touch)
-len(downsampled_ball)
-len(downsampled_end)
 
 freq = 30000
-offset = 6000
 num_raw_channels = 128
+final_trial_length = 8192 #(power of 2)
+intermediate_trial_length = 9000
 
+ball=ball[:-1]
 
-data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
+data = np.memmap(cleaned_recording, dtype = np.uint16, mode = 'r')
 num_samples = int(int(len(data))/num_raw_channels)
 reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-down_sample_lenght = num_samples/30
+#down_sample_lenght = num_samples/30
 
 probe_map_flatten = ephys.probe_map.flatten()
-
 channel = 103
-n = len(downsampled_touch)   
-ball_to_touch_chunks = [[] for _ in range(n)] 
-touch_to_reward =  [[] for _ in range(n)] 
-
 raw = reshaped_data[channel, :]
       
 # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
 ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+raw=None
+ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
+
+
+n = len(touching_light)   
+ball_to_touch_chunks = [[] for _ in range(n)] 
+touch_to_reward =  [[] for _ in range(n)] 
+
+
 
 for trial in np.arange(n):
-    b = downsampled_ball[trial]
-    t = downsampled_touch[trial]
-    e = downsampled_end[trial]
-    ball_to_touch_chunks[trial]= ch_raw_uV[b:t]
-    touch_to_reward[trial]=ch_raw_uV[t:e]
+    b = ball[trial]
+    t = touching_light[trial]
+    e = trial_end[trial]
+    ball_to_touch_chunks[trial]= ch_lowpass[b:t]
+    touch_to_reward[trial]=ch_lowpass[t:e]
     
 
 test= ball_to_touch_chunks.pop(2)
@@ -532,17 +531,109 @@ test3=touch_to_reward.pop(2)
 test4 = touch_to_reward.pop(14)
 
 
-test_trial =ball_to_touch_chunks[24]
-len(test_trial)
+downsampled_ball_to_touch_chunks =  [[] for _ in range(len(ball_to_touch_chunks))] 
+downsampling_factor_bt = []
 
-p_ch, f_ch = time_frequency.psd_array_multitaper(test_trial, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 100, n_jobs = 8)
-#6000 2.5
-#10551 1.5
-# 26586 1.5
+for t, trial in enumerate(ball_to_touch_chunks):
+    trial_length = len(trial)
+    down = np.uint32((trial_length/intermediate_trial_length))
+    downsampling_factor_bt.append(down)
+    t_down = trial[::down]
+    length_down = len(t_down)
+    diff_from_final = length_down - final_trial_length
+    downsampled_ball_to_touch_chunks[t]=t_down[:-diff_from_final]
+
+
+
+
+
+
+downsampled_touch_to_reward_chunks =  [[] for _ in range(len(touch_to_reward))] 
+downsampling_factor_tr = []
+
+
+for t, trial in enumerate(touch_to_reward):
+    trial_length = len(trial)
+    down = np.uint32((trial_length/intermediate_trial_length))
+    downsampling_factor_tr.append(down)
+    t_down = trial[::down]
+    length_down = len(t_down)
+    diff_from_final = length_down - final_trial_length
+    downsampled_touch_to_reward_chunks[t]=t_down[:-diff_from_final]
+
+
+
+
+downsampled_1000_touch_to_reward_chunks =  [[] for _ in range(len(touch_to_reward))] 
+
+
+for t, trial in enumerate(touch_to_reward):
+
+    t_down = trial[::30]
+    downsampled_1000_touch_to_reward_chunks[t]=t_down
+
+
+
+
+#test_trial =downsampled_touch_to_reward_chunks[24]
+#len(test_trial)
+#
+#
+#
+#
+#long_trial = []
+#
+#
+#for f, factor in enumerate(downsampling_factor):
+#
+#    long = [idx for idx, val in factor) if val > 9000000 ]#or val < 150000] 
+#    print (min(mean_impedance_Level_2_post[s]))
+#    print (max(mean_impedance_Level_2_post[s]))
+#    if idx_bad_imp == 0 :
+#        
+#        bad_channels_idx[s] = []
+#    else:
+#       bad_channels_idx[s] = idx_bad_imp 
+#
 p_all = []
 f_all = []
 
-for t in ball_to_touch_chunks:
+for t,test_trial in enumerate(downsampled_1000_touch_to_reward_chunks):
+
+    band = 5000/len(test_trial)
+    print(band)
+
+    p_ch, f_ch = time_frequency.psd_array_multitaper(test_trial, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = band, n_jobs = 8)
+    p_all.append(p_ch)
+    f_all.append(f_ch)
+
+
+for p in np.arange(len(downsampled_touch_to_reward_chunks)):
+    plt.figure()
+    plt.plot(f_all[1],p_all[1])
+    plt.plot(f_all[13],p_all[13])
+    plt.plot(f_all[40],p_all[40])
+    plt.plot(f_all[7],p_all[7])
+
+
+avg = np.mean(p_all)
+
+
+#6000 2.5
+#10551 1.5
+# 26586 1.5
+
+
+plt.figure()
+plt.plot(f_ch,p_ch)
+
+
+
+p_all = []
+f_all = []
+
+for t in downsampled_ball_to_touch_chunks:
+    
     
     p_ch, f_ch = time_frequency.psd_array_multitaper(t, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
     p_all.append(p_ch)
@@ -553,6 +644,341 @@ for t in ball_to_touch_chunks:
 
 plt.figure()
 plt.plot(f_ch,p_ch)
+
+
+
+#11x11 freq spectra plot around events
+
+freq = 30000
+offset = 3000
+num_raw_channels = 128
+
+
+data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data))/num_raw_channels)
+reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+down_sample_lenght = num_samples/30
+
+
+#20 sec into the session
+
+baseline_idx = 23000
+
+# event before baseline
+
+baseline = 
+
+
+
+probe_map_flatten = ephys.probe_map.flatten()
+new_probe_flatten_test =[103,7,21,90,75,30]
+
+
+#remove the first early trials
+downsampled_event_idx = downsampled_end[1:]
+
+f0 =plt.figure(figsize=(20,20))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+ 
+
+for ch, channel in enumerate(probe_map_flatten):
+    try:
+                
+        #data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+        #num_samples = int(int(len(data))/num_raw_channels)
+
+        # Reshape data to have 128 rows
+        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+        #data = None
+        
+        # Extract selected channel (using probe map)
+        # = probe_map[depth, shank]
+        raw = reshaped_data[channel, :]
+        #reshaped_data = None
+        
+        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+        raw = None
+        ch_downsampled=ch_raw_uV
+                
+        #plt.figure()
+        #plt.plot(ch_downsampled[1000:1500])
+        
+
+
+        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+        
+        baseline_chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+
+        for e, event in enumerate(downsampled_event_idx):
+             
+            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+            print(e)
+
+
+   
+        baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+            
+            
+            
+        ch_downsampled = None
+        
+        chunk_lenght = offset*2
+            
+        p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+        p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+
+
+        p_ch_avg = np.mean(p_ch, axis =0)
+        p_ch_sem = stats.sem(p_ch, axis = 0)
+
+
+
+
+        ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
+        
+        #plt.figure()
+        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
+        plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9)
+
+        
+        plt.plot(f_base, p_base, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+        #plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+                         #alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')
+       
+        plt.ylim(0,300000)
+        plt.xticks(fontsize=4, rotation=0)
+        plt.yticks(fontsize=4, rotation=0)
+        #plt.title('ch_'+ str(channel))
+        #plt.legend(loc='best') 
+         
+            
+    except Exception:
+        continue 
+       
+
+ 
+f0.subplots_adjust(wspace=.02, hspace=.02)
+
+
+###############################################################################################
+
+downsampled_ball= downsampled_ball[:-1]
+
+#previous event as baseline 
+freq = 30000
+offset = 3000
+num_raw_channels = 128
+
+
+data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(data))/num_raw_channels)
+reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+down_sample_lenght = num_samples/30
+
+
+baseline_event_idx = downsampled_end[1:]
+
+#remove the first early trials
+downsampled_event_idx = downsampled_ball[1:]
+
+f0 =plt.figure(figsize=(20,20))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+ 
+probe_map_flatten = ephys.probe_map.flatten()
+for ch, channel in enumerate(probe_map_flatten):
+    try:
+                
+        #data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
+        #num_samples = int(int(len(data))/num_raw_channels)
+
+        # Reshape data to have 128 rows
+        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
+        #data = None
+        
+        # Extract selected channel (using probe map)
+        # = probe_map[depth, shank]
+        raw = reshaped_data[channel, :]
+        #reshaped_data = None
+        
+        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
+        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
+        raw = None
+        ch_downsampled=ch_raw_uV
+                
+        #plt.figure()
+        #plt.plot(ch_downsampled[1000:1500])
+        
+
+
+        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+        
+        baseline_chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+
+        for e, event in enumerate(downsampled_event_idx):
+             
+            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+            print(e)
+
+
+   
+        baseline_chunk_around_event = np.zeros((len(baseline_event_idx),offset*2))
+
+
+        for b, base in enumerate(baseline_event_idx):
+   
+            baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+            print(b)
+            
+
+            
+            
+        ch_downsampled = None
+        
+        chunk_lenght = offset*2
+            
+        p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 60, bandwidth = 2.5, n_jobs = 8)
+
+        p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 60, bandwidth = 2.5, n_jobs = 8)
+
+
+        p_ch_avg = np.mean(p_ch, axis =0)
+        p_ch_sem = stats.sem(p_ch, axis = 0)
+
+ 
+        p_base_avg = np.mean(p_base, axis =0)
+        p_base_sem = stats.sem(p_base, axis=0)
+
+
+
+        ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
+        
+        #plt.figure()
+        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'event', linewidth= 1)
+        plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9)
+
+        'plt.figure()
+        plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)   
+        plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+                         alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')
+       
+        plt.ylim(0,300000)
+        plt.xticks(fontsize=4, rotation=0)
+        plt.yticks(fontsize=4, rotation=0)
+        #plt.title('ch_'+ str(channel))
+   
+            
+    except Exception:
+        continue 
+
+
+
+#f0.legend(loc='best')  
+f0.subplots_adjust(wspace=.02, hspace=.02)
+
+bad_trials = []
+
+for p, power in enumerate(p_base):
+    max_value = max(power)
+    bad_trials.append(max_value)
+        
+
+bad_t = []       
+for b,bad in enumerate(bad_trials):
+    if bad >=10000000.0:
+        bad_t.append(b)
+        
+
+
+
+for t,trial in enumerate(p_base_final):
+    plt.figure()
+    plt.plot(f_base,trial)
+    #plt.plot(f_ch, p_ch[t])
+    #plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+                         #alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9)
+    
+
+test = np.delete(test,15,0)
+test = p_base_final
+
+
+
+
+        p_base_avg_t = np.mean(test, axis =0)
+        p_base_sem_t = stats.sem(test, axis=0)
+        plt.figure()
+        plt.plot(f_base, p_base_avg_t, color = '#1E90FF',alpha=0.3, label = 'event', linewidth= 1)
+        plt.fill_between(f_base, p_base_avg_t-p_base_sem_t, p_base_avg_t+p_base_sem_t,
+                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')
+
+
+
+
+
+
+
+
+min_freq = 10
+max_freq = 30
+
+frequency_finder = [index for index,value in enumerate(f_ch) if value >= min_freq and value <= max_freq]
+
+min_range = min(frequency_finder)
+max_range = max(frequency_finder)
+
+power_finder_in_range = p_ch[min_range:max_range]
+
+avg_power = np.mean(power_finder_in_range)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####test####################################################################################
+
+
+
+
+
+
+
+
+
 
 
 
@@ -606,20 +1032,6 @@ p, f = time_frequency.psd_array_multitaper(ch_lowpass[15000:30000], sfreq= 30000
 
 
 
-outer_grid = gridspec.GridSpec(1, 11, wspace=0.0, hspace=0.0)
-
-for i in range(16):
-    inner_grid = gridspec.GridSpecFromSubplotSpec(3, 3,
-            subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
-    a = i // 4 + 1
-    b = i % 4 + 1
-    for j, (c, d) in enumerate(product(range(1, 4), repeat=2)):
-        ax = fig.add_subplot(inner_grid[j])
-        ax.plot(*squiggle_xy(a, b, c, d))
-        ax.set_xticks([])
-        ax.set_yticks([])
-        fig.add_subplot(ax)
- gridspec_kw={'hspace': 0}
 
 
 
@@ -627,83 +1039,6 @@ for i in range(16):
 
 
 
-
-    ax.set_adjustable('box-forced')
-    ax.set_aspect('equal')
-f0.tight_layout()
-f0.subplots_adjust(top = 0.87)   
-    
-    
-f,ax = plt.subplots(1,11,figsize=(20,20))
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
-
-
-#CALCULATING SUCCESS AND MISSED TRIALS PER EACH SESSION OF EACH LEVEL AND PLOT 4X4 FIG
-
-success_trials_L_1, missed_trials_L_1 = behaviour.calculate_trial_and_misses(Level_1)
-
-x = np.array(range(len((Level_1))))
-
-ax[0,0].bar(x, success_trials_L_1, color ='g', edgecolor ='white', width = 1, label ='Rewarded trial', alpha = .6)
-# Create green bars (middle), on top of the firs ones
-ax[0,0].bar(x, missed_trials_L_1, bottom = success_trials_L_1, color ='b', edgecolor ='white', width = 1, label ='Missed trial', alpha = .6)
-ax[0,0].legend(loc ='best', frameon=False , fontsize = 'x-small') #ncol=2
-ax[0,0].set_title('Level 1', fontsize = 13)
-ax[0,0].set_ylabel('Trials / Session', fontsize = 10) 
-    
-    
-
-
-f,ax = plt.subplots(44,1,figsize=(25,25))
-
-
-
-            sns.set()
-            sns.axes_style('white')
-            for index, lfp in enumerate(chunk_around_event):
-                plt.figure()
-                plt.plot(lfp)
-
-
-
-
-
-
-
-
-    # Plot bins
-    fig = plt.figure()
-    plt.plot(average_peak, active_channels, 'k.', alpha=0.01)
-    plt.title(str(trial))
-    plt.close()
-
-    # Plot MUA
-    fig_1 =plt.figure()
-    plt.plot(active_channels)
-    plt.title(str(trial))
-    plt.close()
-    #plt.vlines(touch_in_trial[trial],0, len(range(120)), 'r')
-
-
-    results_dir = 'F:/Videogame_Assay/test_plots/'
-    figure_name = 'cluster_'+ str(trial) + '.png'
-    figure_name_1 = 'count_'+ str(trial) + '.png'
-    
-    if not os.path.isdir(results_dir):
-        os.makedirs(results_dir)
-
-    #save the fig in .tiff
-    fig.savefig(results_dir + figure_name) #  transparent=True)
-    fig_1.savefig(results_dir + figure_name_1) #transparent=True)        
-        
-        
-        
-        
         
         
         
@@ -947,69 +1282,6 @@ plt.title('baseline_ch_'+str(channel))
 
 
 
-
-    signal_cleaned = ephys.apply_probe_map_to_amplifier(clean)
-    num_channels = len(signal_cleaned)
-    spike_times = [[] for _ in range(num_channels)]  
-    spike_peaks = [[] for _ in range(num_channels)]  
-
-    
-    
-    for ch in np.arange(num_channels):
-    
-        try:
-            # Extract data for single channel
-            channel_data = signal_cleaned[ch,:]
-            
-            # FILTERS (one ch at the time)
-            channel_data_highpass = ephys.highpass(channel_data,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
-        
-            # Determine high and low threshold
-            abs_channel_data_highpass = np.abs(channel_data_highpass)
-            sigma_n = np.median(abs_channel_data_highpass) / 0.6745
-            
-            #adaptive th depending of ch noise
-            spike_threshold_hard = -3.0 * sigma_n
-            spike_threshold_soft = -1.0 * sigma_n
-            
-            # Find threshold crossings
-            spike_start_times, spike_stop_times = threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshold_soft)    
-            
-            # Find peak voltages and times
-            spike_peak_voltages = []
-            spike_peak_times = []
-            for start, stop in zip(spike_start_times,spike_stop_times):
-                peak_voltage = np.min(channel_data_highpass[start:stop]) 
-                peak_voltage_idx = np.argmin(channel_data_highpass[start:stop])
-                spike_peak_voltages.append(peak_voltage)
-                spike_peak_times.append(start + peak_voltage_idx)
-            
-            # Remove too early and too late spikes
-            spike_starts = np.array(spike_start_times)
-            spike_stops = np.array(spike_stop_times)
-            peak_times = np.array(spike_peak_times)
-            peak_voltages = np.array(spike_peak_voltages)
-            good_spikes = (spike_starts > 100) * (spike_starts < (len(channel_data_highpass)-200))
-        
-            # Select only good spikes
-            spike_starts = spike_starts[good_spikes]
-            spike_stops = spike_stops[good_spikes]
-            peak_times = peak_times[good_spikes]
-            peak_voltages = peak_voltages[good_spikes]
-            
-            #peak_times_corrected  = start_sample + peak_times
-            #spike_times_Z[channel] = peak_times_corrected
-            #spike_times_clean_model[channel] = peak_times_corrected
-            #spike_times_raw[channel] = peak_times_corrected
-            #spike_times_shank[channel] = peak_times_corrected
-            #spike_times_no_Z[channel] = peak_times_corrected
-            
-            spike_times[ch] = peak_times
-            spike_peaks[ch] = peak_voltages
-            print(ch)
-            
-        except Exception:
-            continue
 
 
 

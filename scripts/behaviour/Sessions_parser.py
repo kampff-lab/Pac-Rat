@@ -59,9 +59,7 @@ Level_3_pre = prs.Level_3_pre_paths(rat_summary_table_path)
 Level_3_post = prs.Level_3_post_paths(rat_summary_table_path)
 Level_3_moving_light = prs.Level_3_moving_light_paths(rat_summary_table_path)
 Level_3_joystick = prs.Level_3_joystick_paths(rat_summary_table_path)
-
-
-
+All_levels_post= all_post_surgery_levels_paths(rat_summary_table_path)
 
 
 

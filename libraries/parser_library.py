@@ -175,6 +175,15 @@ def Level_3_joystick_paths(rat_summary_table_path):
 
 
 
+def all_post_surgery_levels_paths(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    All_levels_post = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][3] == 'post':
+           All_levels_post.append(rat_summary[row][0])
+        else:
+            continue
+    return All_levels_post
 
      
 
