@@ -144,7 +144,24 @@ for i, session in enumerate(sessions_subset):
 
 #plot = plt.plot(x_centroid,y_centroid, 'o', markersize=2.5,color = '#6495ED' ,alpha=0.03)
 
-
+##########Level 0 over all the rats ########
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 
@@ -539,6 +556,47 @@ for rat in arange(n):
     except Exception: 
         print (session + '/error')
         continue
+
+
+
+#test = np.array(flatten_probe[bad_channels_idx[5]])
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+test= np.array((percentage_at_poke_level_0))
+
+figure_name =   'summary_level_0_at_poke.pdf'
+
+
+f,ax = plt.subplots(figsize=(15,11),frameon=False)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+#plt.figure(frameon=False)
+plt.boxplot(test, showfliers=True)
+sns.despine(top=True, right=True, left=False, bottom=False)
+
+ax.yaxis.major.formatter._useMathText = True
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+
+
+
+
+
+
+
 
 
 

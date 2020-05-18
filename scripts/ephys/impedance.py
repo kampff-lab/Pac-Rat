@@ -410,6 +410,8 @@ surgery_rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Vide
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
                            'F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
                       
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
+
 
 
 flatten_probe = ephys.probe_map.flatten()
@@ -424,7 +426,9 @@ all_rats_daily_impedance = [[] for _ in range(len(surgery_rat_summary_table_path
 for rat in range(len(surgery_rat_summary_table_path)):
     
     try:
-            
+        
+        csv_dir_path = 'F:/Videogame_Assay/Summary/Impedance/' 
+        csv_name = RAT_ID[rat]+'_impedance_summary.csv'
         All_levels_post = prs.all_post_surgery_levels_paths(surgery_rat_summary_table_path[rat])
         sessions_subset = All_levels_post
         rat_daily_impedance = [[] for _ in range(len(All_levels_post))]
@@ -451,10 +455,14 @@ for rat in range(len(surgery_rat_summary_table_path)):
                 #sem_imp= stats.sem(session_all_measurements,axis=0)
                 
                 rat_daily_impedance[s]=mean_imp_session
+               
                 #sem_impedance_Level_2_post[s,:]=sem_imp
                 print(session) 
             
         all_rats_daily_impedance[rat] = rat_daily_impedance
+        np.savetxt(csv_dir_path + csv_name, np.vstack(rat_daily_impedance).T, delimiter=',', fmt='%s')
+        
+        
         print(rat) 
         print(len(sessions_subset))
 
@@ -465,19 +473,18 @@ for rat in range(len(surgery_rat_summary_table_path)):
 
 
 
-impedance_post_surgery = np.zeros([len(all_rats_daily_impedance),len(max(all_rats_daily_impedance,key = lambda x: len(x)))])
+impedance_post_surgery = np.zeros([len(test),len(max(test,key = lambda x: len(x)))])
 impedance_post_surgery[:] = np.NaN
 
 
     
 for i,j in enumerate(all_rats_daily_impedance):
     
-    plt.plot()
-    
-  
+    sns.heatmap(test)
+ test =  
 
 
-test= np.vstack(all_rats_daily_impedance[0])
+test1= np.vstack(all_rats_daily_impedance[0])
 mean = np.mean(test,axis=0)
 plt.plot(mean)
 
@@ -486,10 +493,11 @@ plt.plot(mean)
 
 
 
-
-
-
-
+ np.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx,ball_on_idx)).T, delimiter=',', fmt='%s')
+           script_dir = os.path.join(hardrive_path + session) 
+           csv_dir_path = os.path.join(script_dir + '/events/')
+           #name of the .csv fileto create
+           csv_name = 'Trial_idx.cs
 
 
 

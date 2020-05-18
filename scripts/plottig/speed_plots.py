@@ -133,8 +133,7 @@ for count in np.arange(l):
     std_start_to_touch.append(start_touch_std)
     
     
-    
-
+test = 
 
     
 stack_mean = np.vstack((mean_start_to_touch,mean_touch_to_reward)).T  
@@ -159,8 +158,8 @@ centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype
 
 
 
-figure_name = figure_name = 'RAT_' + rat_ID + '_Speed_Touch_to_reward_Level2.pdf'
-plot_main_title = 'RAT ' + rat_ID + ' Speed_Touch_to_reward_Level2' + 'Level_2'
+figure_name = figure_name = 'RAT_' + RAT_ID + '_Speed_Touch_to_reward_Level2.pdf'
+plot_main_title = 'RAT ' + RAT_ID + ' Speed_Touch_to_reward_Level2' + 'Level_2'
 
  
 for i, session in enumerate(sessions_subset): 
