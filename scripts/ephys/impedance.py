@@ -41,7 +41,7 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 
 RAT_ID = '33.2'
-rat_summary_table_path = 'F:/Videogame_Assay/AK_40.2_Pt.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -185,126 +185,225 @@ f.savefig(results_dir + figure_name, transparent=True)
   
 
 
-#saline and surgery 
+#saline and surgery and day 1
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
 
 
-first_session = sessions_subset[0]      
-impedance_path_first_session = os.path.join(hardrive_path, first_session)    
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+surgery_rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                           'F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
+                      
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
+
+n = len(surgery_rat_summary_table_path)
+hardrive_path = r'F:/' 
+
+
+
+for rat in range(n):
+    try:
     
-matching_files_test_probe = glob.glob(impedance_path_first_session + "\*saline*") 
-matching_files_surgery_day = glob.glob(impedance_path_first_session + "\*surgery*") 
-
-
-#saline
-
-saline_all_measurements = np.zeros((len(matching_files_test_probe), 121))
-for i, imp in enumerate(matching_files_test_probe):
-    read_file = pd.read_csv(imp)
-    impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
-    imp_remapped= impedance[flatten_probe]
-    saline_all_measurements[i,:] = imp_remapped
+        Level_2_post = prs.Level_2_post_paths(surgery_rat_summary_table_path[rat])
+        sessions_subset = Level_2_post
+         
+        first_session = sessions_subset[0]      
+        impedance_path_first_session = os.path.join(hardrive_path, first_session)    
+    
+        matching_files_test_probe = glob.glob(impedance_path_first_session + "\*saline*") 
+        matching_files_surgery_day = glob.glob(impedance_path_first_session + "\*surgery*") 
+        matching_files_daily_imp = glob.glob(impedance_path_first_session + "\*imp*") 
         
-mean_saline = np.mean(saline_all_measurements,axis=0)
-sem_imp_saline = stats.sem(saline_all_measurements,axis=0)
-
-   
-#surgery 
-
-
-surgery_all_measurements = np.zeros((len(matching_files_surgery_day), 121))
-for i, imp in enumerate(matching_files_surgery_day):
-    read_file = pd.read_csv(imp)
-    impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
-    imp_remapped= impedance[flatten_probe]
-    surgery_all_measurements[i,:] = imp_remapped
+        #saline
         
-mean_surgery = np.mean(surgery_all_measurements,axis=0)
-sem_imp_surgery = stats.sem(surgery_all_measurements,axis=0)
+        saline_all_measurements = np.zeros((len(matching_files_test_probe), 121))
+        
+        for i, imp in enumerate(matching_files_test_probe):
+            read_file = pd.read_csv(imp)
+            impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+            imp_remapped= impedance[flatten_probe]
+            saline_all_measurements[i,:] = imp_remapped
+                
+        mean_saline = np.mean(saline_all_measurements,axis=0)
+        sem_imp_saline = stats.sem(saline_all_measurements,axis=0)
+
+        figure_name =  RAT_ID[rat] + '_impedance_saline_without_outlier_15000.pdf'
+
+        f,ax = plt.subplots(figsize=(15,11),frameon=False)
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=True)
+        
+        saline_to_plot = mean_saline.tolist()
+        
+        #plt.figure(frameon=False)
+        plt.boxplot(saline_to_plot, showfliers=False)
+        sns.despine(top=True, right=True, left=False, bottom=False)
+        
+        #ax.yaxis.major.formatter._useMathText = True
+        plt.title('saline')
+        plt.ylim(15000,70000)
+        
+        f.savefig(results_dir + figure_name, transparent=True)
+        plt.close()
+        
+    
+        
+        #surgery 
+        
+        
+        surgery_all_measurements = np.zeros((len(matching_files_surgery_day), 121))
+        
+        for i, imp in enumerate(matching_files_surgery_day):
+            read_file = pd.read_csv(imp)
+            impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+            imp_remapped= impedance[flatten_probe]
+            surgery_all_measurements[i,:] = imp_remapped
+                
+        mean_surgery = np.mean(surgery_all_measurements,axis=0)
+        sem_imp_surgery = stats.sem(surgery_all_measurements,axis=0)
+    
+
+       #day 1
+
+        day_1_all_measurements = np.zeros((len(matching_files_daily_imp), 121))
+        
+        for i, imp in enumerate(matching_files_daily_imp):
+            read_file = pd.read_csv(imp)
+            impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+            imp_remapped= impedance[flatten_probe]
+            day_1_all_measurements[i,:] = imp_remapped
+                
+    
+        mean_imp_day_1= np.mean(day_1_all_measurements,axis=0)
+        sem_imp_day_1 = stats.sem(day_1_all_measurements,axis=0)
+        
+        
+        
+        data_stack = np.vstack((mean_saline,mean_surgery,mean_imp_day_1))
+        data_to_plot = data_stack.tolist()
+        
+        figure_name =  RAT_ID[rat] + '_impedance_saline_surgery_day1_without_outlier.pdf'
+
+        f,ax = plt.subplots(figsize=(15,11),frameon=False)
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=True)
+        
+        
+        
+        #plt.figure(frameon=False)
+        plt.boxplot(data_to_plot, showfliers=False)
+        sns.despine(top=True, right=True, left=False, bottom=False)
+        
+        #ax.yaxis.major.formatter._useMathText = True
+        plt.title('saline'+'_surgery'+ '_day_1')
+        #plt.ylim(0,2000000)
+        
+        f.savefig(results_dir + figure_name, transparent=True)
+        plt.close()
+        print(rat)
+
+    except Exception: 
+        continue       
 
 
-data_stack = np.vstack((mean_saline,mean_surgery))#mean_impedance_Level_2_post[0]))
-
-
-data_to_plot = data_stack.tolist()
-
-
-figure_name =  RAT_ID + '_impedance_saline_surgery_without_outlier.pdf'
-
-
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
 
 
 
-#plt.figure(frameon=False)
-plt.boxplot(data_to_plot, showfliers=False)
-sns.despine(top=True, right=True, left=False, bottom=False)
 
-ax.yaxis.major.formatter._useMathText = True
-plt.title('saline'+'_surgery'+ '_day_1')
-#plt.ylim(0,2000000)
+#################################################
 
-f.savefig(results_dir + figure_name, transparent=True)
-
-
-#heatmap saline  VS surgey VS day 1
-
-N=121
-#map the impedance
-probe_remap=np.reshape(probe_map.T, newshape=N)
-
-#test saline
-
-
-saline_impedance_map=np.reshape(mean_saline,newshape=probe_map.shape)
-
-threshold = 100000
-
-
-figure_name = RAT_ID + 'saline_test_impedance_heatmap.pdf'
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
-
-ax = sns.heatmap(saline_impedance_map,annot=True,  cmap="YlGnBu", vmin=0, vmax=threshold, annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
-bottom, top = ax.get_ylim()
-ax.set_ylim(bottom + 0.5, top - 0.5)
-
-
-f.savefig(results_dir + figure_name, transparent=True)
-
-
-
-#test surgery
-
-
-surgery_impedance_map=np.reshape(mean_surgery,newshape=probe_map.shape)
-
-threshold = 100000
-figure_name = RAT_ID + 'surgery_test_impedance_heatmap.pdf'
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
-
-ax = sns.heatmap(surgery_impedance_map,annot=True,  cmap="YlGnBu",vmin=0, vmax = 500000,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
-bottom, top = ax.get_ylim()
-ax.set_ylim(bottom + 0.5, top - 0.5)
-
-
-f.savefig(results_dir + figure_name, transparent=True)
-
-
+#data_stack = np.vstack((mean_saline,mean_surgery,mean_imp_day_1))
+#
+#        data_to_plot = data_stack.tolist()
+#
+#
+#figure_name =  RAT_ID + '_impedance_saline_surgery_without_outlier.pdf'
+#
+#
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#
+#
+##plt.figure(frameon=False)
+#plt.boxplot(data_to_plot, showfliers=False)
+#sns.despine(top=True, right=True, left=False, bottom=False)
+#
+#ax.yaxis.major.formatter._useMathText = True
+#plt.title('saline'+'_surgery'+ '_day_1')
+##plt.ylim(0,2000000)
+#
+#f.savefig(results_dir + figure_name, transparent=True)
+#
+#
+##heatmap saline  VS surgey VS day 1
+#
+#N=121
+##map the impedance
+#probe_remap=np.reshape(probe_map.T, newshape=N)
+#
+##test saline
+#
+#
+#saline_impedance_map=np.reshape(mean_saline,newshape=probe_map.shape)
+#
+#threshold = 100000
+#
+#
+#figure_name = RAT_ID + 'saline_test_impedance_heatmap.pdf'
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#
+#ax = sns.heatmap(saline_impedance_map,annot=True,  cmap="YlGnBu", vmin=0, vmax=threshold, annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
+#bottom, top = ax.get_ylim()
+#ax.set_ylim(bottom + 0.5, top - 0.5)
+#
+#
+#f.savefig(results_dir + figure_name, transparent=True)
+#
+#
+#
+##test surgery
+#
+#
+#surgery_impedance_map=np.reshape(mean_surgery,newshape=probe_map.shape)
+#
+#threshold = 100000
+#figure_name = RAT_ID + 'surgery_test_impedance_heatmap.pdf'
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#
+#ax = sns.heatmap(surgery_impedance_map,annot=True,  cmap="YlGnBu",vmin=0, vmax = 500000,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
+#bottom, top = ax.get_ylim()
+#ax.set_ylim(bottom + 0.5, top - 0.5)
+#
+#
+#f.savefig(results_dir + figure_name, transparent=True)
+#
+#
 
 
 
@@ -352,6 +451,200 @@ def avg_imp(impedance_file):
     return impedance
 
 
+###################################
+    
+
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+surgery_rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                           'F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
+                      
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
+
+folder_list = ['/Probe_61_rat_33.2' , '/Probe_62_rat_40.2', '/Probe_14_rat_41.1', '/Probe_15_rat_41.2','/probe_222_rat_48.1','/Probe_220_rat_48.4']       
+
+n = len(surgery_rat_summary_table_path)
+hardrive_path = r'F:/' 
+
+
+
+
+for rat in range(n):
+    
+    try:
+        
+        Level_2_post = prs.Level_2_post_paths(surgery_rat_summary_table_path[rat])
+        sessions_subset = Level_2_post
+         
+        first_session = sessions_subset[0]      
+        probe_path_first_session = os.path.join(hardrive_path, first_session) 
+
+
+        probe_path =  os.path.join(probe_path_first_session + folder_list[rat])
+
+        omnetics_list = glob.glob(probe_path + "\*omnetics*") 
+
+
+
+
+        saline_probe_mean, saline_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*sal*" )
+
+        PEDOT_probe_mean, PEDOT_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*post*" )
+
+    
+
+        probe_stack = np.vstack((saline_probe_mean,PEDOT_probe_mean))
+        
+        
+        #allows alternating omnetics
+        #test = np.hstack([saline_probe_mean, PEDOT_probe_mean]).reshape(8, 32)
+
+        probe_to_plot = probe_stack.tolist()
+
+
+
+        figure_name =  RAT_ID[rat] + '_impedance_saline_VS_PEDOT.pdf'
+
+        f,ax = plt.subplots(figsize=(15,11),frameon=False)
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=True)
+        
+        
+        
+        #plt.figure(frameon=False)
+        plt.boxplot(probe_to_plot, showfliers=False)
+        sns.despine(top=True, right=True, left=False, bottom=False)
+        
+        #ax.yaxis.major.formatter._useMathText = True
+        plt.title('saline'+'pedot')
+        #plt.ylim(0,2000000)
+        
+        f.savefig(results_dir + figure_name, transparent=True)
+        plt.close()
+        
+        
+        figure_name =  RAT_ID[rat] + '_impedance_PEDOT.pdf'
+
+        f,ax = plt.subplots(figsize=(15,11),frameon=False)
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=True)
+        
+        
+        
+        #plt.figure(frameon=False)
+        plt.boxplot(PEDOT_probe_mean.tolist(), showfliers=False)
+        sns.despine(top=True, right=True, left=False, bottom=False)
+        
+        #ax.yaxis.major.formatter._useMathText = True
+        plt.title('saline'+'pedot')
+        #plt.ylim(0,0.06)
+        
+        
+        
+        f.savefig(results_dir + figure_name, transparent=True)
+   
+        plt.close()
+        print(rat)
+
+    except Exception: 
+        continue       
+       
+###platinum         
+        
+surgery_rat_summary_table_path_Pt = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv']
+                           
+                      
+RAT_ID_Pt = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2'] 
+
+folder_list_Pt = ['/Probe_61_rat_33.2' , '/Probe_62_rat_40.2', '/Probe_14_rat_41.1', '/Probe_15_rat_41.2']       
+folder_list = folder_list_Pt
+
+# omnetics examples before and after pedot 
+#folder located at day 1 of recording together with the saline test and surgery impedances
+n =len(surgery_rat_summary_table_path_Pt)
+
+
+saline_Pt = []
+saline_sem = []
+pedot_Pt = []
+pedot_sem = []
+
+for rat in range(n):
+    
+    try:
+        
+        Level_2_post = prs.Level_2_post_paths(surgery_rat_summary_table_path_Pt[rat])
+        sessions_subset = Level_2_post
+         
+        first_session = sessions_subset[0]      
+        probe_path_first_session = os.path.join(hardrive_path, first_session) 
+
+
+        probe_path =  os.path.join(probe_path_first_session + folder_list[rat])
+
+        omnetics_list = glob.glob(probe_path + "\*omnetics*") 
+
+
+        match = "\*sal*"  
+
+
+
+        for o, omnetics in enumerate(omnetics_list):
+        
+            search_file = glob.glob(omnetics + match) 
+            avg_impedance =  avg_imp(search_file)
+            mean = np.mean(avg_impedance,axis =0)
+            saline_Pt.append(mean)
+            #saline_sem = stats.sem(avg_impedance,axis =0)
+            
+            
+
+        match = "\*pos*"  
+
+
+
+        for o, omnetics in enumerate(omnetics_list):
+        
+            search_file = glob.glob(omnetics + match) 
+            avg_impedance =  avg_imp(search_file)
+            mean = np.mean(avg_impedance,axis =0)
+            pedot_Pt.append(mean)
+            #pedot_sem = stats.sem(avg_impedance,axis =0)
+            
+
+        print(rat)
+
+    except Exception: 
+        continue       
+       
+
+
+
+
+
+flat_saline_Pt = np.array(saline_Pt).flatten()
+       
+mean_saline_Pt = np.mean(flat_saline_Pt) #1.35574609375
+sem_saline_Pt =  stats.sem(flat_saline_Pt)
+
+flat_pedot_Pt = np.array(pedot_Pt).flatten()
+
+mean_pedot_Pt = np.mean(flat_pedot_Pt) #0.8658209635416667
+sem_pedot_Pt = stats.sem(flat_pedot_Pt)
 
 
 
@@ -359,48 +652,118 @@ def avg_imp(impedance_file):
 
 
 
-folder_list = '/Probe_61_rat_33.2' , '/Probe_62_rat_40.2', '/Probe_220_rat_48.4', '/probe_222_rat_48.1'
 
-first_session = sessions_subset[0]      
-probe_path_first_session = os.path.join(hardrive_path, first_session)  
-folder_name = ('/Probe_61_rat_33.2' )
+            
+#####IrOx
 
+surgery_rat_summary_table_path_IrOx = ['F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
 
-probe_path =  os.path.join(probe_path_first_session + folder_name)
+['F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
 
-omnetics_list = glob.glob(probe_path + "\*omnetics*") 
+RAT_ID_IrO2 = ['AK 48.1','AK 48.4']
 
+folder_list_IrO2 = ['/probe_222_rat_48.1','/Probe_220_rat_48.4']
 
+folder_list = folder_list_IrO2
 
-
-saline_probe_mean, saline_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*sal*" )
-
-PEDOT_probe_mean, PEDOT_probe_sem =  avg_sem_omnetics_imp(omnetics_list, match = "\*post*" )
+n= len(surgery_rat_summary_table_path_IrOx)
 
 
-probe_stack = np.vstack((saline_probe_mean,PEDOT_probe_mean))
+saline_Ir = []
+saline_sem = []
+pedot_Ir = []
+pedot_sem = []
 
-test = np.hstack([saline_probe_mean, PEDOT_probe_mean]).reshape(8, 32)
-
-
-
-probe_to_plot = test.tolist()
-
-
-
-figure_name = RAT_ID + 'surgery_test_impedance_heatmap.pdf'
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
+for rat in range(n):
+    
+    try:
+        
+        Level_2_post = prs.Level_2_post_paths(surgery_rat_summary_table_path_IrOx[rat])
+        sessions_subset = Level_2_post
+         
+        first_session = sessions_subset[0]      
+        probe_path_first_session = os.path.join(hardrive_path, first_session) 
 
 
-plt.boxplot(probe_to_plot, showfliers=False)
+        probe_path =  os.path.join(probe_path_first_session + folder_list[rat])
 
-plt.xlabel('days')
-plt.ylabel('impedance_(ohms)')
+        omnetics_list = glob.glob(probe_path + "\*omnetics*") 
+
+
+        match = "\*sal*"  
+
+
+
+        for o, omnetics in enumerate(omnetics_list):
+        
+            search_file = glob.glob(omnetics + match) 
+            avg_impedance =  avg_imp(search_file)
+            mean = np.mean(avg_impedance,axis =0)
+            saline_Ir.append(mean)
+            #saline_sem = stats.sem(avg_impedance,axis =0)
+            
+            
+
+        match = "\*pos*"  
+
+
+
+        for o, omnetics in enumerate(omnetics_list):
+        
+            search_file = glob.glob(omnetics + match) 
+            avg_impedance =  avg_imp(search_file)
+            mean = np.mean(avg_impedance,axis =0)
+            pedot_Ir.append(mean)
+            #pedot_sem = stats.sem(avg_impedance,axis =0)
+            
+
+        print(rat)
+
+    except Exception: 
+        continue       
+
+
+
+flat_saline_Ir = np.array(saline_Ir).flatten()
+       
+mean_saline_Ir = np.mean(flat_saline_Ir) #4.141272135416667
+sem_saline_Ir =  stats.sem(flat_saline_Ir)
+
+flat_pedot_Ir = np.array(pedot_Ir).flatten()
+
+mean_pedot_Ir = np.mean(flat_pedot_Ir) #3.6095638020833336
+sem_pedot_Ir = stats.sem(flat_pedot_Ir)
+
+
+
+
+
+
+
+
+final_Ir = (np.vstack((np.array(saline_Ir).flatten(),np.array(pedot_Ir).flatten()))).T
+
+plt.boxplot(final_Ir, showfliers=False)
+
+
+
+
+
+
+
+
+test =np.array( saline_Ir).flatten()
+tot_sem =  stats.sem(test)
+
+
+
+
+
+
+
+
+
+
 
 ###################################################################################
 

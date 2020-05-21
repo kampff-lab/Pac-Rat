@@ -517,6 +517,9 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
                          'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
 
 
+csv_dir_path = 'F:/Videogame_Assay/Summary/Impedance/' 
+
+
 #####level 0 
 
 n = len(rat_summary_table_path)
@@ -557,7 +560,21 @@ for rat in arange(n):
         print (session + '/error')
         continue
 
+        
+csv_name = 'summary_Level_0_percentage_at_poke.csv'
+df_percentage_level_0 = pd.DataFrame(percentage_at_poke_level_0)
+final_percentage_array_level_0 = np.array(df_percentage_level_0)
 
+#save level 0 percentage in summary folder
+np.savetxt(csv_dir_path + csv_name,final_percentage_array_level_0 , delimiter=',', fmt='%s')
+        
+
+
+
+
+
+
+#level 0 boxplot as example 
 
 #test = np.array(flatten_probe[bad_channels_idx[5]])
 main_folder = 'E:/thesis_figures/'
@@ -587,7 +604,7 @@ plt.boxplot(test, showfliers=True)
 sns.despine(top=True, right=True, left=False, bottom=False)
 
 ax.yaxis.major.formatter._useMathText = True
-
+plt.ylim(0,30)
 f.savefig(results_dir + figure_name, transparent=True)
 
 
@@ -601,14 +618,13 @@ f.savefig(results_dir + figure_name, transparent=True)
 
 
 ##########level 1
-
 n = len(rat_summary_table_path)
 
 percentage_at_poke_level_1 = [[] for _ in range(n)]
 
 
 
-for rat in arange(n):
+for rat in range(n):
     try:
        
 
@@ -640,6 +656,19 @@ for rat in arange(n):
         print (session + '/error')
         continue
 
+      
+        
+csv_name = 'summary_Level_1_percentage_at_poke.csv'
+df_percentage_level_1 = pd.DataFrame(percentage_at_poke_level_1)
+final_percentage_array_level_1 = np.array(df_percentage_level_1)
+
+#save summary csv file in summary folder 
+np.savetxt(csv_dir_path + csv_name,final_percentage_array_level_1 , delimiter=',', fmt='%s')
+        
+
+
+
+
 
 ##########level 2
         
@@ -649,14 +678,14 @@ percentage_at_poke_level_2 = [[] for _ in range(n)]
 
 
 
-for rat in arange(n):
+for rat in range(n):
     try:
        
 
         Level_2 = prs.Level_2_pre_paths(rat_summary_table_path[rat])    
         
         percentage_at_poke = []
-        for i, session in enumerate(Level_2[:3]): 
+        for i, session in enumerate(Level_2): 
            
             x_ROI = []
             y_ROI = []
@@ -685,9 +714,24 @@ for rat in arange(n):
 
 
 
-b = np.zeros([len(percentage_at_poke_level_1),len(max(percentage_at_poke_level_1,key = lambda x: len(x)))])
-for i,j in enumerate(percentage_at_poke_level_1):
-    b[i][0:len(j)] = j
+csv_name = 'summary_Level_2_percentage_at_poke.csv'
+df_percentage_level_2 = pd.DataFrame(percentage_at_poke_level_2)
+final_percentage_array_level_2 = np.array(df_percentage_level_2)
+
+#save summary csv file in summary folder 
+np.savetxt(csv_dir_path + csv_name,final_percentage_array_level_2 , delimiter=',', fmt='%s')
+        
+
+
+
+
+
+
+
+
+#b = np.zeros([len(percentage_at_poke_level_1),len(max(percentage_at_poke_level_1,key = lambda x: len(x)))])
+#for i,j in enumerate(percentage_at_poke_level_1):
+#    b[i][0:len(j)] = j
 
 
 
