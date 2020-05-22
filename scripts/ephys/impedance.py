@@ -40,8 +40,8 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
-RAT_ID = '33.2'
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+#RAT_ID = '33.2'
+#rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -561,7 +561,16 @@ for rat in range(n):
 
     except Exception: 
         continue       
-       
+
+
+
+
+
+
+
+
+
+##############################################################################    
 ###platinum         
         
 surgery_rat_summary_table_path_Pt = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
@@ -635,16 +644,103 @@ for rat in range(n):
 
 
 
-
 flat_saline_Pt = np.array(saline_Pt).flatten()
-       
-mean_saline_Pt = np.mean(flat_saline_Pt) #1.35574609375
-sem_saline_Pt =  stats.sem(flat_saline_Pt)
+
+Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < 10]
+
+flat_saline_Pt_cleaned = flat_saline_Pt[Pt_ok] 
+
+
+len(flat_saline_Pt)
+len(Pt_ok)
+len(flat_saline_Pt_cleaned)
+
+
+
+    
+mean_saline_Pt = np.mean(flat_saline_Pt_cleaned) #1.35574609375
+sem_saline_Pt =  stats.sem(flat_saline_Pt_cleaned)
+
+
+
 
 flat_pedot_Pt = np.array(pedot_Pt).flatten()
+flat_pedot_Pt_cleaned = flat_pedot_Pt[Pt_ok]
 
-mean_pedot_Pt = np.mean(flat_pedot_Pt) #0.8658209635416667
-sem_pedot_Pt = stats.sem(flat_pedot_Pt)
+
+mean_pedot_Pt = np.mean(flat_pedot_Pt_cleaned) #0.8658209635416667
+sem_pedot_Pt = stats.sem(flat_pedot_Pt_cleaned)
+
+
+test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
+
+
+
+plt.scatter(x,y)
+plt.plot(x,y)
+
+test =np.array([0] * len(flat_pedot_Pt_cleaned))
+test2= np.array([2] *len(flat_pedot_Pt_cleaned))
+
+
+plt.scatter(test, flat_saline_Pt_cleaned,s=20, facecolors='none', edgecolors='r')
+
+plt.scatter(test2, flat_pedot_Pt_cleaned,s=20, facecolors='none', edgecolors='b')
+
+
+plt.plot((test,test2),(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned), color='k', alpha = .3 , linewidth= .2)
+
+
+
+
+
+
+
+
+
+
+
+materials = ['Saline', 'PEDOT']
+x_pos = np.arange(len(materials))
+means = [mean_saline_Pt, mean_pedot_Pt]
+errors = [sem_saline_Pt, sem_pedot_Pt]
+
+
+
+figure_name = 'platinum_saline_VS_pedot.pdf'
+
+f,ax = plt.subplots(figsize=(5,7))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+ax.bar(x_pos, means, yerr=errors, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
+ax.set_ylabel('impedance')
+ax.set_xticks(x_pos)
+ax.set_xticklabels(materials)
+ax.set_title('saline_VS_pedot_platinum_probe')
+ax.set_ylim(0,0.6)
+
+# Save the figure and show
+plt.tight_layout()
+
+        
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -725,17 +821,120 @@ for rat in range(n):
 
 
 flat_saline_Ir = np.array(saline_Ir).flatten()
-       
-mean_saline_Ir = np.mean(flat_saline_Ir) #4.141272135416667
-sem_saline_Ir =  stats.sem(flat_saline_Ir)
+mean_saline_Ir_all = np.mean(flat_saline_Ir) #4.141272135416667
+sem_saline_Ir_all =  stats.sem(flat_saline_Ir)
+
 
 flat_pedot_Ir = np.array(pedot_Ir).flatten()
+mean_pedot_Ir_all = np.mean(flat_pedot_Ir) #3.6095638020833336
+sem_pedot_Ir_all = stats.sem(flat_pedot_Ir)
 
-mean_pedot_Ir = np.mean(flat_pedot_Ir) #3.6095638020833336
-sem_pedot_Ir = stats.sem(flat_pedot_Ir)
+########scatter 
+
+test =np.array([0] * len(flat_saline_Ir))
+test2= np.array([2] *len(flat_saline_Ir))
+
+plt.scatter(test, flat_saline_Ir)
+plt.scatter(test2, flat_pedot_Ir)
 
 
 
+
+
+
+
+#can work
+for i in range(len(test)): plt.plot([test[i],test2[i]], [flat_saline_Ir[i],flat_pedot_Ir[i]]) 
+
+figure_name = 'iridium_saline_VS_pedot.pdf'
+
+f,ax = plt.subplots(figsize=(10,7))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+
+ax.bar(x_pos, means_Ir, yerr=errors_Ir, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
+ax.set_ylabel('impedance')
+ax.set_xticks(x_pos)
+ax.set_xticklabels(materials)
+ax.set_title('saline_VS_pedot_iridium_probe')
+
+
+# Save the figure and show
+plt.tight_layout()
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+#####cleaned with th 
+
+flat_saline_Ir = np.array(saline_Ir).flatten()
+
+Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < 4]
+
+flat_saline_Ir_cleaned = flat_saline_Ir[Ir_ok] 
+     
+mean_saline_Ir = np.mean(flat_saline_Ir_cleaned) #4.141272135416667
+sem_saline_Ir =  stats.sem(flat_saline_Ir_cleaned)
+
+
+
+flat_pedot_Ir = np.array(pedot_Ir).flatten()
+flat_pedot_Ir_cleaned = flat_pedot_Ir[Ir_ok]
+
+mean_pedot_Ir = np.mean(flat_pedot_Ir_cleaned) #3.6095638020833336
+sem_pedot_Ir = stats.sem(flat_pedot_Ir_cleaned)
+
+
+test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
+
+
+#####
+
+
+
+
+materials = ['Saline', 'PEDOT']
+x_pos = np.arange(len(materials))
+means_Ir = [mean_saline_Ir, mean_pedot_Ir]
+errors_Ir = [sem_saline_Ir, sem_pedot_Ir]
+
+
+figure_name = 'iridium_saline_VS_pedot.pdf'
+
+f,ax = plt.subplots(figsize=(5,7))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+ax.bar(x_pos, means_Ir, yerr=errors_Ir, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
+ax.set_ylabel('impedance')
+ax.set_xticks(x_pos)
+ax.set_xticklabels(materials)
+ax.set_title('saline_VS_pedot_iridium_probe')
+
+
+# Save the figure and show
+plt.tight_layout()
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
 
 
 
@@ -749,11 +948,6 @@ plt.boxplot(final_Ir, showfliers=False)
 
 
 
-
-
-
-test =np.array( saline_Ir).flatten()
-tot_sem =  stats.sem(test)
 
 
 
