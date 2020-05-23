@@ -646,68 +646,16 @@ for rat in range(n):
 
 flat_saline_Pt = np.array(saline_Pt).flatten()
 
-Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < 10]
-
-flat_saline_Pt_cleaned = flat_saline_Pt[Pt_ok] 
-
-
-len(flat_saline_Pt)
-len(Pt_ok)
-len(flat_saline_Pt_cleaned)
-
-
-
-    
-mean_saline_Pt = np.mean(flat_saline_Pt_cleaned) #1.35574609375
-sem_saline_Pt =  stats.sem(flat_saline_Pt_cleaned)
-
-
-
-
 flat_pedot_Pt = np.array(pedot_Pt).flatten()
-flat_pedot_Pt_cleaned = flat_pedot_Pt[Pt_ok]
-
-
-mean_pedot_Pt = np.mean(flat_pedot_Pt_cleaned) #0.8658209635416667
-sem_pedot_Pt = stats.sem(flat_pedot_Pt_cleaned)
-
-
-test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
-
-
-
-plt.scatter(x,y)
-plt.plot(x,y)
-
-test =np.array([0] * len(flat_pedot_Pt_cleaned))
-test2= np.array([2] *len(flat_pedot_Pt_cleaned))
-
-
-plt.scatter(test, flat_saline_Pt_cleaned,s=20, facecolors='none', edgecolors='r')
-
-plt.scatter(test2, flat_pedot_Pt_cleaned,s=20, facecolors='none', edgecolors='b')
-
-
-plt.plot((test,test2),(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned), color='k', alpha = .3 , linewidth= .2)
 
 
 
 
+#scatter of all the data point connected 
 
 
 
-
-
-
-
-materials = ['Saline', 'PEDOT']
-x_pos = np.arange(len(materials))
-means = [mean_saline_Pt, mean_pedot_Pt]
-errors = [sem_saline_Pt, sem_pedot_Pt]
-
-
-
-figure_name = 'platinum_saline_VS_pedot.pdf'
+figure_name = 'platinum_saline_VS_pedot_all_data_full_dots.pdf'
 
 f,ax = plt.subplots(figsize=(5,7))
 
@@ -717,22 +665,127 @@ sns.axes_style('white')
 sns.despine(left=True)
 
 
-ax.bar(x_pos, means, yerr=errors, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
-ax.set_ylabel('impedance')
-ax.set_xticks(x_pos)
-ax.set_xticklabels(materials)
+x_axis_saline = np.array([0] * len(flat_saline_Pt))
+x_axis_pedot = np.array([2] *len(flat_pedot_Pt))
+
+
+plt.scatter(x_axis_saline, flat_saline_Pt,s=20, facecolors='none', edgecolors='r')
+
+plt.scatter(x_axis_pedot, flat_pedot_Pt,s=20, facecolors='none', edgecolors='g')
+
+
+plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Pt,flat_pedot_Pt), color='k', alpha = .3 , linewidth= .2)
+
+
+ax.set_ylabel('impedance, MOhm')
 ax.set_title('saline_VS_pedot_platinum_probe')
-ax.set_ylim(0,0.6)
+ax.get_xticklabels(())
+ax.set_xlim(-.5,2.5)
 
 # Save the figure and show
 plt.tight_layout()
+
 
         
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
 
+######################################data cleaning
 
+th = 10
+
+Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < th]
+
+flat_saline_Pt_cleaned = flat_saline_Pt[Pt_ok] 
+flat_pedot_Pt_cleaned = flat_pedot_Pt[Pt_ok]
+len(flat_saline_Pt_cleaned)
+
+    
+mean_saline_Pt = np.mean(flat_saline_Pt_cleaned) #1.35574609375
+sem_saline_Pt =  stats.sem(flat_saline_Pt_cleaned)
+
+
+
+mean_pedot_Pt = np.mean(flat_pedot_Pt_cleaned) #0.8658209635416667
+sem_pedot_Pt = stats.sem(flat_pedot_Pt_cleaned)
+
+
+test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
+
+#th 5 =  Ttest_relResult(statistic=19.698943557103416, pvalue=1.1115078141741984e-63) n = 479
+#th 8 =  Ttest_relResult(statistic=15.086107783897232, pvalue=2.052201403381959e-42)  n = 484
+#th 10 =   Ttest_relResult(statistic=14.825585811695863, pvalue=2.547211031857156e-41)
+##############################
+
+
+
+materials = ['Saline', 'PEDOT']
+x_pos = np.arange(len(materials))
+means_Pt = [mean_saline_Pt, sem_saline_Pt]
+errors_Pt = [sem_saline_Pt, sem_pedot_Pt]
+
+
+figure_name = 'iridium_saline_VS_pedot_th_10.pdf'
+
+f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
+
+#f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+
+#ax1.bar(x_pos[0], means_Pt[0], yerr=errors_Pt[0], align='center', color ='r', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+
+
+
+
+ax1.bar(x_pos[0], means_Pt[0], yerr=errors_Pt[0], align='center', color ='r', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+ax2.bar(x_pos[0], means_Pt[0], yerr=errors_Pt[0], align='center', color ='r', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+
+ax2.bar(x_pos[1], means_Pt[1], yerr=errors_Pt[1], align='center', color ='g', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+#ax.set_ylabel('impedance')
+#ax.set_xticks(x_pos)
+#ax.set_xticklabels(materials)
+#ax.set_title('saline_VS_pedot_iridium_probe')
+
+
+ax1.spines['bottom'].set_visible(False)
+ax1.tick_params(axis='x',which='both',bottom=False)
+ax2.spines['top'].set_visible(False)
+ax1.spines['left'].set_visible(True)
+ax2.spines['left'].set_visible(True)
+plt.xlim(-.5,1.5)
+
+ax2.set_ylim(0,.1)
+#ax1.set_ylim(0,.6)
+ax1.set_ylim(0.4,0.8)
+#ax1.set_yticks(np.arange(1000,1501,100))
+ax1.tick_params(axis='both', which='major', pad=15)
+ax2.tick_params(axis='both', which='major', pad=15)
+
+
+
+for tick in ax2.get_xticklabels():
+    tick.set_rotation(0)
+d = .015  
+kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False)
+ax1.plot((-d, +d), (-d, +d), **kwargs)      
+ax1.plot((1 - d, 1 + d), (-d, +d), **kwargs)
+kwargs.update(transform=ax2.transAxes)  
+ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  
+ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+plt.show()
+
+# Save the figure and show
+plt.tight_layout()
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
 
 
 
@@ -821,34 +874,14 @@ for rat in range(n):
 
 
 flat_saline_Ir = np.array(saline_Ir).flatten()
-mean_saline_Ir_all = np.mean(flat_saline_Ir) #4.141272135416667
-sem_saline_Ir_all =  stats.sem(flat_saline_Ir)
-
 
 flat_pedot_Ir = np.array(pedot_Ir).flatten()
-mean_pedot_Ir_all = np.mean(flat_pedot_Ir) #3.6095638020833336
-sem_pedot_Ir_all = stats.sem(flat_pedot_Ir)
-
-########scatter 
-
-test =np.array([0] * len(flat_saline_Ir))
-test2= np.array([2] *len(flat_saline_Ir))
-
-plt.scatter(test, flat_saline_Ir)
-plt.scatter(test2, flat_pedot_Ir)
 
 
 
+figure_name = 'iridium_saline_VS_pedot_all_data_full_dots.pdf'
 
-
-
-
-#can work
-for i in range(len(test)): plt.plot([test[i],test2[i]], [flat_saline_Ir[i],flat_pedot_Ir[i]]) 
-
-figure_name = 'iridium_saline_VS_pedot.pdf'
-
-f,ax = plt.subplots(figsize=(10,7))
+f,ax = plt.subplots(figsize=(5,7))
 
 sns.set()
 sns.set_style('white')
@@ -856,51 +889,59 @@ sns.axes_style('white')
 sns.despine(left=True)
 
 
+x_axis_saline = np.array([0] * len(flat_saline_Ir))
+x_axis_pedot = np.array([2] *len(flat_pedot_Ir))
 
-ax.bar(x_pos, means_Ir, yerr=errors_Ir, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
-ax.set_ylabel('impedance')
-ax.set_xticks(x_pos)
-ax.set_xticklabels(materials)
+
+plt.scatter(x_axis_saline, flat_saline_Ir,s=20, facecolors='r', edgecolors='r')
+
+plt.scatter(x_axis_pedot, flat_pedot_Ir,s=20, facecolors='g', edgecolors='g')
+
+
+plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Ir,flat_pedot_Ir), color='k', alpha = .3 , linewidth= .2)
+
+
+ax.set_ylabel('impedance, MOhm')
 ax.set_title('saline_VS_pedot_iridium_probe')
-
+ax.get_xticklabels(())
+ax.set_xlim(-.5,2.5)
 
 # Save the figure and show
 plt.tight_layout()
+
+
+        
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
 
 
+#####################cleaning con th 5 e 10
 
 
+th = 10
 
 
+Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < th]
+
+flat_saline_Ir_cleaned = flat_saline_Ir[Ir_ok]   
+flat_pedot_Ir_cleaned = flat_pedot_Ir[Ir_ok]
+print(len(flat_saline_Ir_cleaned))
 
 
-
-
-
-#####cleaned with th 
-
-flat_saline_Ir = np.array(saline_Ir).flatten()
-
-Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < 4]
-
-flat_saline_Ir_cleaned = flat_saline_Ir[Ir_ok] 
-     
-mean_saline_Ir = np.mean(flat_saline_Ir_cleaned) #4.141272135416667
+  
+mean_saline_Ir = np.mean(flat_saline_Ir_cleaned) 
 sem_saline_Ir =  stats.sem(flat_saline_Ir_cleaned)
 
 
-
-flat_pedot_Ir = np.array(pedot_Ir).flatten()
-flat_pedot_Ir_cleaned = flat_pedot_Ir[Ir_ok]
-
-mean_pedot_Ir = np.mean(flat_pedot_Ir_cleaned) #3.6095638020833336
+mean_pedot_Ir = np.mean(flat_pedot_Ir_cleaned) 
 sem_pedot_Ir = stats.sem(flat_pedot_Ir_cleaned)
 
 
 test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
+#th 5 = statistic=28.456691199228985, pvalue=2.387479347949912e-75  n = 219
+#th 8 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
+#th 10 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 
 
 #####
@@ -914,9 +955,9 @@ means_Ir = [mean_saline_Ir, mean_pedot_Ir]
 errors_Ir = [sem_saline_Ir, sem_pedot_Ir]
 
 
-figure_name = 'iridium_saline_VS_pedot.pdf'
+figure_name = 'iridium_saline_VS_pedot_th_8.pdf'
 
-f,ax = plt.subplots(figsize=(5,7))
+f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
 
 sns.set()
 sns.set_style('white')
@@ -924,15 +965,47 @@ sns.axes_style('white')
 sns.despine(left=True)
 
 
-ax.bar(x_pos, means_Ir, yerr=errors_Ir, align='center', color ='g', edgecolor ='white', width = .5,alpha=0.5, ecolor='black', capsize=0)
-ax.set_ylabel('impedance')
-ax.set_xticks(x_pos)
-ax.set_xticklabels(materials)
-ax.set_title('saline_VS_pedot_iridium_probe')
+ax1.bar(x_pos[0], means_Ir[0], yerr=errors_Ir[0], align='center', color ='r', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+ax2.bar(x_pos[0], means_Ir[0], yerr=errors_Ir[0], align='center', color ='r', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
 
+ax2.bar(x_pos[1], means_Ir[1], yerr=errors_Ir[1], align='center', color ='g', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+#ax.set_ylabel('impedance')
+#ax.set_xticks(x_pos)
+#ax.set_xticklabels(materials)
+#ax.set_title('saline_VS_pedot_iridium_probe')
+
+
+ax1.spines['bottom'].set_visible(False)
+ax1.tick_params(axis='x',which='both',bottom=False)
+ax2.spines['top'].set_visible(False)
+ax1.spines['left'].set_visible(True)
+ax2.spines['left'].set_visible(True)
+plt.xlim(-.5,1.5)
+
+ax2.set_ylim(0,.1)
+#ax1.set_ylim(0,.6)
+ax1.set_ylim(1,1.5)
+#ax1.set_yticks(np.arange(1000,1501,100))
+ax1.tick_params(axis='both', which='major', pad=15)
+ax2.tick_params(axis='both', which='major', pad=15)
+
+
+
+for tick in ax2.get_xticklabels():
+    tick.set_rotation(0)
+d = .015  
+kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False)
+ax1.plot((-d, +d), (-d, +d), **kwargs)      
+ax1.plot((1 - d, 1 + d), (-d, +d), **kwargs)
+kwargs.update(transform=ax2.transAxes)  
+ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  
+ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+plt.show()
 
 # Save the figure and show
 plt.tight_layout()
+
+
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
@@ -940,11 +1013,11 @@ plt.close()
 
 
 
-final_Ir = (np.vstack((np.array(saline_Ir).flatten(),np.array(pedot_Ir).flatten()))).T
-
-plt.boxplot(final_Ir, showfliers=False)
-
-
+#final_Ir = (np.vstack((np.array(saline_Ir).flatten(),np.array(pedot_Ir).flatten()))).T
+#
+#plt.boxplot(final_Ir, showfliers=False)
+#
+#
 
 
 
