@@ -242,9 +242,9 @@ for rat in range(n):
         sns.despine(left=True)
         
         saline_to_plot = mean_saline.tolist()
-        
+        flierprops = dict(marker='o', markerfacecolor='k', markersize=2, linestyle='none')
         #plt.figure(frameon=False)
-        plt.boxplot(saline_to_plot, showfliers=False)
+        plt.boxplot(saline_to_plot, showfliers=True,flierprops=flierprops )
         sns.despine(top=True, right=True, left=False, bottom=False)
         
         #ax.yaxis.major.formatter._useMathText = True
@@ -253,8 +253,9 @@ for rat in range(n):
         
         f.savefig(results_dir + figure_name, transparent=True)
         plt.close()
+
         
-    
+        
         
         #surgery 
         
@@ -301,7 +302,7 @@ for rat in range(n):
         
         
         #plt.figure(frameon=False)
-        plt.boxplot(data_to_plot, showfliers=False)
+        plt.boxplot(data_to_plot, showfliers=True, flierprops=flierprops)
         sns.despine(top=True, right=True, left=False, bottom=False)
         
         #ax.yaxis.major.formatter._useMathText = True
@@ -654,33 +655,28 @@ flat_pedot_Pt = np.array(pedot_Pt).flatten()
 #scatter of all the data point connected 
 
 
+from matplotlib.ticker import ScalarFormatter, NullFormatter
+import matplotlib.ticker as ticker
 
-figure_name = 'platinum_saline_VS_pedot_all_data_full_dots.pdf'
+
+figure_name = 'ticks_log_'+'platinum_saline_VS_pedot_all_data_full_dots.pdf'
 
 f,ax = plt.subplots(figsize=(5,7))
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
 
 
 x_axis_saline = np.array([0] * len(flat_saline_Pt))
 x_axis_pedot = np.array([2] *len(flat_pedot_Pt))
 
 
-plt.scatter(x_axis_saline, flat_saline_Pt,s=20, facecolors='none', edgecolors='r')
+plt.scatter(x_axis_saline, flat_saline_Pt,s=20, facecolors='r', edgecolors='r')
 
-plt.scatter(x_axis_pedot, flat_pedot_Pt,s=20, facecolors='none', edgecolors='g')
-
+plt.scatter(x_axis_pedot, flat_pedot_Pt,s=20, facecolors='g', edgecolors='g')
 
 plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Pt,flat_pedot_Pt), color='k', alpha = .3 , linewidth= .2)
-
-
-ax.set_ylabel('impedance, MOhm')
-ax.set_title('saline_VS_pedot_platinum_probe')
-ax.get_xticklabels(())
+plt.yscale('log')
 ax.set_xlim(-.5,2.5)
+ax.set_ylim(0.001,100)
+
 
 # Save the figure and show
 plt.tight_layout()
@@ -691,15 +687,17 @@ f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
 
+
+#plt.minorticks_off() 
 ######################################data cleaning
 
-th = 10
+th = 1
 
 Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < th]
 
 flat_saline_Pt_cleaned = flat_saline_Pt[Pt_ok] 
 flat_pedot_Pt_cleaned = flat_pedot_Pt[Pt_ok]
-len(flat_saline_Pt_cleaned)
+print(len(flat_saline_Pt_cleaned))
 
     
 mean_saline_Pt = np.mean(flat_saline_Pt_cleaned) #1.35574609375
@@ -716,6 +714,7 @@ test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
 #th 5 =  Ttest_relResult(statistic=19.698943557103416, pvalue=1.1115078141741984e-63) n = 479
 #th 8 =  Ttest_relResult(statistic=15.086107783897232, pvalue=2.052201403381959e-42)  n = 484
 #th 10 =   Ttest_relResult(statistic=14.825585811695863, pvalue=2.547211031857156e-41)
+#th 1 = statistic=25.58967226582703, pvalue=8.682862522544012e-91 n=466
 ##############################
 
 
@@ -726,7 +725,7 @@ means_Pt = [mean_saline_Pt, sem_saline_Pt]
 errors_Pt = [sem_saline_Pt, sem_pedot_Pt]
 
 
-figure_name = 'iridium_saline_VS_pedot_th_10.pdf'
+figure_name = 'th_'+ str(th) +'_platinum_saline_VS_pedot.pdf'
 
 f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
 
@@ -752,7 +751,9 @@ ax2.bar(x_pos[1], means_Pt[1], yerr=errors_Pt[1], align='center', color ='g', ed
 #ax.set_xticklabels(materials)
 #ax.set_title('saline_VS_pedot_iridium_probe')
 
+ax2.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
 
+ax1.tick_params(bottom='off', left='off', labelleft='on')
 ax1.spines['bottom'].set_visible(False)
 ax1.tick_params(axis='x',which='both',bottom=False)
 ax2.spines['top'].set_visible(False)
@@ -762,7 +763,7 @@ plt.xlim(-.5,1.5)
 
 ax2.set_ylim(0,.1)
 #ax1.set_ylim(0,.6)
-ax1.set_ylim(0.4,0.8)
+ax1.set_ylim(0.4,0.5)
 #ax1.set_yticks(np.arange(1000,1501,100))
 ax1.tick_params(axis='both', which='major', pad=15)
 ax2.tick_params(axis='both', which='major', pad=15)
@@ -879,15 +880,9 @@ flat_pedot_Ir = np.array(pedot_Ir).flatten()
 
 
 
-figure_name = 'iridium_saline_VS_pedot_all_data_full_dots.pdf'
+figure_name = 'tickslog_'+'iridium_saline_VS_pedot_all_data_full_dots.pdf'
 
 f,ax = plt.subplots(figsize=(5,7))
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
 
 x_axis_saline = np.array([0] * len(flat_saline_Ir))
 x_axis_pedot = np.array([2] *len(flat_pedot_Ir))
@@ -897,16 +892,15 @@ plt.scatter(x_axis_saline, flat_saline_Ir,s=20, facecolors='r', edgecolors='r')
 
 plt.scatter(x_axis_pedot, flat_pedot_Ir,s=20, facecolors='g', edgecolors='g')
 
-
 plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Ir,flat_pedot_Ir), color='k', alpha = .3 , linewidth= .2)
 
-
-ax.set_ylabel('impedance, MOhm')
-ax.set_title('saline_VS_pedot_iridium_probe')
-ax.get_xticklabels(())
+ax.set_yscale('log')
 ax.set_xlim(-.5,2.5)
+ax.set_ylim(0.001,100)
+
 
 # Save the figure and show
+
 plt.tight_layout()
 
 
@@ -916,10 +910,11 @@ plt.close()
 
 
 
+
 #####################cleaning con th 5 e 10
 
 
-th = 10
+th = 1
 
 
 Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < th]
@@ -942,7 +937,7 @@ test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 #th 5 = statistic=28.456691199228985, pvalue=2.387479347949912e-75  n = 219
 #th 8 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 #th 10 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
-
+# th 1 =  Ttest_relResult(statistic=20.991170460032713, pvalue=6.457309854275329e-31n = 67
 
 #####
 
@@ -955,7 +950,7 @@ means_Ir = [mean_saline_Ir, mean_pedot_Ir]
 errors_Ir = [sem_saline_Ir, sem_pedot_Ir]
 
 
-figure_name = 'iridium_saline_VS_pedot_th_8.pdf'
+figure_name = 'th_' +str(th)+'iridium_saline_VS_pedot.pdf'
 
 f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
 
@@ -973,7 +968,9 @@ ax2.bar(x_pos[1], means_Ir[1], yerr=errors_Ir[1], align='center', color ='g', ed
 #ax.set_xticks(x_pos)
 #ax.set_xticklabels(materials)
 #ax.set_title('saline_VS_pedot_iridium_probe')
+ax2.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
 
+ax1.tick_params(bottom='off', left='off', labelleft='on')
 
 ax1.spines['bottom'].set_visible(False)
 ax1.tick_params(axis='x',which='both',bottom=False)
@@ -984,7 +981,7 @@ plt.xlim(-.5,1.5)
 
 ax2.set_ylim(0,.1)
 #ax1.set_ylim(0,.6)
-ax1.set_ylim(1,1.5)
+ax1.set_ylim(.4,1)
 #ax1.set_yticks(np.arange(1000,1501,100))
 ax1.tick_params(axis='both', which='major', pad=15)
 ax2.tick_params(axis='both', which='major', pad=15)
@@ -1037,8 +1034,8 @@ plt.close()
 
 
 surgery_rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
-                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
-                           'F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
+                                'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                                'F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
                       
 RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
@@ -1046,10 +1043,12 @@ RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
 flatten_probe = ephys.probe_map.flatten()
 
-np.set_printoptions(suppress=True)
+#np.set_printoptions(suppress=True)
 
 
 all_rats_daily_impedance = [[] for _ in range(len(surgery_rat_summary_table_path))]
+all_rats_saline = [[] for _ in range(len(surgery_rat_summary_table_path))]
+all_rats_surgery = [[] for _ in range(len(surgery_rat_summary_table_path))]
 
 
 
@@ -1062,7 +1061,52 @@ for rat in range(len(surgery_rat_summary_table_path)):
         All_levels_post = prs.all_post_surgery_levels_paths(surgery_rat_summary_table_path[rat])
         sessions_subset = All_levels_post
         rat_daily_impedance = [[] for _ in range(len(All_levels_post))]
+        rat_saline = []
+        rat_surgery = []
+        
+        first_session = sessions_subset[0]      
+        impedance_path_first_session = os.path.join(hardrive_path, first_session) 
+        
+        #saline
+               
+        matching_files_test_probe = glob.glob(impedance_path_first_session + "\*saline*") 
+        
+        saline_all_measurements = np.zeros((len(matching_files_test_probe), 121))
+        
+        for i, imp in enumerate(matching_files_test_probe):
+            read_file = pd.read_csv(imp)
+            impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+            imp_remapped= impedance[flatten_probe]
+            saline_all_measurements[i,:] = imp_remapped
+                
+        mean_saline = np.mean(saline_all_measurements,axis=0)
+        rat_saline.append(mean_saline)
+        
+        print('saline_done')
+        #surgery
+        
+        matching_files_surgery_day = glob.glob(impedance_path_first_session + "\*surgery*")
+        
+        surgery_all_measurements = np.zeros((len(matching_files_surgery_day), 121))
+        
+        for i, imp in enumerate(matching_files_surgery_day):
+            read_file = pd.read_csv(imp)
+            impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+            imp_remapped= impedance[flatten_probe]
+            surgery_all_measurements[i,:] = imp_remapped
+                
+        mean_surgery = np.mean(surgery_all_measurements,axis=0)
+        
+        rat_surgery.append(mean_surgery)
+        print('surgery_done')
     
+    
+    
+        
+        #daily measure post surgery 
+        
+        
+        
         for s, session in enumerate(sessions_subset):
          
             #list_impedance_path = []
@@ -1072,6 +1116,8 @@ for rat in range(len(surgery_rat_summary_table_path)):
                # list_impedance_path.append(matching_file)
                 
             impedance_list_array=np.array(matching_files_daily_imp)
+            
+            
             session_all_measurements = np.zeros((len(impedance_list_array), 121))
             
             for i, imp in enumerate(impedance_list_array):
@@ -1081,16 +1127,19 @@ for rat in range(len(surgery_rat_summary_table_path)):
                 session_all_measurements[i,:] = imp_remapped
                     
             
-                mean_imp_session= np.mean(session_all_measurements,axis=0)
+            mean_imp_session= np.mean(session_all_measurements,axis=0)
                 #sem_imp= stats.sem(session_all_measurements,axis=0)
                 
-                rat_daily_impedance[s]=mean_imp_session
+            rat_daily_impedance[s]=mean_imp_session
                
                 #sem_impedance_Level_2_post[s,:]=sem_imp
-                print(session) 
+            print(session) 
             
         all_rats_daily_impedance[rat] = rat_daily_impedance
-        np.savetxt(csv_dir_path + csv_name, np.vstack(rat_daily_impedance).T, delimiter=',', fmt='%s')
+        all_rats_saline[rat] = rat_saline
+        all_rats_surgery[rat] = rat_surgery
+        
+        np.savetxt(csv_dir_path + csv_name, np.vstack((rat_saline,rat_surgery,rat_daily_impedance)).T, delimiter=',')
         
         
         print(rat) 
@@ -1099,6 +1148,182 @@ for rat in range(len(surgery_rat_summary_table_path)):
     except Exception: 
         print(session+ 'error')
         continue
+
+
+
+
+############################################
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+
+
+##########
+
+
+#test = np.array([ elem for singleList in all_rats_daily_impedance for elem in singleList]).T
+
+
+base_folder = 'F:/Videogame_Assay/Summary/Impedance/'
+
+Pt_summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
+                 'AK 41.1_impedance_summary.csv','AK 41.2_impedance_summary.csv']
+
+
+
+
+figure_name = 'daily_post_surgery_impedance.pdf'
+
+figure_name = 'daily_post_surgery_impedance.pdf'
+
+n =len(Pt_summary_list)
+
+f,ax= plt.subplots(figsize=(7,5))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+
+for s in range(n):
+    
+    f,ax= plt.subplots(figsize=(7,5))
+    
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine(left=False)
+    
+    summary_path = os.path.join(base_folder, Pt_summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    #th = 5000000 
+    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
+    #slicing =  summary[imp_ok]   
+    slice_median = np.nanmedian(summary,axis =0)
+    #plt.bar(range(len(slice_median)),slice_median)
+    error = stats.sem(summary, axis =0)
+    
+       
+    f= plt.plot(slice_median,marker = 'o',color= '#00BFFF')
+    #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+    f=plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='#00BFFF',color='#00BFFF', capsize=0)  #fmt='.'
+    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+    #plt.ticklabel_format(axis="y", style="sci")
+    ax.set_ylim(ymax=4500000)
+    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+    plt.yticks(np.arange(0,4500000 , 500000))
+   
+    
+    #plt.yticks()
+    plt.tight_layout()
+
+
+for s in range(n):
+    
+    f2,ax2= plt.subplots(figsize=(7,5))
+    
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine(left=False)
+    
+    summary_path = os.path.join(base_folder, Pt_summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    #th = 5000000 
+    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
+    #slicing =  summary[imp_ok]   
+    slice_median = np.nanmedian(summary,axis =0)
+    #plt.bar(range(len(slice_median)),slice_median)
+    error = stats.sem(summary, axis =0)
+
+    
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine(left=False)
+    ax2.bar(np.arange(len(slice_median)), slice_median, yerr=error, align='center', color ='#808080', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+    
+    ax2.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+   
+    #f2=plt.ticklabel_format(axis="y", style="sci")
+    #plt.ylim(ymax=4e6)
+
+    ax2.set_ylim(ymax=4500000)
+    ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+    plt.yticks(np.arange(0,4500000 , 500000))
+    
+    plt.tight_layout()
+    
+    
+    
+    
+    
+    f2.savefig(results_dir + figure_name2, transparent=True)
+
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
+
+
+
+y = summary[0,:]
+
+test = np.diff(y)
+
+
+ax1.spines['bottom'].set_visible(False)
+ax1.tick_params(axis='x',which='both',bottom=False)
+ax2.spines['top'].set_visible(False)
+ax1.spines['left'].set_visible(True)
+ax2.spines['left'].set_visible(True)
+plt.xlim(-.5,1.5)
+
+ax2.set_ylim(0,.1)
+#ax1.set_ylim(0,.6)
+ax1.set_ylim(.4,1)
+#ax1.set_yticks(np.arange(1000,1501,100))
+ax1.tick_params(axis='both', which='major', pad=15)
+ax2.tick_params(axis='both', which='major', pad=15)
+
+
+Ir_summary_list = ['AK 48.1_impedance_summary.csv','AK 48.4_impedance_summary.csv']
+n =len(Ir_summary_list)
+
+
+    
+    summary_path = os.path.join(base_folder, Ir_summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    #th = 5000000 
+    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]
+        
+    #slicing =  summary[imp_ok]   
+    slice_median = np.nanmedian(summary,axis =0)
+    #plt.bar(range(len(slice_median)),slice_median)
+    error = stats.sem(summary, axis =0)
+    
+
+
+#rate of change
+test_ir = stats.ttest_rel(summary[:,3],summary[:,4])
+print(test_ir)
+
+
+import pandas as pd
+prices = [30.4, 32.5, 31.7, 31.2, 32.7, 34.1, 35.8, 37.8, 36.3, 36.3, 35.6]
+
+price_series = pd.Series(summary[0,:])
+price_series.pct_change()
+
+
+
 
 
 
@@ -1121,13 +1346,6 @@ plt.plot(mean)
 
 
 
-
-
- np.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx,ball_on_idx)).T, delimiter=',', fmt='%s')
-           script_dir = os.path.join(hardrive_path + session) 
-           csv_dir_path = os.path.join(script_dir + '/events/')
-           #name of the .csv fileto create
-           csv_name = 'Trial_idx.cs
 
 
 
