@@ -40,8 +40,8 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 
-#RAT_ID = '33.2'
-#rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+RAT_ID = '33.2'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
 
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
@@ -1173,37 +1173,30 @@ if not os.path.isdir(results_dir):
 
 base_folder = 'F:/Videogame_Assay/Summary/Impedance/'
 
-Pt_summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
-                 'AK 41.1_impedance_summary.csv','AK 41.2_impedance_summary.csv']
+summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
+                 'AK 41.1_impedance_summary.csv','AK 41.2_impedance_summary.csv',
+                 'AK 48.1_impedance_summary.csv','AK 48.4_impedance_summary.csv']
 
 
 
 
-figure_name = 'daily_post_surgery_impedance.pdf'
-
-figure_name = 'daily_post_surgery_impedance.pdf'
-
-n =len(Pt_summary_list)
-
-f,ax= plt.subplots(figsize=(7,5))
-
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=False)
+n =len(summary_list)
 
 
 
 for s in range(n):
+      
     
+    figure_name = summary_list[s][:7] +'_impedance_summary.pdf'
+   
     f,ax= plt.subplots(figsize=(7,5))
-    
+ 
     sns.set()
     sns.set_style('white')
     sns.axes_style('white')
     sns.despine(left=False)
     
-    summary_path = os.path.join(base_folder, Pt_summary_list[s])
+    summary_path = os.path.join(base_folder, summary_list[s])
     summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
     #th = 5000000 
     #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
@@ -1213,30 +1206,33 @@ for s in range(n):
     error = stats.sem(summary, axis =0)
     
        
-    f= plt.plot(slice_median,marker = 'o',color= '#00BFFF')
+    plt.plot(slice_median,marker = 'o',color= '#6495ED')
     #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
-    f=plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='#00BFFF',color='#00BFFF', capsize=0)  #fmt='.'
+    plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
     ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
     #plt.ticklabel_format(axis="y", style="sci")
-    ax.set_ylim(ymax=4500000)
+    ax.set_ylim(ymax=9000000)
+    ax.set_xlim(xmax=30)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
-    plt.yticks(np.arange(0,4500000 , 500000))
-   
+    plt.yticks(np.arange(0,9000000 , 500000))
+    plt.title(summary_list[s][:7])
     
-    #plt.yticks()
     plt.tight_layout()
+    
+    f.savefig(results_dir + figure_name, transparent=True)
+    plt.close()
 
 
 for s in range(n):
     
-    f2,ax2= plt.subplots(figsize=(7,5))
-    
+    f,ax= plt.subplots(figsize=(7,5))
+    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
     sns.set()
     sns.set_style('white')
     sns.axes_style('white')
     sns.despine(left=False)
     
-    summary_path = os.path.join(base_folder, Pt_summary_list[s])
+    summary_path = os.path.join(base_folder, summary_list[s])
     summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
     #th = 5000000 
     #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
@@ -1245,70 +1241,78 @@ for s in range(n):
     #plt.bar(range(len(slice_median)),slice_median)
     error = stats.sem(summary, axis =0)
 
+    ax.bar(np.arange(len(slice_median)), slice_median, yerr=error, align='center', color ='#808080', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
     
-    sns.set()
-    sns.set_style('white')
-    sns.axes_style('white')
-    sns.despine(left=False)
-    ax2.bar(np.arange(len(slice_median)), slice_median, yerr=error, align='center', color ='#808080', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
-    
-    ax2.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
-   
-    #f2=plt.ticklabel_format(axis="y", style="sci")
-    #plt.ylim(ymax=4e6)
-
-    ax2.set_ylim(ymax=4500000)
-    ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
-    plt.yticks(np.arange(0,4500000 , 500000))
+    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+    ax.set_ylim(ymax=9000000)
+    #ax.set_xlim(xmax=30)
+    plt.title(summary_list[s][:7])
+    ax.set_ylim(ymax=5000000)
+    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+    plt.yticks(np.arange(0,5000000 , 500000))
     
     plt.tight_layout()
-    
-    
-    
-    
-    
-    f2.savefig(results_dir + figure_name2, transparent=True)
+           
+    f.savefig(results_dir + figure_name2, transparent=True)
+
+
+
+
 
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
 
-
-y = summary[0,:]
-
-test = np.diff(y)
-
-
-ax1.spines['bottom'].set_visible(False)
-ax1.tick_params(axis='x',which='both',bottom=False)
-ax2.spines['top'].set_visible(False)
-ax1.spines['left'].set_visible(True)
-ax2.spines['left'].set_visible(True)
-plt.xlim(-.5,1.5)
-
-ax2.set_ylim(0,.1)
-#ax1.set_ylim(0,.6)
-ax1.set_ylim(.4,1)
-#ax1.set_yticks(np.arange(1000,1501,100))
-ax1.tick_params(axis='both', which='major', pad=15)
-ax2.tick_params(axis='both', which='major', pad=15)
-
-
-Ir_summary_list = ['AK 48.1_impedance_summary.csv','AK 48.4_impedance_summary.csv']
-n =len(Ir_summary_list)
-
-
+for s in range(n):
     
-    summary_path = os.path.join(base_folder, Ir_summary_list[s])
-    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
-    #th = 5000000 
-    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]
-        
-    #slicing =  summary[imp_ok]   
-    slice_median = np.nanmedian(summary,axis =0)
-    #plt.bar(range(len(slice_median)),slice_median)
-    error = stats.sem(summary, axis =0)
+    f,ax= plt.subplots(figsize=(10,7))
+    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
     
+       
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine(left=False)
+    
+    summary_path = os.path.join(base_folder, summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)  
+    summary_T = summary.T
+    summary_to_plot = summary_T.tolist()
+    
+    plt.boxplot(summary_to_plot, showfliers=False)
+    sns.despine(top=True, right=True, left=False, bottom=False)
+    plt.title(summary_list[s][:7])
+    ax.yaxis.major.formatter._useMathText = True
+    plt.tight_layout()
+    
+    
+
+
+test = summary.T
+test_list  = test.tolist()
+
+
+
+
+
+f,ax = plt.subplots(figsize=(15,11),frameon=False)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=True)
+
+mean_imp = final_mean_impedance_Level_2_post.tolist()
+
+
+#plt.figure(frameon=False)
+plt.boxplot(test_list, showfliers=False)
+sns.despine(top=True, right=True, left=False, bottom=False)
+
+ax.yaxis.major.formatter._useMathText = True
+
+
+
+
 
 
 #rate of change
