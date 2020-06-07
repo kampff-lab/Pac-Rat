@@ -1182,19 +1182,65 @@ summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
 
 n =len(summary_list)
 
+#
+#
+#for s in range(n):
+#      
+#    
+#    figure_name = summary_list[s][:7] +'_impedance_summary_lineplot.pdf'
+#   
+#    f,ax= plt.subplots(figsize=(7,5))
+# 
+#    sns.set()
+#    sns.set_style('white')
+#    sns.axes_style('white')
+#    sns.despine(left=False)
+#    
+#    summary_path = os.path.join(base_folder, summary_list[s])
+#    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+#    #th = 5000000 
+#    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
+#    #slicing =  summary[imp_ok]   
+#    slice_median = np.nanmedian(summary,axis =0)
+#    #plt.bar(range(len(slice_median)),slice_median)
+#    error = stats.sem(summary, axis =0)
+#    
+#       
+#    plt.plot(slice_median,marker = 'o',color= '#6495ED')
+#    #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+#    plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
+#    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+#    #plt.ticklabel_format(axis="y", style="sci")
+#    ax.set_ylim(ymax=9000000)
+#    ax.set_xlim(xmax=30)
+#    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+#    plt.yticks(np.arange(0,9000000 , 500000))
+#    plt.title(summary_list[s][:7])
+#    
+#    plt.tight_layout()
+#    
+#    f.savefig(results_dir + figure_name, transparent=True)
+#    plt.close()
+#
+
+#all in one plot
+    
+ 
+
+    
+figure_name = '_impedance_summary_lineplot.pdf'
+   
+f,ax= plt.subplots(figsize=(10,7))
+ 
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
 
 
 for s in range(n):
       
     
-    figure_name = summary_list[s][:7] +'_impedance_summary.pdf'
-   
-    f,ax= plt.subplots(figsize=(7,5))
- 
-    sns.set()
-    sns.set_style('white')
-    sns.axes_style('white')
-    sns.despine(left=False)
     
     summary_path = os.path.join(base_folder, summary_list[s])
     summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
@@ -1205,62 +1251,140 @@ for s in range(n):
     #plt.bar(range(len(slice_median)),slice_median)
     error = stats.sem(summary, axis =0)
     
+    if s < 4:
        
-    plt.plot(slice_median,marker = 'o',color= '#6495ED')
-    #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
-    plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
-    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
-    #plt.ticklabel_format(axis="y", style="sci")
-    ax.set_ylim(ymax=9000000)
-    ax.set_xlim(xmax=30)
-    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
-    plt.yticks(np.arange(0,9000000 , 500000))
-    plt.title(summary_list[s][:7])
+        plt.plot(slice_median,marker = 'o',color= '#6495ED')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        ax.set_xlim(xmax=30)
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+    else:
+        
+        plt.plot(slice_median,marker = 'o',color= 'r')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='r', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        ax.set_xlim(xmax=30)
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+    #plt.yticks(np.arange(0,9000000 , 500000))
+    #plt.title(summary_list[s][:7])
+    #plt.close()
     
-    plt.tight_layout()
-    
-    f.savefig(results_dir + figure_name, transparent=True)
-    plt.close()
-
-
-for s in range(n):
-    
-    f,ax= plt.subplots(figsize=(7,5))
-    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
-    sns.set()
-    sns.set_style('white')
-    sns.axes_style('white')
-    sns.despine(left=False)
-    
-    summary_path = os.path.join(base_folder, summary_list[s])
-    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
-    #th = 5000000 
-    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
-    #slicing =  summary[imp_ok]   
-    slice_median = np.nanmedian(summary,axis =0)
-    #plt.bar(range(len(slice_median)),slice_median)
-    error = stats.sem(summary, axis =0)
-
-    ax.bar(np.arange(len(slice_median)), slice_median, yerr=error, align='center', color ='#808080', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
-    
-    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
-    ax.set_ylim(ymax=9000000)
-    #ax.set_xlim(xmax=30)
-    plt.title(summary_list[s][:7])
-    ax.set_ylim(ymax=5000000)
-    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
-    plt.yticks(np.arange(0,5000000 , 500000))
-    
-    plt.tight_layout()
-           
-    f.savefig(results_dir + figure_name2, transparent=True)
-
-
-
-
+plt.tight_layout()
 
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
+
+#plot diff 
+
+
+figure_name = '_impedance_summary_absdiff.pdf'
+   
+f,ax= plt.subplots(figsize=(10,7))
+ 
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+for s in range(n):
+      
+    
+    
+    summary_path = os.path.join(base_folder, summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    #summary =summary_open[:,2:]
+ 
+    test_diff= np.diff(summary)
+    diff_avg = np.abs(np.nanmedian(test_diff,axis=0))
+    error_diff = stats.sem(test_diff, axis =0)
+    #plt.figure()
+    
+    if s < 4:
+       
+        plt.plot(diff_avg,marker = 'o',color= '#6495ED')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        #plt.errorbar(range(len(diff_avg)), diff_avg, yerr= error_diff, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        ax.set_xlim(xmax=30)
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+    else:
+        
+        plt.plot(diff_avg,marker = 'o',color= 'r')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        #plt.errorbar(range(len(diff_avg)), diff_avg, yerr= error_diff, ecolor='k',color='r', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        ax.set_xlim(xmax=30)
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+    #plt.yticks(np.arange(0,9000000 , 500000))
+    #plt.title(summary_list[s][:7])
+    #plt.close()
+    
+plt.tight_layout()
+f.savefig(results_dir + figure_name, transparent=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#for s in range(n):
+#    
+#    f,ax= plt.subplots(figsize=(7,5))
+#    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
+#    sns.set()
+#    sns.set_style('white')
+#    sns.axes_style('white')
+#    sns.despine(left=False)
+#    
+#    summary_path = os.path.join(base_folder, summary_list[s])
+#    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+#    #th = 5000000 
+#    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
+#    #slicing =  summary[imp_ok]   
+#    slice_median = np.nanmedian(summary,axis =0)
+#    #plt.bar(range(len(slice_median)),slice_median)
+#    error = stats.sem(summary, axis =0)
+#
+#    ax.bar(np.arange(len(slice_median)), slice_median, yerr=error, align='center', color ='#808080', edgecolor ='white', width = .6,alpha=0.7, ecolor='black', capsize=0)
+#    
+#    ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+#    ax.set_ylim(ymax=9000000)
+#    #ax.set_xlim(xmax=30)
+#    plt.title(summary_list[s][:7])
+#    
+#    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+#    plt.yticks(np.arange(0,9000000 , 500000))
+#    
+#    plt.tight_layout()
+#           
+#    f.savefig(results_dir + figure_name, transparent=True)
+#    plt.close()
+#
+#
+
+
 
 
 for s in range(n):
@@ -1272,7 +1396,7 @@ for s in range(n):
     sns.set()
     sns.set_style('white')
     sns.axes_style('white')
-    sns.despine(left=False)
+    sns.despine(left=True)
     
     summary_path = os.path.join(base_folder, summary_list[s])
     summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)  
@@ -1284,6 +1408,10 @@ for s in range(n):
     plt.title(summary_list[s][:7])
     ax.yaxis.major.formatter._useMathText = True
     plt.tight_layout()
+    
+    f.savefig(results_dir + figure_name, transparent=True)
+    plt.close()
+
     
     
 
