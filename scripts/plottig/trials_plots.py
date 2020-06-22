@@ -29,8 +29,8 @@ if not os.path.isdir(results_dir):
 
 
 hardrive_path = r'F:/' 
-rat_ID = 'AK_33.2'
-rat_summary_table_path = r'F:/Videogame_Assay/AK_33.2_Pt.csv'
+rat_ID = 'AK_50.2'
+rat_summary_table_path = r'F:/Videogame_Assay/AK_50.2_behaviour_only.csv'
 
 
 
@@ -41,7 +41,7 @@ plot_main_title = 'RAT ' + rat_ID + ' Trial/Session'
 Level_1 = prs.Level_1_paths(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
+Level_3_pre = prs.Level_3_pre_paths(rat_summary_table_path)
 
 
 
@@ -66,8 +66,8 @@ ax[0,0].bar(x, missed_trials_L_1, bottom = success_trials_L_1, color ='b', edgec
 ax[0,0].legend(loc ='best', frameon=False , fontsize = 'x-small') #ncol=2
 ax[0,0].set_title('Level 1', fontsize = 13)
 ax[0,0].set_ylabel('Trials / Session', fontsize = 10)
-ax[0,0].set_ylim(ymin= 0,ymax= 200)
-plt.xticks((np.arange(0, 200, 50)))
+ax[0,0].set_ylim(ymin= 0,ymax= 300)
+plt.xticks((np.arange(0, 300, 50)))
 #ax[0,0].tick_params(axis='x',which='both',bottom=False)
 #ax[0,0].set_xlabel('Sessions')
 # Hide the right and top spines
@@ -200,7 +200,10 @@ for count, rat in enumerate(rat_summary_table_path):
     Level_1_6000 = prs.Level_1_paths_6000_3000(rat)
     Level_1_6000 = Level_1_6000[:sessions_to_consider]
     total_trials, session_length = behaviour.calculate_trial_per_min(Level_1_6000)
-    trials_per_minutes_L_1 = np.array(total_trials)/np.array(session_length)
+    success_trials, missed_trials = behaviour.calculate_trial_and_misses(Level_1_6000)
+    
+    #trials_per_minutes_L_1 = np.array(total_trials)/np.array(session_length)
+    trials_per_minutes_L_1 = np.array(success_trials)/np.array(session_length)
     rat_trial_min_Level_1[count,]=trials_per_minutes_L_1
     print(count)
 
@@ -238,9 +241,9 @@ rat_trial_min_Level_1[rat_trial_min_Level_1 == 0] = np.nan
 #    
 #    
 
-figure_name =  '_Trial_per_Session_colour_sem_level1.pdf'
+figure_name =  '_Trial_rewarded_per_Session_colour_sem_level1.pdf'
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -259,7 +262,7 @@ for count, row in enumerate(rat_trial_min_Level_1):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.xlim(-0.1,3.5)
-    plt.ylim(0,6)
+    plt.ylim(-0.2,6)
 
 
 mean_trial_speed = np.nanmean(rat_trial_min_Level_1, axis=0)
@@ -271,7 +274,7 @@ plt.plot(mean_trial_speed,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(4), mean_trial_speed, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
 
-plt.legend()
+#plt.legend()
 f.tight_layout()
 
 #SAVING
@@ -285,9 +288,12 @@ f.savefig(results_dir + figure_name, transparent=True)
 t_test = stats.ttest_rel(rat_trial_min_Level_1[:,0],rat_trial_min_Level_1[:,3])
 #Ttest_relResult(statistic=-4.348986156425727, pvalue=0.0011573324303187724)
 
+t_test_rewarded = stats.ttest_rel(rat_trial_min_Level_1[:,0],rat_trial_min_Level_1[:,3])
+#Ttest_relResult(statistic=-4.1616123362819275, pvalue=0.0015850232246721154)
 
-target = open(main_folder +"stats_Level_1_trial_per_min.txt", 'w')
-target.writelines(str(t_test)+' LEVEL 1: day 1 Vs day 4, PLOT: trial/min mean +- SEM, trials_plot.py')
+
+target = open(main_folder +"stats_REWARDED_ONLY_Level_1_trial_per_min.txt", 'w')
+target.writelines(str(t_test_rewarded)+' LEVEL 1: day 1 Vs day 4, PLOT: trial rewarded/min mean +- SEM, trials_plot.py')
 target.close()
 
 
@@ -433,11 +439,19 @@ for d, double in enumerate(double_sessions):
     Level_2_pre = prs.Level_2_pre_paths(double)
     Level_2_pre = Level_2_pre[:sessions_to_consider]
     total_trials, session_length = behaviour.calculate_trial_per_min(Level_2_pre)
+    #success_trials, missed_trials = behaviour.calculate_trial_and_misses(Level_1_6000)
     
 
-    trials_per_minutes_double = trials_per_minutes_L_2_pre = np.array(total_trials)/np.array(session_length)
+    trials_per_minutes_double = np.array(total_trials)/np.array(session_length)
     rat_trial_min_double[d,]=trials_per_minutes_double
     print(d)
+
+
+
+
+
+
+
 
 
     
@@ -485,7 +499,10 @@ for count, rat in enumerate(rat_summary_selection):
         Level_2_pre = prs.Level_2_pre_paths(rat)
         Level_2_pre = Level_2_pre[:sessions_to_consider]
         total_trials, session_length = behaviour.calculate_trial_per_min(Level_2_pre)
-        trials_per_minutes_L_2_pre = np.array(total_trials)/np.array(session_length)
+        success_trials, missed_trials = behaviour.calculate_trial_and_misses(Level_2_pre)
+    
+        trials_per_minutes_L_2_pre = np.array(success_trials)/np.array(session_length)
+        #trials_per_minutes_L_2_pre = np.array(total_trials)/np.array(session_length)
         rat_trial_min_Level_2_pre[count,]=trials_per_minutes_L_2_pre
         print(count)
     except Exception: 
@@ -498,16 +515,21 @@ final_array = np.insert(rat_trial_min_Level_2_pre, 0, array_33_2, 0)
 rat_trial_min_Level_2_pre_final = np.insert(final_array, 10, array_50_1, 0) 
 
 
+
+
+
 #t test 
 
 
 t_test_trial_per_min_Level_2 = stats.ttest_rel(rat_trial_min_Level_2_pre_final[:,0],rat_trial_min_Level_2_pre_final[:,4])
 #Ttest_relResult(statistic=-7.4017486831911725, pvalue=1.3568982038567815e-05)
 
+t_test_trial_per_min_Level_2_rewarded = stats.ttest_rel(rat_trial_min_Level_2_pre_final[:,0],rat_trial_min_Level_2_pre_final[:,4])
+#Ttest_relResult(statistic=-7.345068197447017, pvalue=1.4573202538736475e-05)
 
 
-target = open(main_folder +"stats_level_2_trial_per_minutes.txt", 'w')
-target.writelines(str(t_test_trial_per_min_Level_2) +' LEVEL 2: day 1 Vs day 5, PLOT: trial/min  +- SEM, trials_plot.py')
+target = open(main_folder +"stats_level_2_trial_rewarded_per_minutes.txt", 'w')
+target.writelines(str(t_test_trial_per_min_Level_2_rewarded) +' LEVEL 2: day 1 Vs day 5, PLOT: trial rewarded /min  +- SEM, trials_plot.py')
 
 target.close()
 
@@ -528,11 +550,11 @@ def find_max_list(list):
 
 #figure_name = 'Summary_Trial_per_Min_Level_2.png'
 
-figure_name = 'Summary_Trial_per_Min_Level_2_with_sem.pdf'
+figure_name = 'Summary_Trial_rewarded_per_Min_Level_2_with_sem.pdf'
 plot_main_title_ = 'Trial_per_Min_Level_2'
 
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -552,7 +574,7 @@ for count, row in enumerate(rat_trial_min_Level_2_pre_final):
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.ylim(0,3)
-    plt.legend()
+    #plt.legend()
     f.tight_layout()
 
 
@@ -619,7 +641,7 @@ for count, rat in enumerate(rat_summary_table_path):
 
 figure_name =  '_trial_count_level1.pdf'
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -634,11 +656,13 @@ for count, row in enumerate(success_L_1):
     plt.xlabel('Level 1 Sessions', fontsize = 13)
     #plt.xticks((np.arange(0, 5, 1)))
     ax.axes.get_xaxis().set_visible(True) 
+    #ax.set_ylim(ymin= -10 ,ymax= 260)
+    #plt.yticks((np.arange(0, 300, 50)))
        
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     #plt.xlim(-0.1,3.5)
-    #plt.ylim(0,6)
+    #plt.ylim(0,160)
 
 
 mean_trial_count = np.nanmean(success_L_1, axis=0)
@@ -650,7 +674,7 @@ plt.plot(mean_trial_count,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_count, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
 
-plt.legend()
+#plt.legend()
 f.tight_layout()
 
 #SAVING
@@ -678,7 +702,7 @@ target.close()
 
 figure_name =  '_missed_trial_level1.pdf'
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -691,7 +715,8 @@ for count, row in enumerate(miss_L_1):
     plt.title('Level 1 Trial count',fontsize = 16)
     plt.ylabel('trial number', fontsize = 13)
     plt.xlabel('Level 1 Sessions', fontsize = 13)
-    #plt.xticks((np.arange(0, 5, 1)))
+    plt.ylim(0,80)
+    plt.yticks((np.arange(0, 80, 20)))
     ax.axes.get_xaxis().set_visible(True) 
        
     ax.yaxis.set_ticks_position('left')
@@ -709,7 +734,7 @@ plt.plot(mean_trial_miss,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(4), mean_trial_miss, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
 
-plt.legend()
+#plt.legend()
 f.tight_layout()
 
 #SAVING
@@ -825,7 +850,7 @@ final_miss_L_2 = np.insert(final_miss, 10, miss_double_correct_50_1, 0)
 
 figure_name =  '_trial_count_level2.pdf'
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -858,7 +883,7 @@ plt.plot(mean_trial_count_L_2,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_count_L_2, yerr= sem_L_2, fmt='o', ecolor='k',color='k', capsize=2)  
 
-plt.legend()
+#plt.legend()
 f.tight_layout()
 
 #SAVING
@@ -882,7 +907,7 @@ target.close()
 
 figure_name =  '_missed_trial_level_2.pdf'
     
-f,ax = plt.subplots(figsize=(15,11))
+f,ax = plt.subplots(figsize=(8,7))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
@@ -895,7 +920,8 @@ for count, row in enumerate(final_miss_L_2):
     plt.title('Level 2 Trial count',fontsize = 16)
     plt.ylabel('trial number', fontsize = 13)
     plt.xlabel('Level 2 Sessions', fontsize = 13)
-    #plt.xticks((np.arange(0, 5, 1)))
+    #plt.ylim(0,10)
+    #plt.yticks((np.arange(0, 10, 1)))
     ax.axes.get_xaxis().set_visible(True) 
        
     ax.yaxis.set_ticks_position('left')
@@ -913,7 +939,7 @@ plt.plot(mean_trial_miss_L_2,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_miss_L_2, yerr= sem_L_2, fmt='o', ecolor='k',color='k', capsize=2)  
 
-plt.legend()
+#plt.legend()
 f.tight_layout()
 
 #SAVING

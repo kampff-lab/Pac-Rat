@@ -18,24 +18,394 @@ from matplotlib.colors import LogNorm
 from pylab import *
 from matplotlib.ticker import LogFormatterExponent
 import seaborn as sns 
+from scipy.spatial import distance
 
 
+import importlib
+importlib.reload(prs)
+importlib.reload(behaviour)
 
-rat_summary_table_path =r'F:/Videogame_Assay/AK_33.2_Pt.csv'
 hardrive_path = r'F:/' 
-RAT_ID = 'AK_33.2'
+
+rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_46.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
+                          'F:/Videogame_Assay/AK_48.3_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv', 
+                          'F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
+                        'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
+
+
+
+#colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
 
 
 #Level_0 = prs.Level_0_paths(rat_summary_table_path)
 #Level_1_6000_3000 = prs.Level_1_paths_6000_3000(rat_summary_table_path)
 #Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
 #Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
-Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
+# =============================================================================
+# Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
+# 
+# 
+# #saving a Trial_idx_csv containing the idx of start-end-touch 0-1-2
+# sessions_subset = Level_2_pre
+# behaviour.start_end_touch_ball_idx(sessions_subset)
+# =============================================================================
+
+#calcute speedtracking diff
+
+s = len(rat_summary_table_path)
+
+Level_2_start_to_touch_speed_all_rats = [[] for _ in range(s)]
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         
+         session_speed = behaviour.session_speed_crop_tracking(sessions_subset)
+         Level_2_start_to_touch_speed = behaviour.speed_start_to_touch(sessions_subset, session_speed)
+         
+         Level_2_start_to_touch_speed_all_rats[r] = Level_2_start_to_touch_speed
+         
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+   
+#####################################################################
 
 
-#saving a Trial_idx_csv containing the idx of start-end-touch 0-1-2
-sessions_subset = Level_2_pre
-behaviour.start_end_touch_ball_idx(sessions_subset)
+s = len(rat_summary_table_path)
+
+st_all_rats = [[] for _ in range(s)]
+te_all_rats = [[] for _ in range(s)]
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         
+         st_time, te_time = time_to_events(sessions_subset)
+         
+         st_all_rats[r] = st_time
+         te_all_rats[r] = te_time
+         
+    
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue  
+
+
+
+
+
+# =============================================================================
+#  
+ 
+# rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv']
+# rat = rat_summary_table_path[0]
+# Level_2_pre = prs.Level_2_pre_paths(rat)
+# sessions_subset = Level_2_pre[0]
+ 
+# =============================================================================
+#
+
+
+ 
+#calculating distance rat at start- ball position + dist rat at touch and poke   
+
+s = len(rat_summary_table_path)
+
+rat_ball_all_rats = [[] for _ in range(s)]
+rat_poke_all_rats = [[] for _ in range(s)]
+before_touch_all_rats= [[] for _ in range(s)]
+after_touch_all_rats = [[] for _ in range(s)]
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         
+         rat_ball, rat_poke, before_touch, after_touch = distance_events(sessions_subset)
+         
+         rat_ball_all_rats[r] = rat_ball
+         rat_poke_all_rats[r] = rat_poke
+         before_touch_all_rats[r] = before_touch
+         after_touch_all_rats[r] = after_touch
+         
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+
+
+
+##########################################
+        
+    
+    
+    
+
+f,ax = plt.subplots(figsize=(15,5))
+
+for rat in arange(len(rat_summary_table_path)):
+    
+      
+    before  = before_touch_all_rats[rat]
+    after = after_touch_all_rats [rat]
+
+
+    flattened_before = [val for sublist in before for val in sublist]
+    flattened_after = [val for sublist in after for val in sublist]
+    
+    delta = np.array(flattened_after) - np.array(flattened_before)
+    print(rat)
+    print(len(flattened_before))
+    print(len(flattened_after))
+    
+   # plt.figure()
+    plt.plot(delta, 'o', alpha=1, markersize=.7,color='k')  
+
+    #plt.bar(range(len(delta)),delta, width= 0.05)
+    #plt.boxplot(flattened_before,flattened_after)
+    
+    ax.hlines(0,0,800,linewidth=0.5)
+    
+
+
+
+
+
+for r in 
+test = before_touch_all_rats[0]
+test2 = after_touch_all_rats[0]
+
+delta_touch =[]
+
+for i in range(len(test)):
+    
+    before  = test[i]
+    after = test2[i]
+    delta = np.array(before)-np.array(after)
+    delta_touch.append(delta)
+
+plt.plot(delta_touch[1],'.')
+
+
+###########################################
+rat_poke_all_rats
+rat_ball_all_rats
+st_all_rats 
+
+#test plots
+
+
+
+plt.figure()
+for rat in arange(len(rat_summary_table_path)):
+    
+      
+    rat_ball_selection  = rat_ball_all_rats[rat]
+    st_selection = st_all_rats [rat]
+
+
+    flattened_rat_ball = [val for sublist in rat_ball_selection for val in sublist]
+    flattened_st = [val for sublist in st_selection for val in sublist]
+    print(rat)
+    print(len(flattened_rat_ball))
+    print(len(flattened_st))
+    
+    plt.plot(flattened_rat_ball,flattened_st, '.', alpha=.7, markersize=.5, color= 'k')
+
+################################################################
+
+rat_poke_all_rats
+te_all_rats 
+
+plt.figure()
+for rat in arange(len(rat_summary_table_path)):
+    
+      
+    rat_poke_selection  = rat_poke_all_rats[rat]
+    te_selection = te_all_rats [rat]
+
+
+    flattened_rat_poke = [val for sublist in rat_poke_selection for val in sublist]
+    flattened_te = [val for sublist in te_selection for val in sublist]
+    print(rat)
+    print(len(flattened_rat_poke))
+    print(len(flattened_te))
+    
+    plt.plot(flattened_rat_poke, flattened_te, '.', alpha=.7, markersize=.5, color= 'k')
+
+#############################################################
+
+
+
+
+
+
+plt.figure()
+for rat in arange(len(rat_summary_table_path)):
+    
+      
+    rat_ball_selection  = rat_ball_all_rats[rat]
+    st_speed = Level_2_start_to_touch_speed_all_rats[rat]
+
+
+    flattened_rat_ball = [val for sublist in rat_ball_selection for val in sublist]
+    flattened_st_speed = [val for sublist in st_speed for val in sublist]
+    print(rat)
+    print(len(flattened_rat_ball))
+    print(len(flattened_st_speed))
+    
+    plt.plot(flattened_rat_ball,flattened_st_speed, '.', alpha=.7, markersize=.5, color= 'k')
+    
+    
+    
+
+
+
+
+
+
+
+   
+def distance_events(sessions_subset,frames=120):
+    
+    poke = [1400,600]
+    l = len(sessions_subset)
+    rat_ball = [[] for _ in range(l)]
+    rat_poke = [[] for _ in range(l)]
+    before_touch = [[] for _ in range(l)]
+    after_touch = [[] for _ in range(l)]
+    
+    
+    for count in np.arange(l):
+        
+        session = sessions_subset[count]
+        
+        try:
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+            trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+                
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
+            ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
+            
+            start = trial_idx[:,0]
+            rat_position_at_start = crop[start]
+            touch = trial_idx[:,2]
+            rat_position_at_touch = crop[touch]
+            rat_before_ball = crop[touch - frames]
+            rat_after_ball = crop[touch + frames]
+            
+            session_rat_ball_dist = []
+            session_rat_poke_dist = []
+            session_rat_before_touch=[]
+            session_rat_after_touch=[]
+            
+            
+            for e in range(len(start)):
+                
+                #dist = distance.euclidean(rat_position_at_start[e], ball_coordinates[e])
+                dist_rat_ball = (np.sqrt(np.nansum((rat_position_at_start[e]-ball_coordinates[e])**2)))
+                dist_rat_poke = (np.sqrt(np.nansum((rat_position_at_touch[e]-poke)**2)))
+                dist_before_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_before_ball)**2)))
+                dist_after_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_after_ball)**2)))
+                
+                
+                session_rat_ball_dist.append(dist_rat_ball)
+                session_rat_poke_dist.append(dist_rat_poke)
+                session_rat_before_touch.append(dist_before_touch)
+                session_rat_after_touch.append(dist_after_touch)
+                
+            rat_ball[count]=session_rat_ball_dist
+            rat_poke[count]=session_rat_poke_dist
+            before_touch[count]=session_rat_before_touch
+            after_touch[count]=session_rat_after_touch
+            
+            
+        except Exception: 
+            print('error'+ session)
+        continue
+    
+    return rat_ball, rat_poke, before_touch, after_touch
+
+
+
+
+
+
+
+
+def time_to_events(sessions_subset):
+    
+    l = len(sessions_subset)
+    st_time = [[] for _ in range(l)]
+    te_time = [[] for _ in range(l)]
+    
+    for count in np.arange(l):
+        
+        session = sessions_subset[count]
+        
+        try:
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+            trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+    
+            #selecting the column of touch and start, calculate the abs diff in order to calculate the 
+            #how long it took to touch the ball from the start of the trial
+            start_touch_diff = abs(trial_idx[:,0] - trial_idx[:,2])
+            touch_end_diff = abs(trial_idx[:,0] - trial_idx[:,1])
+            st_time[count] = start_touch_diff
+            te_time[count] = touch_end_diff
+              
+        except Exception: 
+            print('error'+ session)
+        continue
+                            
+    return st_time, te_time
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #calculate speed for all the session (adapted to use nose corrected coordinates instead of the crop that we used originally)

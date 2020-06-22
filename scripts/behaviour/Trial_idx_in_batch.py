@@ -19,20 +19,61 @@ import importlib
 importlib.reload(prs)
 importlib.reload(behaviour)
 
-
-rat_summary_table_path = 'F:/Videogame_Assay/AK_41.2_Pt.csv'
 hardrive_path = r'F:/' 
 
-Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
-sessions_subset = Level_2_pre
+rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_46.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
+                          'F:/Videogame_Assay/AK_48.3_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv', 
+                          'F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
+                        'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
 
 
-Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-sessions_subset = Level_2_post
+
+#colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
+
+
+#Level 2 saving trial idx in each session folder under events folder
+
+for count, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre
+         
+         behaviour.start_end_touch_ball_idx(sessions_subset)
+         print(rat)
+         print(count)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+    
+    
+         
+#Level 3 saving trial idx in each session folder under events folder
+
+for count, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_3_pre = prs.Level_3_pre_paths(rat)
+         sessions_subset = Level_3_pre
+         
+         behaviour.start_end_touch_ball_idx(sessions_subset)
+         print(rat)
+         print(count)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+    
+    
+         
 
 
 
-behaviour.start_end_touch_ball_idx(sessions_subset)
+
 
 
 

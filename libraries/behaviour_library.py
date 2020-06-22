@@ -22,7 +22,7 @@ hardrive_path = r'F:/'
 #5 total_trials, session_length = calculate_trial_per_min(sessions_subset)
 #6 full_trials_speed_seconds = calculate_full_trial_speed(sessions_subset)
 #7 touch_to_reward_speed_seconds = calculate_trial_speed_from_ball_touch(sessions_subset)
-#8 start_touch_end_idx(sessions_subset)
+#8 start_end_touch_ball_idx(sessions_subset)
 #9 start_end_idx(sessions_subset)
 #10 sessions_speed = session_speed(sessions_subset)
 #11 Level_2_touch_to_reward_speed = speed_touch_to_reward(sessions_subset, sessions_speed)
@@ -389,7 +389,40 @@ def session_speed(sessions_subset):
                                
     return sessions_speed 
 
+###########################################
+    
+#same but for crop.csv
 
+def session_speed_crop_tracking(sessions_subset):       
+    n = len(sessions_subset)   
+    sessions_speed = [[] for _ in range(n)] 
+        
+    for count, session in enumerate(sessions_subset):  
+        
+        try: 
+            
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+
+            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+            
+            #select x and y positions from the dlc file
+            trajectory_x = crop[:,0]
+            trajectory_y = crop[:,1]
+            #prepend a 0 in front of the file to maintan the same file lenght after diff
+            diff_x = np.diff(trajectory_x, prepend = 0)
+            diff_y = np.diff(trajectory_y, prepend = 0)    
+            diff_x_square = diff_x**2
+            diff_y_square = diff_y**2
+            speed = np.sqrt(diff_x_square + diff_y_square)
+            sessions_speed[count] = speed
+              
+        except Exception: 
+            print('error'+ session)
+        continue
+                               
+    return sessions_speed 
 ####################################   11   ##########################################
 
 #used for Level 2 andcalculate the speed from touch to reward collection, in order to use this fx
@@ -499,7 +532,40 @@ def speed_around_touch(sessions_subset,sessions_speed, offset = 360):
     return speed_around_touch_Level_2
                 
                 
-                        
+#####################################################################
+
+
+
+def time_to_events(sessions_subset):
+    
+    l = len(sessions_subset)
+    st_time = [[] for _ in range(l)]
+    te_time = [[] for _ in range(l)]
+    
+    for count in np.arange(l):
+        
+        session = sessions_subset[count]
+        
+        try:
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+            trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+    
+            #selecting the column of touch and start, calculate the abs diff in order to calculate the 
+            #how long it took to touch the ball from the start of the trial
+            start_touch_diff = abs(trial_idx[:,0] - trial_idx[:,2])
+            touch_end_diff = abs(trial_idx[:,0] - trial_idx[:,1])
+            st_time[count] = start_touch_diff
+            te_time[count] = touch_end_diff
+              
+        except Exception: 
+            print('error'+ session)
+        continue
+                            
+    return st_time, te_time                        
                         
                         
 #                        

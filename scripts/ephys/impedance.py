@@ -25,6 +25,7 @@ import os
 import glob
 from scipy import stats
 import ephys_library as ephys
+hardrive_path = r'F:/' 
 
 
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
@@ -691,7 +692,7 @@ plt.close()
 #plt.minorticks_off() 
 ######################################data cleaning
 
-th = 1
+th = 5
 
 Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < th]
 
@@ -710,6 +711,15 @@ sem_pedot_Pt = stats.sem(flat_pedot_Pt_cleaned)
 
 
 test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
+
+
+
+target = open(main_folder +"stats_Pt_saline_VS_PEDOT.txt", 'w')
+target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 479, impedance.py')
+
+target.close()
+
+
 
 #th 5 =  Ttest_relResult(statistic=19.698943557103416, pvalue=1.1115078141741984e-63) n = 479
 #th 8 =  Ttest_relResult(statistic=15.086107783897232, pvalue=2.052201403381959e-42)  n = 484
@@ -908,13 +918,13 @@ plt.tight_layout()
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
-
+__
 
 
 #####################cleaning con th 5 e 10
 
 
-th = 1
+th = 5
 
 
 Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < th]
@@ -934,10 +944,26 @@ sem_pedot_Ir = stats.sem(flat_pedot_Ir_cleaned)
 
 
 test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
+
+
 #th 5 = statistic=28.456691199228985, pvalue=2.387479347949912e-75  n = 219
 #th 8 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 #th 10 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 # th 1 =  Ttest_relResult(statistic=20.991170460032713, pvalue=6.457309854275329e-31n = 67
+
+
+
+
+#Ttest_relResult(statistic=-5.1325785753223885, pvalue=0.0003269935176528684)
+
+
+target = open(main_folder +"stats_IrOx_saline_VS_PEDOT.txt", 'w')
+target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=219,, impedance.py')
+
+target.close()
+
+
+
 
 #####
 
@@ -1223,7 +1249,7 @@ n =len(summary_list)
 #    plt.close()
 #
 
-#all in one plot
+#USED all in one plot
     
  
 
@@ -1260,6 +1286,7 @@ for s in range(n):
         #plt.ticklabel_format(axis="y", style="sci")
         #ax.set_ylim(ymax=9000000)
         ax.set_xlim(xmax=30)
+        #ax.set_yscale('log')
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
     else:
@@ -1271,6 +1298,7 @@ for s in range(n):
         #plt.ticklabel_format(axis="y", style="sci")
         #ax.set_ylim(ymax=9000000)
         ax.set_xlim(xmax=30)
+        #ax.set_yscale('log')
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
     #plt.yticks(np.arange(0,9000000 , 500000))
@@ -1282,7 +1310,123 @@ plt.tight_layout()
 f.savefig(results_dir + figure_name, transparent=True)
 plt.close()
 
-#plot diff 
+
+
+#used for saline surgery and day one comparison
+
+figure_name = '_impedance_saline_surgery_day1_lineplot.pdf'
+   
+f,ax= plt.subplots(figsize=(8,7))
+ 
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+t_tests = np.zeros((n,3))
+
+
+
+#target = open(main_folder +"stats_IrOx_saline_VS_PEDOT.txt", 'w')
+#target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=219,, impedance.py')
+#
+#target.close()
+#
+
+
+
+
+
+for s in range(n):
+      
+    
+    
+    summary_path = os.path.join(base_folder, summary_list[s])
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    #th = 5000000 
+    #imp_ok = [i for i,v in enumerate(summary[:,0]) if v < th]        
+    #slicing =  summary[imp_ok]   
+    slice_median = np.nanmedian(summary,axis =0)
+    #plt.bar(range(len(slice_median)),slice_median)
+    error = stats.sem(summary, axis =0)
+    slice_median_to_use = slice_median[:3]
+    error_to_use = error[:3]
+    t_tests[s]=slice_median_to_use
+
+    if s < 4:
+       
+        plt.plot(slice_median_to_use,marker = 'o',color= '#6495ED')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        plt.errorbar(range(len(slice_median_to_use)), slice_median_to_use, yerr= error_to_use, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        #ax.set_xlim(xmax=30)
+        #ax.set_yscale('log')
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+    else:
+        
+        plt.plot(slice_median_to_use,marker = 'o',color= 'r')
+        #plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+        plt.errorbar(range(len(slice_median_to_use)), slice_median_to_use, yerr= error_to_use, ecolor='k',color='r', capsize=0,elinewidth = 1)  #fmt='.'
+        ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
+        #plt.ticklabel_format(axis="y", style="sci")
+        #ax.set_ylim(ymax=9000000)
+        #ax.set_xlim(xmax=4)
+        #ax.set_yscale('log')
+        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+        
+        
+    #plt.yticks(np.arange(0,9000000 , 500000))
+    #plt.title(summary_list[s][:7])
+    #plt.close()
+    
+plt.tight_layout()
+
+f.savefig(results_dir + figure_name, transparent=True)
+plt.close()
+
+#stats
+
+comparison_saline_day1_Pt = stats.ttest_rel(t_tests[:4,0],t_tests[:4,2])
+Ttest_relResult(statistic=-3.3139623662137554, pvalue=0.04525781899003773)
+
+comparison_saline_day1_Ir = stats.ttest_rel(t_tests[4:5,0],t_tests[4:5,2])
+
+
+
+
+#target = open(main_folder +"stats_IrOx_saline_VS_PEDOT.txt", 'w')
+#target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=219,, impedance.py')
+#
+#target.close()
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#USED plot diff over days 
 
 
 figure_name = '_impedance_summary_absdiff.pdf'
@@ -1306,6 +1450,7 @@ for s in range(n):
     test_diff= np.diff(summary)
     diff_avg = np.abs(np.nanmedian(test_diff,axis=0))
     error_diff = stats.sem(test_diff, axis =0)
+    
     #plt.figure()
     
     if s < 4:
@@ -1386,96 +1531,95 @@ f.savefig(results_dir + figure_name, transparent=True)
 
 
 
-
-for s in range(n):
-    
-    f,ax= plt.subplots(figsize=(10,7))
-    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
-    
-       
-    sns.set()
-    sns.set_style('white')
-    sns.axes_style('white')
-    sns.despine(left=True)
-    
-    summary_path = os.path.join(base_folder, summary_list[s])
-    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)  
-    summary_T = summary.T
-    summary_to_plot = summary_T.tolist()
-    
-    plt.boxplot(summary_to_plot, showfliers=False)
-    sns.despine(top=True, right=True, left=False, bottom=False)
-    plt.title(summary_list[s][:7])
-    ax.yaxis.major.formatter._useMathText = True
-    plt.tight_layout()
-    
-    f.savefig(results_dir + figure_name, transparent=True)
-    plt.close()
-
-    
-    
-
-
-test = summary.T
-test_list  = test.tolist()
-
-
-
-
-
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
-mean_imp = final_mean_impedance_Level_2_post.tolist()
-
-
-#plt.figure(frameon=False)
-plt.boxplot(test_list, showfliers=False)
-sns.despine(top=True, right=True, left=False, bottom=False)
-
-ax.yaxis.major.formatter._useMathText = True
-
-
-
-
-
-
-#rate of change
-test_ir = stats.ttest_rel(summary[:,3],summary[:,4])
-print(test_ir)
-
-
-import pandas as pd
-prices = [30.4, 32.5, 31.7, 31.2, 32.7, 34.1, 35.8, 37.8, 36.3, 36.3, 35.6]
-
-price_series = pd.Series(summary[0,:])
-price_series.pct_change()
-
-
-
-
-
-
-
-impedance_post_surgery = np.zeros([len(test),len(max(test,key = lambda x: len(x)))])
-impedance_post_surgery[:] = np.NaN
-
-
-    
-for i,j in enumerate(all_rats_daily_impedance):
-    
-    sns.heatmap(test)
- test =  
-
-
-test1= np.vstack(all_rats_daily_impedance[0])
-mean = np.mean(test,axis=0)
-plt.plot(mean)
-
-
+#
+#for s in range(n):
+#    
+#    f,ax= plt.subplots(figsize=(10,7))
+#    figure_name = summary_list[s][:7] +'_impedance_summary_barplot.pdf'
+#    
+#       
+#    sns.set()
+#    sns.set_style('white')
+#    sns.axes_style('white')
+#    sns.despine(left=True)
+#    
+#    summary_path = os.path.join(base_folder, summary_list[s])
+#    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)  
+#    summary_T = summary.T
+#    summary_to_plot = summary_T.tolist()
+#    
+#    plt.boxplot(summary_to_plot, showfliers=False)
+#    sns.despine(top=True, right=True, left=False, bottom=False)
+#    plt.title(summary_list[s][:7])
+#    ax.yaxis.major.formatter._useMathText = True
+#    plt.tight_layout()
+#    
+#    f.savefig(results_dir + figure_name, transparent=True)
+#    plt.close()
+#
+#    
+#    
+#
+#
+#test = summary.T
+#test_list  = test.tolist()
+#
+#
+#
+#
+#
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#mean_imp = final_mean_impedance_Level_2_post.tolist()
+#
+#
+##plt.figure(frameon=False)
+#plt.boxplot(test_list, showfliers=False)
+#sns.despine(top=True, right=True, left=False, bottom=False)
+#
+#ax.yaxis.major.formatter._useMathText = True
+#
+#
+#
+#
+#
+#
+##rate of change
+#test_ir = stats.ttest_rel(summary[:,3],summary[:,4])
+#print(test_ir)
+#
+#
+#import pandas as pd
+#prices = [30.4, 32.5, 31.7, 31.2, 32.7, 34.1, 35.8, 37.8, 36.3, 36.3, 35.6]
+#
+#price_series = pd.Series(summary[0,:])
+#price_series.pct_change()
+#
+#
+#
+#
+#
+#
+#
+#impedance_post_surgery = np.zeros([len(test),len(max(test,key = lambda x: len(x)))])
+#impedance_post_surgery[:] = np.NaN
+#
+#
+#    
+#for i,j in enumerate(all_rats_daily_impedance):
+#    
+#    sns.heatmap(test)
+# test =  
+#
+#
+#test1= np.vstack(all_rats_daily_impedance[0])
+#mean = np.mean(test,axis=0)
+#plt.plot(mean)
+#
 
 
 

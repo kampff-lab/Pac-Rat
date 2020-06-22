@@ -25,9 +25,9 @@ import matplotlib.ticker as ticker
 
 #RATs for figure 1 = 33.2, 40.2 ,50.1
 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv'
+rat_summary_table_path = 'F:/Videogame_Assay/AK_49.1_behaviour_only.csv'
 hardrive_path = r'F:/' 
-rat_ID = 'AK_50.2'
+rat_ID = 'AK_49.1'
 
 
 Level_0 = prs.Level_0_paths(rat_summary_table_path)
@@ -36,8 +36,8 @@ Level_1_6000_3000 = prs.Level_1_paths_6000_3000(rat_summary_table_path)
 Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
 Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
-#Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-#Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+Level_3_pre = prs.Level_3_pre_paths(rat_summary_table_path)
 
 #main folder rat ID
 main_folder = 'E:/thesis_figures/'
@@ -92,7 +92,7 @@ for i, session in enumerate(sessions_subset):
         y_centroid = (y - min(y))   
         ax = f0.add_subplot(1, 1, 1+i, frameon=False)
  
-        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4) #density = True
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -211,7 +211,8 @@ for i, session in enumerate(sessions_subset):
         y_centroid = (y - min(y))
         ax = f2.add_subplot(1, 1, 1, frameon=False) 
         
-        plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        #plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-7, vmax=10e-4)
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -225,6 +226,7 @@ for i, session in enumerate(sessions_subset):
         f2.subplots_adjust(top = 0.87)
         
         f2.savefig(results_dir + figure_name2, transparent=True)
+        print(i)
         plt.close()
 
         #ax.set_ylabel('Trials / Session', fontsize = 10)
@@ -280,7 +282,8 @@ for i, session in enumerate(sessions_subset):
         y_centroid = (y - min(y))
         ax = f4.add_subplot(1, 1, 1, frameon=False) 
         
-        plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        #plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4)
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -352,7 +355,8 @@ for i, session in enumerate(sessions_subset):
         ax = f5.add_subplot(1, 1, 1+i, frameon=False)
  
 
-        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        #plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4)
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -386,7 +390,7 @@ plt.close()
 
 
 
-sessions_subset = Level_2_pre[:3]
+sessions_subset = Level_2_pre[:5]
    
 
 
@@ -425,7 +429,8 @@ for i, session in enumerate(sessions_subset):
         y_centroid = (y - min(y))
         ax = f6.add_subplot(1, 1, 1, frameon=False) 
         
-        plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        #plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4)
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -439,6 +444,7 @@ for i, session in enumerate(sessions_subset):
         f6.subplots_adjust(top = 0.87)
         
         f6.savefig(results_dir + figure_name6, transparent=True)
+        print(i)
         plt.close()
 
         #ax.set_ylabel('Trials / Session', fontsize = 10)
@@ -448,7 +454,74 @@ for i, session in enumerate(sessions_subset):
         continue    
 
 
+###################level 3 moving 
+        
 
+
+sessions_subset = Level_3_pre
+   
+
+
+number_of_subplots= len(sessions_subset)
+
+
+#f,ax = plt.subplots(2,4,figsize=(20,10),sharex=True, sharey=True)
+#f2 =plt.figure(figsize=(20,10))
+#f2.suptitle(plot_main_title)
+
+percentage_at_poke_level_3  = []
+   
+for i, session in enumerate(sessions_subset): 
+    try:
+        f6= plt.figure(i)
+        #f2.suptitle(plot_main_title)
+        figure_name6 =  'RAT_' + rat_ID + '_'+ session[-16:] +'_lognorm_heatmap_Level_3.pdf'
+
+        x_ROI = []
+        y_ROI = []
+        centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+        centroid_tracking = np.genfromtxt(centroid_tracking_path, delimiter = ',', dtype = float)
+        centroid_tracking_wo_nan = centroid_tracking[~np.isnan(centroid_tracking).any(axis=1)]
+        x = centroid_tracking_wo_nan[:,0]
+        y = centroid_tracking_wo_nan[:,1]
+        for e in range(len(x)):
+            if x[e]>1250.0 and  450.0 <y[e] <750.0:
+                x_ROI.append(x[e])
+                y_ROI.append(y[e])
+            else:
+                continue
+        percentage = (len(x_ROI)/len(x))*100
+        percentage_at_poke_level_3.append(percentage)
+ 
+        x_centroid = (x - min(x))
+        y_centroid = (y - min(y))
+        ax = f6.add_subplot(1, 1, 1, frameon=False) 
+        
+        #plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4)
+        plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
+        ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
+        plt.xticks([0,600,1200])
+        plt.yticks([0,450,900])
+        sns.axes_style("white")     
+        plt.ylim(0, None)
+        plt.xlim(0, None)
+
+        
+        f6.tight_layout()
+        f6.subplots_adjust(top = 0.87)
+        
+        f6.savefig(results_dir + figure_name6, transparent=True)
+        print(i)
+        #plt.close()
+
+        #ax.set_ylabel('Trials / Session', fontsize = 10)
+        #ax.set_xlabel('Sessions', fontsize = 10)
+    except Exception: 
+        print (session + '/error')
+        continue    
+    
+    
 
 
 
@@ -577,6 +650,10 @@ np.savetxt(csv_dir_path + csv_name,final_percentage_array_level_0 , delimiter=',
 #level 0 boxplot as example 
 
 #test = np.array(flatten_probe[bad_channels_idx[5]])
+
+
+
+
 main_folder = 'E:/thesis_figures/'
 figure_folder = 'Tracking_figures/'
 
@@ -592,16 +669,19 @@ test= np.array((percentage_at_poke_level_0))
 figure_name =   'summary_level_0_at_poke.pdf'
 
 
-f,ax = plt.subplots(figsize=(15,11),frameon=False)
+f,ax = plt.subplots(figsize=(8,7),frameon=True)
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
-sns.despine(left=True)
+sns.despine(left=False)
 
 
 #plt.figure(frameon=False)
 plt.boxplot(test, showfliers=True)
 sns.despine(top=True, right=True, left=False, bottom=False)
+
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
 
 ax.yaxis.major.formatter._useMathText = True
 plt.ylim(0,30)
@@ -726,6 +806,181 @@ np.savetxt(csv_dir_path + csv_name,final_percentage_array_level_2 , delimiter=',
 
 
 
+#plotting from file 
+
+
+
+rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_46.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
+                          'F:/Videogame_Assay/AK_48.3_behaviour_only.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv',
+                          'F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
+                         'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
+
+
+
+
+
+
+poke_files = ['F:/Videogame_Assay/Summary/Impedance/summary_Level_1_percentage_at_poke.csv',
+              'F:/Videogame_Assay/Summary/Impedance/summary_Level_2_percentage_at_poke.csv']
+
+
+
+test_open = np.genfromtxt(poke_files[0],delimiter=',')
+
+
+
+
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+
+figure_name =   'summary_level_1_at_poke_with_mask.pdf'
+
+file = poke_files[0]
+at_poke = np.genfromtxt(file,delimiter=',')
+
+
+####test mask nana 
+# Filter data using np.isnan
+mask = ~np.isnan(at_poke)
+filtered_data = [d[m] for d, m in zip(at_poke.T, mask.T)]
+
+
+
+
+
+f,ax = plt.subplots(figsize=(8,7))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+#plt.figure(frameon=False)
+plt.boxplot(filtered_data, showfliers=True)
+sns.despine(top=True, right=True, left=False, bottom=False)
+
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
+
+ax.yaxis.major.formatter._useMathText = True
+plt.ylim(0,100)
+
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+#######lines
+
+
+colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
+
+
+figure_name =   'summary_level_1_at_poke_lines.pdf'
+    
+f,ax = plt.subplots(figsize=(10,8))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+for count, row in enumerate(filtered_data):
+    
+    plt.plot(row.T, color = colours[count], marker = 'o', alpha = .3, label = RAT_ID[count])
+    plt.title('Level 2 Trial/Min', fontsize = 16)
+    plt.ylabel('Trial/Min', fontsize = 13)
+    plt.xlabel('Level 2 Sessions', fontsize = 13)
+    #plt.xticks((np.arange(0, 5, 1)))
+    #plt.xlim(-0.1,4.5)
+    #plt.yticks((np.arange(0, 4, .5)))
+   
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    #plt.ylim(0,3)
+    #plt.legend()
+    f.tight_layout()
+
+
+#f.savefig(results_dir + figure_name, transparent=True)       
+    
+mean_trial_speed = np.nanmean(filtered_data, axis=0)
+
+#sem = stats.sem(filtered_data, nan_policy='omit', axis=0)
+
+
+plt.plot(mean_trial_speed,marker = 'o',color= 'k')
+#plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+plt.errorbar(range(5), mean_trial_speed, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################level 2 
+
+
+file = poke_files[1]
+at_poke_L2= np.genfromtxt(file,delimiter=',')
+
+mask = ~np.isnan(at_poke_L2)
+filtered_data_L2 = [d[m] for d, m in zip(at_poke_L2.T, mask.T)]
+
+figure_name =   'summary_level_2_at_poke_with_mask.pdf'
+
+
+f,ax = plt.subplots(figsize=(8,7),frameon=True)
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+#plt.figure(frameon=False)
+plt.boxplot(filtered_data_L2, showfliers=True) # [:,:5] for the first 5 days only
+sns.despine(top=True, right=True, left=False, bottom=False)
+
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
+
+ax.yaxis.major.formatter._useMathText = True
+plt.ylim(0,100)
+
+
+f.savefig(results_dir + figure_name, transparent=True)
 
 
 
