@@ -19,6 +19,7 @@ from pylab import *
 from matplotlib.ticker import LogFormatterExponent
 import seaborn as sns 
 from scipy.spatial import distance
+from scipy import stats
 
 
 import importlib
@@ -261,9 +262,43 @@ for rat in arange(len(rat_summary_table_path)):
     #delta = np.array(flattened_after) - np.array(flattened_before)
     #total_delta.extend(delta)
     
+print(len(st_idx_tot))
+print(len(te_idx_tot))
+
 
 max_st = max(st_idx_tot)
 max_te = max(te_idx_tot)
+
+
+
+#test from session retrieve st and te.csv and pool them
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ####################
@@ -664,12 +699,58 @@ for rat in arange(len(rat_summary_table_path)):
 
 ##################################            
 
+ 
+
+# rat = rat_summary_table_path[0]
+# Level_2_pre = prs.Level_2_pre_paths(rat)
+# sessions_subset = Level_2_pre[0]
 
 
+ 
+st_pooled=[]
+te_pooled=[]
+                
+for r,rat in enumerate(rat_summary_table_path):
+    
+    try:
+               
+        Level_2_pre = prs.Level_2_pre_paths(rat)
+        sessions_subset = Level_2_pre#[3:6]   
+        l=len(sessions_subset)
+         
+        rat_st = []
+        rat_te = []
+        
+        
+        for count in np.arange(l):
+        
 
+        
+            session = sessions_subset[count]
+    
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+    
+            st_path= os.path.join(script_dir+ '/events/' + 'Start_touch_idx_diff.csv')           
+            st_diff = np.genfromtxt(st_path, delimiter = ',')
             
+            rat_st.extend(st_diff)
             
+            te_path = os.path.join(script_dir+ '/events/' + 'Touch_reward_idx_diff.csv')
+            te_diff = np.genfromtxt(te_path, delimiter = ',')
             
+            rat_te.extend(te_diff)
+                
+        st_pooled.extend(rat_st)
+        te_pooled.extend(rat_te)    
+            
+    except Exception: 
+        print('error'+ session)
+    continue    
+
+print(len(st_pooled)) 
+print(len(te_pooled))   
+    
     
     ############################
 
@@ -699,6 +780,9 @@ def distance_events(sessions_subset,frames=120):
             ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
             ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
             
+            
+            
+            
             start = trial_idx[:,0]
             rat_position_at_start = crop[start]
             touch = trial_idx[:,2]
@@ -720,12 +804,15 @@ def distance_events(sessions_subset,frames=120):
                 dist_before_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_before_ball[e])**2)))
                 dist_after_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_after_ball[e])**2)))
                 
+                
                 session_rat_ball_dist.append(dist_rat_ball)
                 session_rat_poke_dist.append(dist_rat_poke)
                 session_rat_before_touch.append(dist_before_touch)
                 session_rat_after_touch.append(dist_after_touch)
                 
                 
+                #.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx,ball_on_idx)).T, delimiter=',', fmt='%s')
+
                 
             rat_ball[count]=session_rat_ball_dist
             rat_poke[count]=session_rat_poke_dist
@@ -771,7 +858,20 @@ def time_to_events(sessions_subset):
             touch_end_diff = abs(trial_idx[:,1] - trial_idx[:,2])
             st_time[count] = start_touch_diff
             te_time[count] = touch_end_diff
-              
+            
+            
+            csv_dir_path = os.path.join(script_dir + '/events/')
+            
+            csv_name = 'Start_touch_idx_diff.csv'
+            np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
+            csv_name = 'Touch_reward_idx_diff.csv'
+            np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
+            
+            print(len(start_touch_diff))
+            print(len(touch_end_diff))
+            print('saving DONE')
+
+
         except Exception: 
             print('error'+ session)
         continue
