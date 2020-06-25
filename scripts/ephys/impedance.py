@@ -1208,7 +1208,13 @@ summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
 
 n =len(summary_list)
 
-#
+
+
+
+
+
+
+
 #
 #for s in range(n):
 #      
@@ -1485,8 +1491,242 @@ f.savefig(results_dir + figure_name, transparent=True)
 
 
 
+#########################################
+from scipy.ndimage.filters import gaussian_filter
 
 
+base_folder = 'F:/Videogame_Assay/Summary/Impedance/'
+
+summary_list = ['AK 33.2_impedance_summary.csv','AK 40.2_impedance_summary.csv',
+                 'AK 41.1_impedance_summary.csv','AK 41.2_impedance_summary.csv',
+                 'AK 48.1_impedance_summary.csv','AK 48.4_impedance_summary.csv']
+
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
+
+N =121
+
+n =len(summary_list)
+
+
+
+for s in range(n):
+      
+    
+    
+    summary_path = os.path.join(base_folder, summary_list[s])
+    results_dir = os.path.join(base_folder + 'Impedance_daily_heatmap')
+    summary = np.genfromtxt(summary_path,delimiter = ',', dtype=int)
+    summary_shape = np.shape(summary)
+    days = summary_shape[1]
+    
+    for d in range(days):
+        
+        imp = np.array(summary[:,d])
+        impedance_map = np.reshape(imp,newshape=probe_map.shape)
+          
+        figure_name = RAT_ID[s] +'_' + str(d) +'.png'
+        
+        f,ax= plt.subplots(figsize=(7,5))
+ 
+        
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=True)
+        
+        ax = sns.heatmap(gaussian_filter(impedance_map, sigma=1),  cmap="YlGnBu",vmin=250000, vmax = 3000000,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
+        
+        bottom, top = ax.get_ylim()
+        
+        ax.set_ylim(bottom + 0.5, top - 0.5)       
+       
+
+        f.savefig(results_dir + figure_name, transparent=True)
+        plt.close()
+        print(d)
+
+
+
+
+               
+max(imp)
+   ax.pcolor(impedance_map, edgecolors='k', linewidths=4) 
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.collections import PatchCollection
+
+N = 11
+M = 11
+#ylabels = ["".join(np.random.choice(list("PQRSTUVXYZ"), size=7)) for _ in range(N)]
+#xlabels = ["".join(np.random.choice(list("ABCDE"), size=3)) for _ in range(M)]
+
+x, y = np.meshgrid(np.arange(M), np.arange(N))
+s = np.random.randint(0, 180, size=(N,M))
+c = np.random.rand(N, M)-0.5
+
+fig, ax = plt.subplots()
+
+R = s/s.max()/2
+circles = [plt.Circle((j,i), radius=r) for r, j, i in zip(R.flat, x.flat, y.flat)]
+col = PatchCollection(circles, array=c.flatten(), cmap="RdYlGn")
+ax.add_collection(col)
+
+ax.set(xticks=np.arange(M), yticks=np.arange(N),
+       xticklabels=xlabels, yticklabels=ylabels)
+ax.set_xticks(np.arange(M+1)-0.5, minor=True)
+ax.set_yticks(np.arange(N+1)-0.5, minor=True)
+ax.grid(which='minor')
+
+fig.colorbar(col)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+dx, dy = 0.15, 0.05
+
+# generate 2 2d grids for the x & y bounds
+y, x = np.mgrid[slice(-3, 3 + dy, dy),
+                slice(-3, 3 + dx, dx)]
+z = (1 - x / 2. + x ** 5 + y ** 3) * np.exp(-x ** 2 - y ** 2)
+# x and y are bounds, so z should be the value *inside* those bounds.
+# Therefore, remove the last value from the z array.
+z = z[:-1, :-1]
+z_min, z_max = -np.abs(z).max(), np.abs(z).max()
+
+fig, axs = plt.subplots(2, 2)
+
+ax = axs[0, 0]
+c = ax.pcolor(x, y, z, cmap='RdBu', vmin=z_min, vmax=z_max)
+
+
+
+
+
+
+# generate 2 2d grids for the x & y bounds
+y, x = np.meshgrid(np.linspace(0, 11, 1), np.linspace(0, 11, 1))
+
+z = impedance_map
+# x and y are bounds, so z should be the value *inside* those bounds.
+# Therefore, remove the last value from the z array.
+z = z[:-1, :-1]
+z_min, z_max = -np.abs(z).max(), np.abs(z).max()
+
+fig, ax = plt.subplots()
+
+c = ax.pcolormesh(x, y, z, cmap='RdBu'), vmin=z_min, vmax=z_max)
+ax.set_title('pcolormesh')
+# set the limits of the plot to the limits of the data
+ax.axis([x.min(), x.max(), y.min(), y.max()])
+fig.colorbar(c, ax=ax)
+
+plt.show()     
+#  testing example
+#'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/saline_1.csv'
+#'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/saline_2.csv'
+#'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/saline_3.csv'
+#
+#read_file = pd.read_csv('F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/saline_3.csv')
+#
+#impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+#imp_remapped3= impedance[flatten_probe]
+#
+#
+#stack = np.vstack((imp_remapped1,imp_remapped2,imp_remapped3))
+#mean = np.mean(stack, axis=0)
+
+#
+#surgery_impedance_map=np.reshape(mean_surgery,newshape=probe_map.shape)
+#
+#threshold = 100000
+#figure_name = RAT_ID + 'surgery_test_impedance_heatmap.pdf'
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#
+#ax = sns.heatmap(surgery_impedance_map,annot=True,  cmap="YlGnBu",vmin=0, vmax = 500000,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
+#bottom, top = ax.get_ylim()
+#ax.set_ylim(bottom + 0.5, top - 0.5)
+#        
+#N=121
+##map the impedance
+#probe_remap=np.reshape(probe_map.T, newshape=N)
+#
+##test saline
+#
+#
+#saline_impedance_map=np.reshape(mean_saline,newshape=probe_map.shape)
+#
+#threshold = 100000
+#
+#
+#figure_name = RAT_ID + 'saline_test_impedance_heatmap.pdf'
+#f,ax = plt.subplots(figsize=(15,11),frameon=False)
+#
+#sns.set()
+#sns.set_style('white')
+#sns.axes_style('white')
+#sns.despine(left=True)
+#
+#
+#ax = sns.heatmap(saline_impedance_map,annot=True,  cmap="YlGnBu", vmin=0, vmax=threshold, annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
+#bottom, top = ax.get_ylim()
+#ax.set_ylim(bottom + 0.5, top - 0.5)
+#
+#
+#f.savefig(results_dir + figure_name, transparent=True)
+#
+#
+
+
+
+
+
+
+#
+#N=121
+##map the impedance
+#probe_remap=np.reshape(probe_map.T, newshape=N)
+#imp_map=impedance[probe_remap]
+#impedance_map=np.reshape(imp_map,newshape=probe_map.shape)
+#
+#
+#
+##main folder rat ID
+#script_dir = os.path.dirname(day)
+##create a folder where to store the plots inside the daily sessions
+#session=os.path.join(script_dir,'Analysis')
+##create a folder where to save the plots
+#results_dir = os.path.join(session, 'Daily_Health_Check/')
+##plot name
+#sample_file_name_heatmap = "Impedance_heatmap"
+#
+#if not os.path.isdir(results_dir):
+#    os.makedirs(results_dir)
+#
+#plt.figure(1)
+#ax = sns.heatmap(impedance_map,annot=True,annot_kws={"size": 7}, cbar_kws = dict(use_gridspec=False,location="right"))
+#plt.title("IMPEDANCE")
+#plt.xlabel('shanks_PA')
+#plt.ylabel('shanks_DV')
+#plt.savefig(results_dir + sample_file_name_heatmap)
+#
 
 
 
