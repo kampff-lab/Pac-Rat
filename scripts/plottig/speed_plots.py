@@ -39,6 +39,9 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
 
 
 
+
+
+
 #colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
 RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
 
@@ -51,6 +54,8 @@ results_dir =os.path.join(main_folder + figure_folder)
 
 if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
+
+
 
 
 
@@ -84,7 +89,9 @@ def distance_events(sessions_subset,frames=120):
     rat_poke = [[] for _ in range(l)]
     before_touch = [[] for _ in range(l)]
     after_touch = [[] for _ in range(l)]
-    
+    after_start= [[] for _ in range(l)]
+    before_end = [[] for _ in range(l)]
+     
    
     for count in np.arange(l):
         
@@ -107,13 +114,23 @@ def distance_events(sessions_subset,frames=120):
             rat_position_at_start = crop[start]
             touch = trial_idx[:,2]
             rat_position_at_touch = crop[touch]
+            end = trial_idx[:,1]
+            rat_position_at_end = crop[end]
+            
             rat_before_ball = crop[touch - frames]
             rat_after_ball = crop[touch + frames]
+            
+            rat_after_start = crop[start + frames]
+            rat_before_end =  crop[end - frames]
+            
             
             session_rat_ball_dist = []
             session_rat_poke_dist = []
             session_rat_before_touch=[]
             session_rat_after_touch=[]
+            session_rat_after_start = []
+            session_rat_before_end = []
+            
             
             for e in range(len(start)):
                 
@@ -124,12 +141,18 @@ def distance_events(sessions_subset,frames=120):
                 dist_before_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_before_ball[e])**2)))
                 dist_after_touch = (np.sqrt(np.nansum((rat_position_at_touch[e]-rat_after_ball[e])**2)))
                 
+                dist_after_start = (np.sqrt(np.nansum((rat_position_at_start[e]-rat_after_start[e])**2)))
+                dist_before_end = (np.sqrt(np.nansum((rat_position_at_end[e]-rat_before_end[e])**2)))
+                
+                
                 
                 session_rat_ball_dist.append(dist_rat_ball)
                 session_rat_poke_dist.append(dist_rat_poke)
                 session_rat_before_touch.append(dist_before_touch)
                 session_rat_after_touch.append(dist_after_touch)
                 
+                session_rat_after_start.append(dist_after_start)
+                session_rat_before_end.append(dist_before_end)
                 
                 #.savetxt(csv_dir_path + csv_name, np.vstack((start_idx,end_idx,touch_idx,ball_on_idx)).T, delimiter=',', fmt='%s')
 
@@ -139,13 +162,17 @@ def distance_events(sessions_subset,frames=120):
             before_touch[count]=session_rat_before_touch
             after_touch[count]=session_rat_after_touch
             
+            after_start[count] = session_rat_after_start
+            before_end[count] = session_rat_before_end
+        
+        
            
             
         except Exception: 
             print('error'+ session)
         continue
     
-    return rat_ball, rat_poke, before_touch, after_touch
+    return rat_ball, rat_poke, before_touch, after_touch, after_start, before_end
 
 ##############################################
 #find all the idx of an event in the trail idx file  
@@ -154,7 +181,6 @@ def distance_events(sessions_subset,frames=120):
 def rat_event_idx_and_pos_finder(sessions_subset, event=2):
     
     l = len(sessions_subset)
-    event_all_rat = [[] for _ in range(l)]
     event_rat_coordinates = [[] for _ in range(l)]
   
     for count in np.arange(l):
@@ -175,15 +201,9 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2):
         rat_event = trial_idx[:,event]
         rat_pos = crop[rat_event]
             
-        event_all_rat[count] = rat_event
         event_rat_coordinates[count]= rat_pos
     
-    return event_all_rat, event_rat_coordinates
-
-
-#######################################
-
-
+    return event_rat_coordinates
 
 
 
@@ -293,9 +313,9 @@ def time_to_events(sessions_subset):
             csv_dir_path = os.path.join(script_dir + '/events/')
             
             csv_name = 'Start_touch_idx_diff.csv'
-            #np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
+            np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
             csv_name = 'Touch_reward_idx_diff.csv'
-            #np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
+            np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
             
             print(len(start_touch_diff))
             print(len(touch_end_diff))
@@ -323,12 +343,13 @@ s = len(rat_summary_table_path)
 st_all_rats = [[] for _ in range(s)]
 te_all_rats = [[] for _ in range(s)]
 
-for r, rat in enumerate(rat_summary_table_path):
+for r, rat in enumerate(rat_summary_table_path[8:]):
     
     try:    
-         Level_2_pre = prs.Level_2_pre_paths(rat)
-         sessions_subset = Level_2_pre#[3:6]
-         
+         #Level_2_pre = prs.Level_2_pre_paths(rat)
+         #sessions_subset = Level_2_pre#[3:6]
+         Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
+         sessions_subset = Level_3_moving_light#[3:6]         
          st_time, te_time = time_to_events(sessions_subset)
          
          st_all_rats[r] = st_time
@@ -377,21 +398,21 @@ max_te = max(te_idx_tot)
 
 
 
-# rat = rat_summary_table_path[0]
-# Level_2_pre = prs.Level_2_pre_paths(rat)
-# sessions_subset = Level_2_pre[0]
+ rat = rat_summary_table_path[0]
+ Level_2_pre = prs.Level_2_pre_paths(rat)
+ sessions_subset = Level_2_pre[0]
 
 
  
 st_pooled=[]
 te_pooled=[]
                 
-for r,rat in enumerate(rat_summary_table_path):
+for r,rat in enumerate(rat_summary_table_path[8:]):
     
     try:
                
-        Level_2_pre = prs.Level_2_pre_paths(rat)
-        sessions_subset = Level_2_pre#[3:6]   
+        Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
+        sessions_subset = Level_3_moving_light#[3:6]   
         l=len(sessions_subset)
          
         rat_st = []
@@ -576,7 +597,7 @@ medians= [median_st, median_te]
 errors = [sem_st, sem_te]
 
 
-figure_name =  'idx_diff_st_te_barplot_N5702_final.pdf' 
+figure_name =  'idx_diff_st_te_barplot_N1517_final_level3.pdf' 
   
 f,ax = plt.subplots(figsize=(5,7))
 
@@ -604,8 +625,9 @@ f.savefig(results_dir + figure_name, transparent=True)
 
 stat = mannwhitneyu(st_seconds, te_seconds)
 #(9791217.0, 2.019645541580334e-296)
+#level 3 MannwhitneyuResult(statistic=447433.0, pvalue=4.3838420315944956e-187)
 
-target = open(main_folder +"MannWhutney_median_idx_diff_st_te.txt", 'w')
+target = open(main_folder +"MannWhutney_median_idx_diff_st_te_level3.txt", 'w')
 target.writelines(str(stat)+' LEVEL 2: median te and st +- SEM, speed_plot.py')
 target.close()
 
@@ -630,7 +652,7 @@ normalised_te =lower_than_40_te/len(lower_than_40_te)
 
 ############plot distribution st and te
 
-figure_name =  'idx_diff_st_te_hist_40_sec_overlap_final_density_true.pdf' 
+figure_name =  'idx_diff_st_te_hist_40_sec_overlap_final_level3.pdf' 
   
 f,ax = plt.subplots(figsize=(10,4))
 
@@ -644,7 +666,7 @@ sns.despine(left=False)
         
 #_, bins, _ = plt.hist(normalised_st, bins=100, range=[0, 0.01])
 #_ = plt.hist(bar, bins=bins, alpha=0.5, density=True)        
-ax.hist(normalised_st,bins = 100,density=True, color ='#6495ED',alpha = .3,range=[0, 0.01])  
+ax.hist(normalised_st,bins = 100, color ='#6495ED',alpha = .3,range=[0, 0.01])  
         
 ax.axes.get_xaxis().set_visible(True) 
    
@@ -653,7 +675,7 @@ ax.xaxis.set_ticks_position('bottom')
 plt.yticks(fontsize=15)
 plt.xticks(fontsize=15)
 plt.ylabel('st seconds, idx/120/N')
-plt.xlabel('frames max 40s_normalised by N (st = 4669,te = 5595 )')
+plt.xlabel('frames max 40s_normalised by N (st = 1311,te = 1517 )')
 f.tight_layout()
 
 f.savefig(results_dir + figure_name, transparent=True)
@@ -669,7 +691,7 @@ sns.set_style('white')
 sns.axes_style('white')
 sns.despine(left=False)
 
-ax.hist(normalised_te,bins=100,density=True, color ='#228B22',alpha=.3,range=[0, 0.01]) #bins=bins
+ax.hist(normalised_te,bins=100, color ='#228B22',alpha=.3,range=[0, 0.01]) #bins=bins
 
 ax.axes.get_xaxis().set_visible(True) 
    
@@ -688,7 +710,7 @@ f.savefig(results_dir + figure_name, transparent=True)
 ########################st vs te
 
 
-figure_name =  'scatter_seconds_te_VS_st_N5702.pdf' 
+figure_name =  'scatter_seconds_te_VS_st_N1517.pdf' 
   
 f,ax = plt.subplots(figsize=(6,9))
 
@@ -697,8 +719,8 @@ sns.set_style('white')
 sns.axes_style('white')
 sns.despine(left=False)
 
-plt.plot(selection_te_wo_missed, '.', alpha=.7, markersize=.5, color= 'k')
-plt.plot(selection_st_wo_missed, '.', alpha=.7, markersize=.5, color= 'r')
+plt.plot(st_seconds,te_seconds, '.', alpha=.7, markersize=.5, color= 'k')
+#plt.plot(te_seconds, '.', alpha=.7, markersize=.5, color= 'r')
 
 #plt.plot(np.unique(te_pooled), np.poly1d(np.polyfit(te_pooled, st_pooled, 1))(np.unique(te_pooled)))
 
@@ -711,7 +733,7 @@ plt.yticks(fontsize=15)
 plt.xticks(fontsize=15)
 plt.ylabel('te seconds (idx/120)')
 plt.xlabel('st seconds (idx/120)')
-plt.ylim(ymax=800)
+#plt.ylim(ymax=800)
 #plt.xlim(xmax=20000)
 f.tight_layout()
 
@@ -781,6 +803,8 @@ rat_ball_all_rats = [[] for _ in range(s)]
 rat_poke_all_rats = [[] for _ in range(s)]
 before_touch_all_rats= [[] for _ in range(s)]
 after_touch_all_rats = [[] for _ in range(s)]
+after_start_all_rats = [[] for _ in range(s)]
+before_end_all_rats = [[] for _ in range(s)]
 
 for r, rat in enumerate(rat_summary_table_path):
     
@@ -788,12 +812,14 @@ for r, rat in enumerate(rat_summary_table_path):
          Level_2_pre = prs.Level_2_pre_paths(rat)
          sessions_subset = Level_2_pre#[3:6]
          
-         rat_ball, rat_poke, before_touch, after_touch = distance_events(sessions_subset)
+         rat_ball, rat_poke, before_touch, after_touch, after_start, before_end = distance_events(sessions_subset, frames = 120)
          
          rat_ball_all_rats[r] = rat_ball
          rat_poke_all_rats[r] = rat_poke
          before_touch_all_rats[r] = before_touch
          after_touch_all_rats[r] = after_touch
+         after_start_all_rats[r] = after_start
+         before_end_all_rats[r] = before_end
          
          print(rat)
          print(r)
@@ -819,13 +845,6 @@ def trial_count(event):
 
 
 
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=True)
-
-figure_name =  'delta_speed_after_minus_before_rats_overlap_120frames.pdf' 
-  
 
 total_delta = []    
 total_flat_before =[]
@@ -833,13 +852,16 @@ total_flat_after = []
 
 sum_trial_count_before=[]
 
+total_flat_after_start=[]
+total_flat_before_end=[]
+tot_delta_start_end=[]
 #f,ax = plt.subplots(figsize=(15,5))
 
 
 
 for rat in arange(len(rat_summary_table_path)):
        
-    f,ax = plt.subplots(figsize=(7,5))
+
       
     before  = before_touch_all_rats[rat]
     count_before= trial_count(before)
@@ -851,15 +873,57 @@ for rat in arange(len(rat_summary_table_path)):
     flattened_before = [val for sublist in before for val in sublist]
     flattened_after = [val for sublist in after for val in sublist]
     
+    
+    aft_start = after_start_all_rats[rat]
+    bef_end = before_end_all_rats[rat]
+    
+    flattened_after_start = [val for sublist in aft_start for val in sublist]
+    flattened_before_end = [val for sublist in bef_end for val in sublist]
+    
+    
     total_flat_before.extend(flattened_before)
     total_flat_after.extend(flattened_after)
+    
+    total_flat_after_start.extend(flattened_after_start)
+    total_flat_before_end.extend(flattened_before_end)
+    
+    
+    
     
     delta = np.array(flattened_after) - np.array(flattened_before)
     total_delta.extend(delta)
     
+    
+    delta_start_end = np.array(flattened_before_end) - np.array(flattened_after_start)
+                              
+    tot_delta_start_end.extend(delta_start_end)
+    
     print(rat)
     print(len(flattened_before))
     print(len(flattened_after))
+    print(len(total_delta))
+    print(len(tot_delta_start_end))
+
+
+
+#########################################
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   
@@ -872,7 +936,7 @@ sns.set_style('white')
 sns.axes_style('white')
 sns.despine(left=False)
 
-figure_name =  'delta_speed_touch_VSafter_touch_120frames_color_coded_final.pdf' 
+figure_name =  'delta_speed_120_after_start_VS120_before_reward_120frames_color_coded_final.pdf' 
 
 #test = cumsum(sum_trial_count_before)
 
@@ -886,7 +950,7 @@ colors = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF',
 cmap = matplotlib.colors.ListedColormap(colors)
 norm = matplotlib.colors.BoundaryNorm(bounds, len(colors))
 
-rect = plt.scatter(range(len(total_delta)), total_delta, s= 1,c=range(len(total_delta)),cmap=cmap, norm=norm)
+rect = plt.scatter(range(len(total_delta)), tot_delta_start_end, s= 1,c=range(len(total_delta)),cmap=cmap, norm=norm)
 
 cbar = plt.colorbar(rect, spacing="proportional")
 cbar.set_label('rats', rotation=270, labelpad=10)
@@ -1521,58 +1585,11 @@ fig.savefig(results_dir + figure_name, transparent=True)
 #sns.jointplot(x,y, kind="hex", color="#4CB391",marginal_kws=dict(bins=50, rug=False))
 
 
-              
-
-
-              
-              
              
               
               
               
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-
-
-
-
 #save the ball idx based on where it appears in the set up
 
 def ball_positions_based_on_quadrant_of_appearance(session):
@@ -1605,23 +1622,7 @@ def ball_positions_based_on_quadrant_of_appearance(session):
 
 
 
-
-
-
-
-
-
-
-import matplotlib as mpl
-
-fig, ax = plt.subplots(figsize=(6, 1))
-fig.subplots_adjust(bottom=0.5)
-
-cmap = mpl.cm.cool
-norm = mpl.colors.Normalize(vmin=5, vmax=10)
-
-f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
-             cax=ax, orientation='horizontal', label='Some Units')
+#########################################################
 
 
 
@@ -1639,17 +1640,420 @@ f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
 
 
 
+#find rat nose x,y position at and around event 
 
+def rat_nose_position_at_and_around(sessions_subset, event=2, offset=120):
+    
+    l = len(sessions_subset)
+    nose_before = [[] for _ in range(l)]
+    nose_after = [[] for _ in range(l)]
+  
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]
+        
+    
+        script_dir = os.path.join(hardrive_path + session) 
 
-
+        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+        #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+        corrected_coordinate_path = os.path.join(script_dir + '/DLC_corrected_coordinates')
+        nose_path = os.path.join(corrected_coordinate_path + '/nose_corrected_coordinates.csv')
+        nose_dlc = np.genfromtxt(nose_path, delimiter = ',', dtype = float)
+    
+        
+       
+        rat_event = trial_idx[:,event]
+        rat_pos_before = nose_dlc[rat_event-offset]
+        rat_pos_after = nose_dlc[rat_event+offset]
+            
+        nose_before[count] = rat_pos_before
+        nose_after[count]= rat_pos_after
+    
+    return nose_before, nose_after
 
 
 
 
 #############################################################################################
 
+s = len(rat_summary_table_path)
+
+position_before = [[] for _ in range(s)]
+
+position_after = [[] for _ in range(s)]
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         
+         nose_before, nose_after = rat_nose_position_at_and_around(sessions_subset, event=2, offset=120)
+         
+         position_before[r] = nose_before
+         position_after[r] = nose_after
+            
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue  
+
+
+
+#####flatten rat position 
+
+
+before_tot =[]
+after_tot=[]
+
+for rat in arange(len(rat_summary_table_path)):
+       
+    #f,ax = plt.subplots(figsize=(7,5))
+      
+    before  = position_before[rat]
+    after = position_after[rat]
+
+
+    before_coordinates = [val for sublist in before for val in sublist]
+    after_coordinates = [val for sublist in after for val in sublist]
+
+    
+    before_tot.extend(np.array(before_coordinates))
+    after_tot.extend(np.array(after_coordinates))
+    
+    #delta = np.array(flattened_after) - np.array(flattened_before)
+    #total_delta.extend(delta)
+    
+print(len(before_tot))
+print(len(after_tot))
 #########################################################################################
     
+
+                                                       
+trial_table_path = 'F:/Videogame_Assay/Trial_table_final.csv'
+trial_table = np.genfromtxt(trial_table_path, delimiter =',')
+
+
+x_before_touch = trial_table[:,8]
+y_before_touch =  trial_table[:,9]
+x_after_touch =  trial_table[:,10]
+y_after_touch =  trial_table[:,11]
+ball_x =  trial_table[:,16]
+ball_y =  trial_table[:,17]
+
+
+
+
+ball_array = np.array(ball_tot)
+before_array = np.array(before_tot)
+after_array = np.array(after_tot)
+
+
+
+#remove nans
+ball_array = np.stack((ball_x,ball_y), axis=1)
+
+ball_wo_nan = ball_array[~np.isnan(ball_array).any(axis=1)]
+#print(len(ball_wo_nan)) #5463
+
+
+nan_ball = ~np.isnan(ball_array).any(axis=1)
+
+
+x_before_cleaned = x_before_touch[nan_ball]
+y_before_cleaned = y_before_touch[nan_ball]
+x_after_cleaned = x_after_touch[nan_ball]
+y_after_cleaned = y_after_touch[nan_ball]
+
+len(x_before_cleaned)
+
+
+
+#remove x <250
+cleaned_ball = [i for i,v in enumerate(ball_wo_nan[:,0]) if v > 250]
+
+ball_final = ball_wo_nan[cleaned_ball]
+
+len(x_ball)
+
+x_before_final = x_before_cleaned[cleaned_ball]
+y_before_final = y_before_cleaned[cleaned_ball]
+
+x_after_final = x_after_cleaned[cleaned_ball]
+y_after_final = y_after_cleaned[cleaned_ball]
+
+len(after_final)
+
+
+
+
+#fig = plt.figure(figsize=(15,9))
+#
+#plt.plot([before_final[:,0],ball_final[:,0]],[before_final[:,1],ball_final[:,1]],'r',alpha=.1)
+#plt.plot([ball_final[:,0],after_final[:,0]],[ball_final[:,1],after_final[:,1]],'g',alpha=.1)
+#
+
+
+fig = plt.figure(figsize=(15,9))
+
+plt.plot([x_before_final[:],ball_final[:,0]],[y_before_final[:],ball_final[:,1]],'r',alpha=.1)
+
+
+plt.plot([ball_final[:,0],x_after_final[:]],[ball_final[:,1],y_after_final[:]],'g',alpha=.1)
+
+
+
+#centered
+
+
+fig = plt.figure(figsize=(15,9))
+
+for i in range(len(ball_final)):
+     
+    
+    #fig = plt.figure(figsize=(15,9))
+    plt.plot([(x_before_final[i]-ball_final[i,0]),0],[(y_before_final[i]-ball_final[i,1]),0],'red',alpha=.05)
+    
+    plt.plot([0,(x_after_final[i]-ball_final[i,0])],[0,(y_after_final[i]-ball_final[i,1])],'b',alpha=.05)
+
+
+#len(centre)
+
+###############################
+contact_below =[]
+contact_top = []
+
+
+for e, each in enumerate(y_before_final):
+    
+    if each < ball_final[e,1]:
+        contact_below.append(e)
+    else:
+        contact_top.append(e)
+        
+
+
+centre= []
+
+
+for i in range(len(y_before_final)):
+    
+    if  400  <ball_final[i,1]<800 and  600 <ball_final[i,0]<1000:       
+        centre.append(i)
+        
+        
+plt.plot(ball_final[centre][:,0],ball_final[centre][:,1], '.')
+
+
+ball_centre = ball_final[centre]
+
+
+x_centre_before=x_before_final[centre]
+y_centre_before=y_before_final[centre]
+
+x_centre_after=x_after_final[centre]
+y_centre_after=y_after_final[centre]
+
+
+
+
+
+
+
+centre_contact_below =[]
+centre_contact_top = []
+
+
+for e, each in enumerate(y_centre_before):
+    
+    if each < ball_centre[e,1]:
+        centre_contact_below.append(e)
+    else:
+        centre_contact_top.append(e)
+
+len(y_centre_before)
+len(centre_contact_below)
+len(centre_contact_top)
+
+
+
+rat_poke_distance_before= trial_table[:,14]
+rat_poke_distance_after=  trial_table[:,15]
+
+
+distance_centre_before_below = rat_poke_distance_before[contact_below]
+distance_centre_after_below =rat_poke_distance_after[contact_below]
+
+delta_below = distance_centre_after_below-distance_centre_before_below
+
+
+distance_centre_before_top =rat_poke_distance_before[contact_top]
+distance_centre_after_top = rat_poke_distance_after[contact_top]
+
+
+
+delta_top=distance_centre_after_top-distance_centre_before_top
+
+####################################################
+
+
+distance_centre_before_below = np.array(total_flat_before)[contact_below]
+distance_centre_after_below =np.array(total_flat_after)[contact_below]
+
+delta_below = distance_centre_after_below-distance_centre_before_below
+
+
+distance_centre_before_top =np.array(total_flat_before)[contact_top]
+distance_centre_after_top = np.array(total_flat_after)[contact_top]
+
+
+
+delta_top=distance_centre_after_top-distance_centre_before_top
+
+len(delta_below)
+
+
+plt.boxplot((delta_below,delta_top))
+plt.title('delta_below VS delta top (120)')
+
+
+
+
+
+
+fig = plt.figure(figsize=(15,9))
+
+plt.plot([x_centre_before[:],ball_centre[:,0]],[y_centre_before[:],ball_centre[:,1]],'r',alpha=.1)
+
+fig = plt.figure(figsize=(15,9))
+
+plt.plot([ball_centre[:,0],x_centre_after[:]],[ball_centre[:,1],y_centre_after[:]],'g',alpha=.1)
+
+
+
+
+
+
+
+
+
+len(contact_below) #2080
+len(contact_top) #3199
+
+
+
+x_below = x_before_final[contact_below]
+y_below = y_before_final[contact_below]
+
+x_top = x_before_final[contact_top]
+y_top = y_before_final[contact_top]
+
+
+
+ball_top = ball_final[contact_top]
+ball_below = ball_final[contact_below]
+
+
+plt.scatter(ball_top[:,0],ball_top[:,1],color='g', s = 2)
+plt.scatter(ball_below[:,0],ball_below[:,1],color= 'k', s= 2)
+
+
+
+
+fig = plt.figure(figsize=(15,9))
+
+plt.plot([x_below[:],ball_below[:,0]],[y_below[:],ball_below[:,1]],'r',alpha=.1)
+
+
+plt.plot([ball_top[:,0],x_top[:]],[ball_top[:,1],y_top[:]],'g',alpha=.1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################trial table####################
+
+
+s = len(rat_summary_table_path)
+
+position_before = [[] for _ in range(s)]
+
+position_after = [[] for _ in range(s)]
+
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         
+         nose_before, nose_after = rat_nose_position_at_and_around(sessions_subset, event=2, offset=120)
+         
+         touch_rat, rat_pos_at_touch = rat_event_idx_and_pos_finder(sessions_subset, event=2)
+         
+         
+         
+         position_before[r] = nose_before
+         position_after[r] = nose_after
+            
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue  
+
+
+
+
 
 
 #speed using tracking 

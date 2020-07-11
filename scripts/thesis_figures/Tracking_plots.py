@@ -37,7 +37,9 @@ Level_1_10000 = prs.Level_1_paths_10000(rat_summary_table_path)
 Level_1_20000 = prs.Level_1_paths_20000(rat_summary_table_path)
 Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
 Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-Level_3_pre = prs.Level_3_pre_paths(rat_summary_table_path)
+Level_3_moving = prs.Level_3_moving_light_paths(rat_summary_table_path)
+Level_3_joystick = prs.Level_3_joystick_paths(rat_summary_table_path)
+
 
 #main folder rat ID
 main_folder = 'E:/thesis_figures/'
@@ -212,7 +214,7 @@ for i, session in enumerate(sessions_subset):
         ax = f2.add_subplot(1, 1, 1, frameon=False) 
         
         #plot = plt.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1200,10),np.arange(0,900,10)], norm = LogNorm(), cmap='viridis',vmin=10e0, vmax=10e3)
-        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-7, vmax=10e-4)
+        plot = ax.hist2d(x_centroid, y_centroid, bins=[np.arange(0,1250,10),np.arange(0,950,10)],density = True, norm = LogNorm(), cmap='viridis',vmin=10e-8, vmax=10e-4)
         plt.colorbar(plot[3],fraction=0.04, pad=0.04, aspect=10)
         ax.set_title(rat_ID +'_' +session[-16:-6], fontsize = 10)
         plt.xticks([0,600,1200])
@@ -458,7 +460,7 @@ for i, session in enumerate(sessions_subset):
         
 
 
-sessions_subset = Level_3_pre
+sessions_subset = Level_3_joystick
    
 
 
@@ -475,7 +477,7 @@ for i, session in enumerate(sessions_subset):
     try:
         f6= plt.figure(i)
         #f2.suptitle(plot_main_title)
-        figure_name6 =  'RAT_' + rat_ID + '_'+ session[-16:] +'_lognorm_heatmap_Level_3.pdf'
+        figure_name6 =  'RAT_' + rat_ID + '_'+ session[-16:] +'_lognorm_heatmap_Level_3_joystick.pdf'
 
         x_ROI = []
         y_ROI = []
@@ -513,7 +515,7 @@ for i, session in enumerate(sessions_subset):
         
         f6.savefig(results_dir + figure_name6, transparent=True)
         print(i)
-        #plt.close()
+        plt.close()
 
         #ax.set_ylabel('Trials / Session', fontsize = 10)
         #ax.set_xlabel('Sessions', fontsize = 10)
