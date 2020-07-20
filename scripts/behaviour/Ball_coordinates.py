@@ -81,12 +81,39 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
 #Level 2 saving trial idx in each session folder under events folder
 
 
+def frame_before_trials(target_dir,video_path,event= 3, offset=50):
+    
+    
+    trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+    trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+    
+    event_idx = trial_idx[:,event]
+    
+    video = cv2.VideoCapture(video_path)
+    success, image=video.read()
+    success=True
+    count = 0
+    for i in event_idx:
+        
+        video.set(cv2.CAP_PROP_POS_FRAMES, i + offset)
+        success, image = video.read()
+        if count < 10:
+            cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
+        else:
+            cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
+        count += 1
+    return image 
+#
 
-for count, rat in enumerate(rat_summary_table_path):
+
+
+
+
+for count, rat in enumerate(rat_summary_table_path[8:]):
     
     
-    Level_2_pre = prs.Level_2_pre_paths(rat)
-    sessions_subset = Level_2_pre
+    Level_3_pre = prs.Level_3_pre_paths(rat)
+    sessions_subset = Level_3_pre
      
     for session in sessions_subset:
         try:
@@ -105,9 +132,9 @@ for count, rat in enumerate(rat_summary_table_path):
             trial_idx_path = os.path.join(hardrive_path, session + '/events/' + 'Trial_idx.csv') 
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
            
-            touch_idx = trial_idx[:,2]
+            
                 
-            frame_collection = behaviour.frame_before_trials(main_folder,video_path,touch_idx)
+            frame_collection = frame_before_trials(main_folder,video_path,event= 3, offset=50)
             ball_coordinates = behaviour.centroid_ball(main_folder)
          
             np.savetxt(csv_dir_path + csv_path, ball_coordinates,delimiter=',',fmt='%s')

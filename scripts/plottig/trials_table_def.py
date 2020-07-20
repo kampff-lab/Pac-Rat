@@ -257,6 +257,43 @@ def trial_count(event):
 
     return sum(rat_tot_trial_count)
 
+############################
+
+
+def trial_count_each_session(event):
+    
+    rat_tot_trial_count = []
+
+    for i in range(len(event)):
+        rat_tot_trial_count.append(i)
+
+
+    return rat_tot_trial_count
+
+#################
+    
+def trial_counter(sessions_subset):
+      
+    l = len(sessions_subset)
+    session_trials = [[] for _ in range(l)]
+  
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]       
+    
+        script_dir = os.path.join(hardrive_path + session)     
+        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        trial_count = trial_count_each_session(trial_idx)
+        
+        session_trials[count] = trial_count
+        
+    return session_trials
+
+
+
+sesssion_trials = trial_counter(sessions_subset)
 
 
 ###################
@@ -370,6 +407,9 @@ def rat_position_around_event(sessions_subset, event=2, offset=120):
 
 
 
+from operator import itemgetter
+
+print itemgetter(*ind_pos)(a)
 
 
 
@@ -379,39 +419,36 @@ def rat_position_around_event(sessions_subset, event=2, offset=120):
 
 
 
-
-
-
-
-
-
-# having the idx of the evet of interest and the video file name, it saves the frames 
-# in a folder , it is used by the ball coordinates script whre it is calculated the idx of interest 
-
-hardrive_path = r'F:/' 
-rat_summary_table_path = 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv'
-
-Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
-
-sessions_subset = Level_2_pre
-
-
-target_dir = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames_after_120'
-
-
-session = sessions_subset[0]
-        
-    
-script_dir = os.path.join(hardrive_path + session) 
-
-  
-video_path = os.path.join(hardrive_path, session + '/Video.avi')
-
-
-frames = frame_before_trials(target_dir,video_path,event= 2, offset=240)
-
-
-def frame_before_trials(target_dir,video_path,event= 2, offset=120):
+#
+#
+#
+## having the idx of the evet of interest and the video file name, it saves the frames 
+## in a folder , it is used by the ball coordinates script whre it is calculated the idx of interest 
+#
+#hardrive_path = r'F:/' 
+#rat_summary_table_path = 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv'
+#
+#Level_2_pre = prs.Level_2_pre_paths(rat_summary_table_path)
+#
+#sessions_subset = Level_2_pre
+#
+#
+#target_dir = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames_after_120'
+#
+#
+#session = sessions_subset[0]
+#        
+#    
+#script_dir = os.path.join(hardrive_path + session) 
+#
+#  
+#video_path = os.path.join(hardrive_path, session + '/Video.avi')
+#
+#
+#frames = frame_before_trials(target_dir,video_path,event= 2, offset=240)
+#
+#
+def frame_before_trials(target_dir,video_path,event= 3, offset=50):
     
     
     trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
@@ -425,7 +462,7 @@ def frame_before_trials(target_dir,video_path,event= 2, offset=120):
     count = 0
     for i in event_idx:
         
-        video.set(cv2.CAP_PROP_POS_FRAMES, i - offset)
+        video.set(cv2.CAP_PROP_POS_FRAMES, i + offset)
         success, image = video.read()
         if count < 10:
             cv2.imwrite(os.path.join(target_dir,"frame0%d.jpg" %count), image)
@@ -433,109 +470,109 @@ def frame_before_trials(target_dir,video_path,event= 2, offset=120):
             cv2.imwrite(os.path.join(target_dir,"frame%d.jpg" %count), image)
         count += 1
     return image 
-
-
-
-
-ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
-ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
-            
-
-len(ball_coordinates)
-
-
-
-
-def rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120):
-    
-    l = len(sessions_subset)
-    event_rat_coordinates = [[] for _ in range(l)]
-    rat_coordinates_before = [[] for _ in range(l)]
-    rat_coordinates_after = [[] for _ in range(l)]
-  
-    for count in np.arange(l):
-    
-        
-        session = sessions_subset[count]
-        
-    
-        script_dir = os.path.join(hardrive_path + session) 
-
-        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
-        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
-        crop_tracking_path = os.path.join(script_dir + '/crop.csv')
-        crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
-                       
-        rat_event = trial_idx[:,event]
-        rat_pos = crop[rat_event]
-            
-        event_rat_coordinates[count]= rat_pos
- 
-        rat_before = crop[rat_event-offset]
-        rat_after = crop[rat_event+offset]
-        
-        
-        rat_coordinates_before[count] = rat_before
-        rat_coordinates_after[count] = rat_after
-    
-    return event_rat_coordinates, rat_coordinates_before,rat_coordinates_after
-
-
-
-
-
-
-
-
-
-image = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames_before_120/frame15.jpg'
+#
+#
+#
+#
+#ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
+#ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
+#            
+#
+#len(ball_coordinates)
+#
+#
+#
+#
+#def rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120):
+#    
+#    l = len(sessions_subset)
+#    event_rat_coordinates = [[] for _ in range(l)]
+#    rat_coordinates_before = [[] for _ in range(l)]
+#    rat_coordinates_after = [[] for _ in range(l)]
+#  
+#    for count in np.arange(l):
+#    
+#        
+#        session = sessions_subset[count]
+#        
+#    
+#        script_dir = os.path.join(hardrive_path + session) 
+#
+#        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+#        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+#        crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+#        crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+#                       
+#        rat_event = trial_idx[:,event]
+#        rat_pos = crop[rat_event]
+#            
+#        event_rat_coordinates[count]= rat_pos
+# 
+#        rat_before = crop[rat_event-offset]
+#        rat_after = crop[rat_event+offset]
+#        
+#        
+#        rat_coordinates_before[count] = rat_before
+#        rat_coordinates_after[count] = rat_after
+#    
+#    return event_rat_coordinates, rat_coordinates_before,rat_coordinates_after
+#
+#
+#
+#
+#
+#
+#
+#
+#
+image = 'F:/Videogame_Assay/AK_49.2/2019_09_18-12_27/Ball_frames/frame02.jpg'
 im= cv2.imread(image)
 
-count = 15
-fig = plt.figure(figsize=(15,9))
-
-plt.subplot(1,2,1)
+#count = 15
+#fig = plt.figure(figsize=(15,9))
+#
+#plt.subplot(1,2,1)
 plt.imshow(im)
-plt.plot(ball_coordinates[count,0],ball_coordinates[count,1],'d','y')
-
-
-plt.plot(np.array(rat_coordinates_before)[0,count][0],np.array(rat_coordinates_before)[0,count][1],'o','r')
-
-
-
-plt.plot([np.array(rat_coordinates_before)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_before)[0,count][1],ball_coordinates[count,1]],'r','-')
-
-plt.plot([np.array(rat_coordinates_after)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_after)[0,count][1],ball_coordinates[count,1]],'g','-')
-
-
-
-
-
-image_after = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames_after_120/frame15.jpg'
-im_after= cv2.imread(image_after)
-
-
-plt.subplot(1,2,2)
-
-
-
-plt.imshow(im_after)
-
-
-plt.plot(ball_coordinates[count,0],ball_coordinates[count,1],'d','y')
-
-
-plt.plot(np.array(rat_coordinates_after)[0,count][0],np.array(rat_coordinates_after)[0,count][1],'o','r')
-
-
-
-plt.plot([np.array(rat_coordinates_before)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_before)[0,count][1],ball_coordinates[count,1]],'r')
-
-plt.plot([np.array(rat_coordinates_after)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_after)[0,count][1],ball_coordinates[count,1]],'g')
-
-
-
-
-plt.plot(np.array(event_rat_coordinates)[0,count][0],np.array(event_rat_coordinates)[0,count][1],'s','w')
-
-
+#plt.plot(ball_coordinates[count,0],ball_coordinates[count,1],'d','y')
+#
+#
+#plt.plot(np.array(rat_coordinates_before)[0,count][0],np.array(rat_coordinates_before)[0,count][1],'o','r')
+#
+#
+#
+#plt.plot([np.array(rat_coordinates_before)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_before)[0,count][1],ball_coordinates[count,1]],'r','-')
+#
+#plt.plot([np.array(rat_coordinates_after)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_after)[0,count][1],ball_coordinates[count,1]],'g','-')
+#
+#
+#
+#
+#
+#image_after = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/test_frames_after_120/frame15.jpg'
+#im_after= cv2.imread(image_after)
+#
+#
+#plt.subplot(1,2,2)
+#
+#
+#
+#plt.imshow(im_after)
+#
+#
+#plt.plot(ball_coordinates[count,0],ball_coordinates[count,1],'d','y')
+#
+#
+#plt.plot(np.array(rat_coordinates_after)[0,count][0],np.array(rat_coordinates_after)[0,count][1],'o','r')
+#
+#
+#
+#plt.plot([np.array(rat_coordinates_before)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_before)[0,count][1],ball_coordinates[count,1]],'r')
+#
+#plt.plot([np.array(rat_coordinates_after)[0,count][0],ball_coordinates[count,0]],[np.array(rat_coordinates_after)[0,count][1],ball_coordinates[count,1]],'g')
+#
+#
+#
+#
+#plt.plot(np.array(event_rat_coordinates)[0,count][0],np.array(event_rat_coordinates)[0,count][1],'s','w')
+#
+#

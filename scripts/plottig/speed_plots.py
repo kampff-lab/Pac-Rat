@@ -581,8 +581,19 @@ plt.boxplot(final_to_plot, showfliers=True)
 #te_norm = ( te_array- te_array.min()) / (te_array.max() - te_array.min())
 
 
-st_seconds = np.array(st_pooled)/120
-te_seconds = np.array(te_pooled)/120
+trial_table_path = 'F:/Videogame_Assay/Trial_table_final_level_3_moving_light.csv'
+trial_table = np.genfromtxt(trial_table_path, delimiter =',')
+
+st_seconds = trial_table[4:,1]/120
+te_seconds = trial_table[4:,2]/120
+
+
+
+
+
+
+#st_seconds = np.array(st_pooled)/120
+#te_seconds = np.array(te_pooled)/120
 
 
 median_st = np.median(st_seconds)
@@ -615,7 +626,7 @@ ax.axes.get_xaxis().set_visible(True)
 ax.yaxis.set_ticks_position('left')
 ax.xaxis.set_ticks_position('bottom')
 #plt.ylim(0,16)
-plt.yticks(range(16))
+plt.yticks(range(17))
 plt.yticks(fontsize=15)
 plt.ylabel('median seconds (idx diff/120)')
 
@@ -806,11 +817,11 @@ after_touch_all_rats = [[] for _ in range(s)]
 after_start_all_rats = [[] for _ in range(s)]
 before_end_all_rats = [[] for _ in range(s)]
 
-for r, rat in enumerate(rat_summary_table_path):
+for r, rat in enumerate(rat_summary_table_path[8:]):
     
     try:    
-         Level_2_pre = prs.Level_2_pre_paths(rat)
-         sessions_subset = Level_2_pre#[3:6]
+         Level_3_pre = prs.Level_3_moving_light_paths(rat)
+         sessions_subset = Level_3_pre#[3:6]
          
          rat_ball, rat_poke, before_touch, after_touch, after_start, before_end = distance_events(sessions_subset, frames = 120)
          
@@ -1734,7 +1745,8 @@ print(len(after_tot))
 #########################################################################################
     
 
-                                                       
+ 
+                                                      
 trial_table_path = 'F:/Videogame_Assay/Trial_table_final.csv'
 trial_table = np.genfromtxt(trial_table_path, delimiter =',')
 
@@ -1978,17 +1990,35 @@ plt.plot([ball_top[:,0],x_top[:]],[ball_top[:,1],y_top[:]],'g',alpha=.1)
 
 
 
+####################################################
+
+
+#moving light
+
+
+
+trial_table_path = 'F:/Videogame_Assay/Trial_table_final_level_3_moving_light.csv'
+trial_table = np.genfromtxt(trial_table_path, delimiter =',')
+
+f = plt.figure()
+f1= plt.figure()
+f2=plt.figure()
+
+
+for rat in range(4):
+    
+    for i in range(len(trial_table)):
+    
+        if trial_table[i,0] == rat:
+            
+            f= plt.plot(trial_table[i,1],'r')
+            f1 = plt.plot(trial_table[i,2],'g')
+            f2= plt.plot(trial_table[i,3],'b')
 
 
 
 
-
-
-
-
-
-
-
+plt.bar(range(len(trial_table[:,2])), trial_table[:,2])
 
 
 
