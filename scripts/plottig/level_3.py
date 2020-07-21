@@ -62,20 +62,24 @@ s = len(rat_summary_table_path)
 ball_pos_all_rats = [[] for _ in range(s)]
 snippet_before = [[] for _ in range(s)]
 snippet_after = [[] for _ in range(s)]
+snippet_centred_before = [[] for _ in range(s)]
+snippet_centred_after = [[] for _ in range(s)]
+
 
 
 for r, rat in enumerate(rat_summary_table_path):
     
     try:    
          Level_3_pre = prs.Level_3_moving_light_paths(rat)
-         sessions_subset = Level_3_pre[1]#[3:6]
+         sessions_subset = Level_3_pre[0]#[3:6]
          
-         rat_coordinates_before,ball_coordinates,rat_coordinates_after = rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=11)
+         rat_coordinates_before,ball_coordinates,rat_coordinates_after,centre_po_before, centre_po_after = rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=11)
          
          snippet_before[r] =  rat_coordinates_before
          snippet_after[r] =  rat_coordinates_after
-         ball_pos_all_rats[rat] = ball_pos
-         
+         ball_pos_all_rats[r] = ball_coordinates
+         snippet_centred_before[r] =centre_po_before
+         snippet_centred_after[r] =centre_po_after
          
          print(rat)
          print(r)
@@ -85,8 +89,16 @@ for r, rat in enumerate(rat_summary_table_path):
         continue  
 
 
-len(touch_all_rats)
-len(pos_at_touch_all_rats)
+len(snippet_before)
+len(ball_pos_all_rats)
+
+
+
+plt.plot(snippet_centred_before[0][:][:,0],snippet_centred_before[0][:][:,1])
+
+
+
+
 
 
 
@@ -96,6 +108,9 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_n
     ball_coordinates = []
     rat_coordinates_before = [[] for _ in range(trial_number)]
     rat_coordinates_after = [[] for _ in range(trial_number)]
+    centre_po_before =  [[] for _ in range(trial_number)]
+    centre_po_after =  [[] for _ in range(trial_number)]
+    
     
     session = sessions_subset
     
@@ -109,7 +124,7 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_n
     shader_tracking_path = os.path.join(script_dir + '/events/' +'Tracking.csv')
     shader_tracking = np.genfromtxt(shader_tracking_path)
     ball_shaders_path= os.path.join(script_dir+ '/events/' + 'BallPosition.csv')
-    split_data = np.genfromtxt(filename, delimiter=[33,100], dtype='unicode')
+    split_data = np.genfromtxt(ball_shaders_path, delimiter=[33,100], dtype='unicode')
     timestamps = split_data[:,0]
     positions_strings = split_data[:,1]
     for index, s in enumerate(positions_strings):
@@ -119,24 +134,27 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_n
         tmp = tmp.replace(' ', '')
         positions_strings[index] = tmp
     ball_shaders = np.genfromtxt(positions_strings, delimiter=',', dtype=float)
-               
-        for count in np.arange(trial_number):
     
+    start  = trial_idx[:11,event]       
+    ball = ball_shaders[:11]
+
                
-       
-        start  = trial_idx[:11,event]
+    for count in np.arange(trial_number):
+
         
-        ball = ball_shaders[event][:11]
-        
-        rat_pos_before = shader_tracking[start-offset]
-        rat_pos_after = shader_tracking[start+offset]
+        rat_pos_before = shader_tracking[start[count]-offset:start[count]:]
+        rat_pos_after = shader_tracking[start[count]:start[count]+offset]
+        centre_before = rat_pos_before - ball[count]
+        centre_after = rat_pos_after- ball[count]
     
         
-        rat_coordinates[count] = rat_pos
+        rat_coordinates_before[count] = rat_pos_before
         ball_coordinates.append(ball)
         rat_coordinates_after[count] = rat_pos_after
-    
-    return rat_coordinates_before,ball_coordinates,rat_coordinates_after
+        centre_po_before[count] = centre_before
+        centre_po_after[count] = centre_after
+
+    return rat_coordinates_before,ball_coordinates,rat_coordinates_after,centre_po_before, centre_po_after
 
 
 

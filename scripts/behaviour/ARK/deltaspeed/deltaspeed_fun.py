@@ -54,13 +54,75 @@ plt.plot(trial_counts, deltaspeed, 'b.')
 plt.show()
 
 # Plot deltangles
-plt.plot(trial_counts, deltangle, 'g.')
-plt.show()
+
+
+figure_name =  'delta_angles_before_after_120.pdf' 
+
+f,ax = plt.subplots(figsize=(10,6))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+plt.plot(trial_counts, deltangle, '.', alpha=.8, markersize=.5, color= 'k')
+
+
+#plt.title('before and after touch 120sec',fontsize = 16)
+plt.ylabel('delta angles', fontsize = 13)
+#plt.xlabel('rat ball euclidian distance', fontsize = 13)
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
+ax.axes.get_xaxis().set_visible(True) 
+   
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
+#plt.ylim(ymax=250)
+
+#plt.legend()
+f.tight_layout()
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+
 
 # Plot ratio speed
-plt.plot(trial_counts, ratiospeed, 'b.')
-plt.ylim(0, 3)
-plt.show()
+
+
+
+figure_name =  'ratio_speed.pdf' 
+
+f,ax = plt.subplots(figsize=(10,6))
+
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+plt.plot(trial_counts, ratiospeed, '.', alpha=.8, markersize=.5, color= 'k')
+
+
+#plt.title('before and after touch 120sec',fontsize = 16)
+plt.ylabel('ratio_spped', fontsize = 13)
+#plt.xlabel('rat ball euclidian distance', fontsize = 13)
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
+ax.axes.get_xaxis().set_visible(True) 
+   
+ax.yaxis.set_ticks_position('left')
+ax.xaxis.set_ticks_position('bottom')
+plt.ylim(ymin= -1,ymax=5)
+
+#plt.legend()
+f.tight_layout()
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+
+
+
 
 
 # Specify valid trial counters

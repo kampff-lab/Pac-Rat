@@ -411,6 +411,67 @@ from operator import itemgetter
 
 print itemgetter(*ind_pos)(a)
 
+#####################################
+
+
+def rat_position_around_event_snippets(sessions_subset, event=2, offset=240):
+    
+    l = len(sessions_subset)
+    x_crop_snippet = []
+    y_crop_snippet = []
+    x_shader_snippet = []
+    y_shader_snippet = []
+    
+    
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]
+        
+    
+        script_dir = os.path.join(hardrive_path + session) 
+
+        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+        #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+        shader_tracking_path = os.path.join(script_dir + '/events/' +'Tracking.csv')
+        shader_tracking = np.genfromtxt(shader_tracking_path)
+        
+        crop_tracking_path = os.path.join(script_dir + '/crop.csv')
+        crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+    
+        
+       
+        rat_event = trial_idx[:,event]
+        offset_before = rat_event-offset
+        offset_after = rat_event+offset
+        
+        x_crop_snippet_session = np.zeros((len(rat_event),offset*2))
+        y_crop_snippet_session = np.zeros((len(rat_event),offset*2))
+        
+        x_shader_snippet_session = np.zeros((len(rat_event),offset*2))          
+        y_shader_snippet_session = np.zeros((len(rat_event),offset*2))
+        
+        for i in range(len(rat_event)):
+            
+            rat_around_event_shaders = shader_tracking[offset_before[i]:offset_after[i]]
+            rat_around_event_crop = crop[offset_before[i]:offset_after[i]]
+            
+            x_crop_snippet_session[i] = rat_around_event_crop[:,0]
+            y_crop_snippet_session[i] = rat_around_event_crop[:,1]
+            x_shader_snippet_session[i] =  rat_around_event_shaders[:,0]
+            y_shader_snippet_session[i]=  rat_around_event_shaders[:,1]
+        
+        x_crop_snippet.extend(x_crop_snippet_session)
+        y_crop_snippet.extend(y_crop_snippet_session)
+        x_shader_snippet.extend(x_shader_snippet_session)
+        y_shader_snippet.extend(y_shader_snippet_session)
+            
+        print(count)
+                
+        
+    return x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet
+
 
 
 

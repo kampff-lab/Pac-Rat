@@ -219,15 +219,124 @@ np.savetxt(results_dir + csv_name, final_table,delimiter=',', fmt='%s')
 
 
 #################################################################################                                                      
-'F:/Videogame_Assay/Trial_table_final.csv'
+trial_table = 'F:/Videogame_Assay/Trial_table_final_level_2_touching_light.csv'
+table_open =np.genfromtxt(trial_table, delimiter = ',')
 
 
+for r, rat in enumerate(rat_summary_table_path):
+    
+    
+    try:    
+         Level_2_pre= prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre
+         
 
-
-
+         rat_pos_at_touch, before_touch, after_touch = trial.rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120)
+         
+         rat_pos_at_start_flat =  [val for sublist in rat_pos_at_start for val in sublist]
+         rat_pos_at_touch_flat = [val for sublist in rat_pos_at_touch for val in sublist]
+         rat_pos_before_touch =  [val for sublist in before_touch for val in sublist]
+         rat_pos_after_touch =  [val for sublist in after_touch for val in sublist]
+         
+         print(len(rat_pos_at_start_flat))
+         print(len(rat_pos_at_touch_flat))
+         print(len(rat_pos_before_touch))
+         print(len(rat_pos_after_touch))
 
 ###################################
+# snippets around_touch
 
+
+
+s = len(rat_summary_table_path)
+
+x_crop_all_rats = []
+y_crop_all_rats =[]
+x_shaders_all_rats= []
+y_shaders_all_rats = []
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    
+    try:    
+         Level_2_pre= prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre
+         
+         x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets(sessions_subset, event=2, offset=360)
+         
+         x_crop_all_rats.extend(x_crop_snippet)
+         y_crop_all_rats.extend(y_crop_snippet)
+         x_shaders_all_rats.extend(x_shader_snippet)
+         y_shaders_all_rats.extend(y_shader_snippet)
+
+         print(rat)
+         print(r)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+    
+    
+print(len(x_crop_all_rats))      
+print(len(y_crop_all_rats))         
+print(len(x_shaders_all_rats))    
+print(len(y_shaders_all_rats))
+
+
+
+csv_name = 'x_crop_snippets_around_touch.csv'
+
+np.savetxt(results_dir + csv_name,x_crop_all_rats, delimiter=',', fmt='%s')
+
+
+csv_name = 'y_crop_snippets_around_touch.csv'
+np.savetxt(results_dir + csv_name,y_crop_all_rats, delimiter=',', fmt='%s')
+
+
+csv_name = 'x_shaders_snippets_around_touch.csv'
+np.savetxt(results_dir + csv_name,x_shaders_all_rats, delimiter=',', fmt='%s')
+
+
+csv_name = 'y_shaders_snippets_around_touch.csv'
+np.savetxt(results_dir + csv_name,y_shaders_all_rats, delimiter=',', fmt='%s')
+
+
+crop_diff_x = np.diff(x_crop_all_rats, prepend = 0,axis=0)
+crop_diff_y = np.diff(y_crop_all_rats, prepend = 0,axis=0)    
+crop_diff_x_square = crop_diff_x**2
+crop_diff_y_square = crop_diff_y**2
+crop_speed = np.sqrt(crop_diff_x_square + crop_diff_y_square)
+
+crop_median = np.nanmedian(crop_speed,axis=0)
+
+len(crop_median)
+
+plt.figure()
+plt.plot(range(len(crop_median)),crop_median)
+plt.title('crop')
+
+
+
+shader_diff_x = np.diff(x_shaders_all_rats, prepend = 0,axis=0)
+shader_diff_y = np.diff(y_shaders_all_rats, prepend = 0,axis=0)    
+shader_diff_x_square = shader_diff_x**2
+shader_diff_y_square = shader_diff_y**2
+shader_speed = np.sqrt(shader_diff_x_square + shader_diff_y_square)
+
+shader_median = np.nanmedian(shader_speed[4921: 5225],axis=0)
+
+len(shader_median)
+
+f,ax = plt.subplots(figsize=(9,6))
+
+plt.plot(range(len(shader_median)),shader_median)
+plt.title('shaders')
+ax.vlines(359,min(shader_median)-.01,max(shader_median)+.01,linewidth=0.9,color= 'k')
+
+
+
+
+bounds =  [0,648, 1247, 1710, 2599, 2841, 3418, 3614, 4272, 4643, 4921, 5225]
 
 
 
