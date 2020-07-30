@@ -12,3 +12,4 @@ for index, s in enumerate(positions_strings):
     tmp = tmp.replace(' ', '')
     positions_strings[index] = tmp
 positions = np.genfromtxt(positions_strings, delimiter=',', dtype=float)
+len(positions)

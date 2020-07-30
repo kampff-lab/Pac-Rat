@@ -103,7 +103,7 @@ plt.plot(snippet_centred_before[0][:][:,0],snippet_centred_before[0][:][:,1])
 
 
 
-def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=11): #start_event=0, end_event= 1
+def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=:): #start_event=0, end_event= 1
     
     ball_coordinates = []
     rat_coordinates_before = [[] for _ in range(trial_number)]
@@ -117,7 +117,7 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_n
 
     script_dir = os.path.join(hardrive_path + session) 
 
-    trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+    trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx_cleaned.csv')
     trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
     #crop_tracking_path = os.path.join(script_dir + '/crop.csv')
     #crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
@@ -190,7 +190,7 @@ plt.plot(diff_test[:,0],diff_test[:,1])
 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/BallPosition.csv'
 
 
-tracking = 'C:/Users/KAMPFF-LAB-ANALYSIS3/Desktop/BallTracking.csv'
+tracking = 'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/BallTracking.csv'
 tracking_open = np.genfromtxt(tracking, delimiter = ',', usecols= [1,2])
 track_diff = np.diff(tracking_open[:,0])
 
@@ -214,42 +214,151 @@ for i in range(len(binary)):
         trans_list.append(i)
         
 
-
+len(trans_list)
 
 save= np.savetxt(test_open, delimiter=',')
 
 
-test = 'F:/Videogame_Assay/AK_49.1/2019_09_20-14_18/events/BallTracking.csv'
-test_open = np.genfromtxt(test, dtype=floT
+
+'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/BallTracking.csv'
+'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/BallPosition.csv'
+'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/BallOn.csv'
 
 
-                          
-                          
-                          
-                          
-                          
-sel = test_open[:,1]
-
-s = sel.split()
-non_grouped = pp.Word(pp.printables, excludeChars="_(),")
-
- csv.reader()
-t=  re.split(r',\s*(?=[^)]*(?:\(|$))', sel) 
-
-import re
-
-with open(test) as f:
-    for line in map(str.strip, f):
-        l = re.split('_,(,_)', line)
-    print(len(l), l)
+def timestamp_CSV_to_pandas(filename):
+    timestamp_csv = pd.read_csv(filename, delimiter=' ',header=None, usecols=[0])
+    timestamp = timestamp_csv[0]
+    timestamp_Series= pd.to_datetime(filename)
+    #timestamp_csv=pd.read_csv(reward, header = None,usecols=[0],parse_dates=[0])
+    return timestamp_Series
 
 
+####################################   2   ##########################################
 
-
-df = pd.read_csv(test, delimiter='\s*(?=\()', engine='python')
-df.columns = df.columns.str.replace('[()]', '')
-df = df.replace('[()]', '', regex=True)
+#find where the closest timestamps of an event of interest timestamp is and it return the idx 
+def closest_timestamps_to_events(timestamp_list, event_list):
+    nearest  = []
+    for e in event_list:
+        delta_times = timestamp_list-e
+        nearest.append(np.argmin(np.abs(delta_times)))
+    return nearest  
 
 
 
-import pandas as pd
+filename = 'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/BallTracking.csv'
+split_data = np.genfromtxt(filename, delimiter=[33,100], dtype='unicode')
+timestamps = split_data[:,0]
+positions_strings = split_data[:,1]
+for index, s in enumerate(positions_strings):
+    tmp = s.replace('(', '')
+    tmp = tmp.replace(')', '')
+    tmp = tmp.replace('\n', '')
+    tmp = tmp.replace(' ', '')
+    positions_strings[index] = tmp
+positions = np.genfromtxt(positions_strings, delimiter=',', dtype=float)
+len(positions)
+
+
+time_ball = timestamps
+time_tracking = timestamps
+
+
+ball_timestamps = pd.to_datetime(time_ball)
+tracking_timestamp = pd.to_datetime(time_tracking)
+
+
+nearest= closest_timestamps_to_events(tracking_timestamp, ball_timestamps)
+
+len(nearest)
+
+
+
+idx = positions[nearest]
+
+
+
+
+
+#finding trigger events
+
+trial_idx_path='F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/events/Trial_idx.csv'
+
+trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+
+'F:/Videogame_Assay/AK_49.1/2019_09_19-11_14/Video.csv'
+
+
+
+start = trial_idx[:,0]
+touch  = trial_idx[:,2]
+
+diff_touch_start = np.abs(start-touch)
+
+
+good_trials = diff_touch_start>10
+
+good_ball = positions[:-1][good_trials]
+
+
+
+times_good =timestamps[:-1][good_trials]
+
+
+
+timestamps, positions
+
+
+timestamps_good = [[] for _ in range(len(good_ball))]
+
+
+for ball in range(len(good_ball)):
+    
+    ball_times = []
+    
+    for pos in range(len(positions)):
+    
+        if round(positions[pos,0],6) - round(good_ball[ball,0],6) == 0  and round(positions[pos,1],6) -  round(good_ball[ball,1],6) == 0:
+            
+            ball_times.append(pos)
+        
+            
+        timestamps_good[ball]= ball_times
+
+    print(ball)
+
+
+
+            
+time_good_ball =  pd.to_datetime(times_good) 
+time_tracking = pd.to_datetime(timestamps) 
+        
+nearest_good_ball= closest_timestamps_to_events(time_tracking, time_good_ball)
+
+
+trigger=[]
+
+for i in range(len(timestamps_good)):
+    
+    if timestamps_good[i] ==[]:
+        trigger.append([])
+        
+    else:
+        
+    
+        trigger.append(timestamps_good[i][-1])
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

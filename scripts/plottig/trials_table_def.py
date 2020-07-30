@@ -23,7 +23,7 @@ from scipy.spatial import distance
 from scipy import stats
 from scipy.stats import *
 import matplotlib.colors
-
+import cv2
 
 import importlib
 importlib.reload(prs)
@@ -58,6 +58,24 @@ if not os.path.isdir(results_dir):
 
 
 
+#parse ball tracking file 
+
+def moving_light_and_joystick_parser(filename):
+    
+    split_data = np.genfromtxt(filename, delimiter=[33,100], dtype='unicode')
+    timestamps = split_data[:,0]
+    positions_strings = split_data[:,1]
+    for index, s in enumerate(positions_strings):
+        tmp = s.replace('(', '')
+        tmp = tmp.replace(')', '')
+        tmp = tmp.replace('\n', '')
+        tmp = tmp.replace(' ', '')
+        positions_strings[index] = tmp
+    tracking = np.genfromtxt(positions_strings, delimiter=',', dtype=float)
+    
+    return timestamps, tracking
+
+
 
 
 
@@ -70,10 +88,10 @@ if not os.path.isdir(results_dir):
 #    rat position at start - ball position
 #    rat position at touch - poke position
 #    rat position 120 prior to touch - rat position at touch
-#    rat position 12- after touch - rat position at touch
+#    rat position 120- after touch - rat position at touch
 
    
-def distance_events(sessions_subset,frames=120):
+def distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx_cleaned.csv',ball_file = 'Ball_positions_cleaned.csv', tracking_file = '/events/Tracking.csv' ): #'/crop.csv'
     
     poke = [1400,600]
     l = len(sessions_subset)
@@ -91,11 +109,13 @@ def distance_events(sessions_subset,frames=120):
         try:
             script_dir = os.path.join(hardrive_path + session) 
             #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
-            crop_tracking_path = os.path.join(script_dir + '/crop.csv')
-            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
-            trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+            crop_tracking_path = os.path.join(script_dir + tracking_file)
+            #parse ball tracking file         
+
+            crop = np.genfromtxt(crop_tracking_path)
+            trial_idx_path = os.path.join(script_dir+ '/events/' + trial_file)
             trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)                
-            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
+            ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + ball_file)    
             ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
             
             
@@ -105,6 +125,8 @@ def distance_events(sessions_subset,frames=120):
             rat_position_at_touch = crop[touch]
             rat_before_ball = crop[touch - frames]
             rat_after_ball = crop[touch + frames]
+            
+            
             
             session_rat_ball_dist = []
             session_rat_poke_dist = []
@@ -151,7 +173,7 @@ def distance_events(sessions_subset,frames=120):
 
 
 
-def rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120):
+def rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120,trial_file = 'Trial_idx_cleaned.csv',tracking_file = '/events/Tracking.csv'):
     
     l = len(sessions_subset)
     event_rat_coordinates = [[] for _ in range(l)]
@@ -166,10 +188,10 @@ def rat_event_crop_pos_finder(sessions_subset, event=2, offset = 120):
     
         script_dir = os.path.join(hardrive_path + session) 
 
-        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx_path = os.path.join(script_dir+ '/events/' + trial_file)
         trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
-        crop_tracking_path = os.path.join(script_dir + '/crop.csv')
-        crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+        crop_tracking_path = os.path.join(script_dir + tracking_file)
+        crop = np.genfromtxt(crop_tracking_path)
                        
         rat_event = trial_idx[:,event]
         rat_pos = crop[rat_event]
@@ -198,7 +220,7 @@ def time_to_events(sessions_subset):
     st_time = [[] for _ in range(l)]
     te_time = [[] for _ in range(l)]
     se_time = [[] for _ in range(l)]
-    
+
     for count in np.arange(l):
         
         session = sessions_subset[count]
@@ -239,7 +261,65 @@ def time_to_events(sessions_subset):
             print('error'+ session)
         continue
                             
-    return st_time, te_time, se_time
+    return st_time, te_time, se_time 
+################################
+    
+
+def time_to_events_moving_and_joystick(sessions_subset, trial_file = 'Trial_idx_cleaned.csv'):
+    
+    l = len(sessions_subset)
+    st_time = [[] for _ in range(l)]
+    te_time = [[] for _ in range(l)]
+    se_time = [[] for _ in range(l)]
+    tt_time =  [[] for _ in range(l)]
+    bot_time =  [[] for _ in range(l)]
+    
+    for count in np.arange(l):
+        
+        session = sessions_subset[count]
+        
+        try:
+            script_dir = os.path.join(hardrive_path + session) 
+            #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+            crop_tracking_path = os.path.join(script_dir + '/events/Tracking.csv')
+            crop = np.genfromtxt(crop_tracking_path, delimiter = ',', dtype = float)
+            trial_idx_path = os.path.join(script_dir+ '/events/' + trial_file)
+            trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+    
+            #selecting the column of touch and start, calculate the abs diff in order to calculate the 
+            #how long it took to touch the ball from the start of the trial
+            start_touch_diff = abs(trial_idx[:,0] - trial_idx[:,2])
+            touch_end_diff = abs(trial_idx[:,1] - trial_idx[:,2])
+            start_to_end_diff = abs(trial_idx[:,0] - trial_idx[:,1])
+            trigger_to_touch =  abs(trial_idx[:,2] - trial_idx[:,4])
+            ball_ob_to_trigger = abs(trial_idx[:,3] - trial_idx[:,4])
+            
+            st_time[count] = start_touch_diff
+            te_time[count] = touch_end_diff
+            se_time[count] = start_to_end_diff
+            tt_time[count] = trigger_to_touch
+            bot_time[count] = ball_ob_to_trigger
+            
+            
+            
+            #csv_dir_path = os.path.join(script_dir + '/events/')
+            
+            #csv_name = 'Start_touch_idx_diff.csv'
+            #np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
+            #csv_name = 'Touch_reward_idx_diff.csv'
+            #np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
+            
+            print(len(start_touch_diff))
+            print(len(touch_end_diff))
+            print(len(te_time))
+            print('saving DONE')
+
+
+        except Exception: 
+            print('error'+ session)
+        continue
+                            
+    return st_time, te_time, se_time, tt_time,bot_time
 
 
 
@@ -272,7 +352,7 @@ def trial_count_each_session(event):
 
 #################
     
-def trial_counter(sessions_subset):
+def trial_counter(sessions_subset, trial_file= 'Trial_idx_cleaned.csv'):
       
     l = len(sessions_subset)
     session_trials = [[] for _ in range(l)]
@@ -283,7 +363,7 @@ def trial_counter(sessions_subset):
         session = sessions_subset[count]       
     
         script_dir = os.path.join(hardrive_path + session)     
-        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx_path = os.path.join(script_dir+ '/events/' + trial_file)
         trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
         trial_count = trial_count_each_session(trial_idx)
         
@@ -293,7 +373,7 @@ def trial_counter(sessions_subset):
 
 
 
-sesssion_trials = trial_counter(sessions_subset)
+#sesssion_trials = trial_counter(sessions_subset)
 
 
 ###################
@@ -301,7 +381,7 @@ sesssion_trials = trial_counter(sessions_subset)
 
 
 
-def ball_positions_finder(sessions_subset):
+def ball_positions_finder(sessions_subset, ball_file ='Ball_positions_cleaned.csv' ):
       
     l = len(sessions_subset)
     ball_rat = [[] for _ in range(l)]
@@ -313,7 +393,29 @@ def ball_positions_finder(sessions_subset):
     
         script_dir = os.path.join(hardrive_path + session)     
         
-        ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_coordinates.csv')    
+        ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + ball_file)    
+        ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
+        
+        ball_rat[count] = ball_coordinates
+        
+    return ball_rat
+
+
+##########################
+    
+def ball_positions_finder_moving_and_joystick(sessions_subset):
+      
+    l = len(sessions_subset)
+    ball_rat = [[] for _ in range(l)]
+  
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]       
+    
+        script_dir = os.path.join(hardrive_path + session)     
+        
+        ball_coordinates_path = os.path.join(hardrive_path, session + '/events/' + 'Ball_positions_cleaned.csv')    
         ball_coordinates = np.genfromtxt(ball_coordinates_path, delimiter = ',', dtype = float) 
         
         ball_rat[count] = ball_coordinates
@@ -404,17 +506,10 @@ def rat_position_around_event(sessions_subset, event=2, offset=120):
 
 
 
-
-
-
-from operator import itemgetter
-
-print itemgetter(*ind_pos)(a)
-
 #####################################
 
 
-def rat_position_around_event_snippets(sessions_subset, event=2, offset=240):
+def rat_position_around_event_snippets(sessions_subset, event=2, offset=240, folder = 'Trial_idx_cleaned.csv'):
     
     l = len(sessions_subset)
     x_crop_snippet = []
@@ -431,7 +526,7 @@ def rat_position_around_event_snippets(sessions_subset, event=2, offset=240):
     
         script_dir = os.path.join(hardrive_path + session) 
 
-        trial_idx_path = os.path.join(script_dir+ '/events/' + 'Trial_idx.csv')
+        trial_idx_path = os.path.join(script_dir+ '/events/' + folder)
         trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
         #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
         shader_tracking_path = os.path.join(script_dir + '/events/' +'Tracking.csv')
