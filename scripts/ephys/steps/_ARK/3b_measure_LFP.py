@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 3: detect spikes on each channel
+Ephys Analysis: Step 2b: measure LFP
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
@@ -26,7 +26,8 @@ importlib.reload(ephys)
 session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify data paths
-data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
+data_path = os.path.join(session_path +'/Amplifier_downsampled.bin')
 
-# Detect spikes 
-ephys.detect_spikes(data_path)
+# Measure LFP spectrum (somehow get power in different spectral ranges binned into "frames")
+ephys.measure_LFP(data_path)
+

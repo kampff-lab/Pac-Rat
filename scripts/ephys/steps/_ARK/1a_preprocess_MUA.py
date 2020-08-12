@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 1: (headtsage) mean rereferencing
+Ephys Analysis: Step 1a: (headtsage) mean rereferencing/cleaning for MUA analysis
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
-# -*- coding: utf-8 -*-
 import os
 os.sys.path.append('/home/kampff/Repos/Kampff-Lab/Pac-Rat/libraries')
 #os.sys.path.append('D:/Repos/Pac-Rat/libraries')
