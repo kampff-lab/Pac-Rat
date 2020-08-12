@@ -109,11 +109,11 @@ def frame_before_trials(target_dir,video_path,event= 3, offset=50):
 
 
 
-for count, rat in enumerate(rat_summary_table_path[8:]):
+for count, rat in enumerate(rat_summary_table_path):
     
     
-    Level_3_pre = prs.Level_3_pre_paths(rat)
-    sessions_subset = Level_3_pre
+    Level_2_post = prs.Level_2_post_paths(rat)
+    sessions_subset = Level_2_post
      
     for session in sessions_subset:
         try:

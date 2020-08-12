@@ -39,7 +39,6 @@ hardrive_path = r'F:/'
 #21 x_centroid_st, y_centroid_st = create_tracking_snippets_start_to_end_centroid(sessions_subset, start_snippet_idx = 0, mid_snippet_idx=2)
 ####################################   1   ##########################################
 
-
 #takes a filename containing timestamps and convert them in datetime series to be used to find closest timestamps
 
 def timestamp_CSV_to_pandas(filename):

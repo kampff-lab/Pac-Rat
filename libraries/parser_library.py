@@ -129,11 +129,6 @@ def Level_2_post_paths(rat_summary_table_path):
 
 
 
-
-
-
-
-
 def Level_3_pre_paths(rat_summary_table_path):
     rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
     Level_3_pre = []
@@ -194,6 +189,26 @@ def all_post_surgery_levels_paths(rat_summary_table_path):
             continue
     return All_levels_post
 
-     
+ 
+def Level_3_moving_post_paths(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_3_moving_post = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][4] == 'moving light' and rat_summary[row][3]== 'post':
+           Level_3_moving_post.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_3_moving_post
 
-    
+
+
+
+def Level_3_joystick_post_paths(rat_summary_table_path):
+    rat_summary = np.genfromtxt(rat_summary_table_path, delimiter = ',', skip_header = 2 , dtype = str)
+    Level_3_joystick_post = []
+    for row in range(len(rat_summary)):
+        if not rat_summary[row][6] == 'N' and rat_summary[row][4] == 'joystick'and rat_summary[row][3]== 'post':
+           Level_3_joystick_post.append(rat_summary[row][0])
+        else:
+            continue
+    return Level_3_joystick_post  

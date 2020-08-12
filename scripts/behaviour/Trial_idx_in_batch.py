@@ -39,8 +39,8 @@ RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 4
 for count, rat in enumerate(rat_summary_table_path):
     
     try:    
-         Level_2_pre = prs.Level_2_pre_paths(rat)
-         sessions_subset = Level_2_pre
+         Level_2_post = prs.Level_2_post_paths(rat)
+         sessions_subset = Level_2_post
          
          behaviour.start_end_touch_ball_idx(sessions_subset)
          print(rat)
@@ -57,8 +57,8 @@ for count, rat in enumerate(rat_summary_table_path):
 for count, rat in enumerate(rat_summary_table_path):
     
     try:    
-         Level_3_pre = prs.Level_3_pre_paths(rat)
-         sessions_subset = Level_3_pre
+         Level_3_post = prs.Level_3_post_paths(rat)
+         sessions_subset = Level_3_post
          
          behaviour.start_end_touch_ball_idx(sessions_subset)
          print(rat)
