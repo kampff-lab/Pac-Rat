@@ -268,24 +268,25 @@ for r, rat in enumerate(rat_summary_table_path):
 ###################################
 # snippets around_touch
 
-session_type ='joystick'
+session_type ='touching_light_ephys'
 
-x_crop_all_rats = []
-y_crop_all_rats =[]
+#x_crop_all_rats = []
+#y_crop_all_rats =[]
 x_shaders_all_rats= []
 y_shaders_all_rats = []
 
-for r, rat in enumerate(rat_summary_table_path[8:]):
+for r, rat in enumerate(rat_summary_table_path):
     
     
     try:    
-         Level_3_pre= prs.Level_3_joystick_paths(rat)
+         Level_3_pre= prs.Level_2_post_paths(rat)
          sessions_subset = Level_3_pre
          
-         x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets(sessions_subset, event=4, offset=360, folder = 'Trial_idx_cleaned.csv')
-         
-         x_crop_all_rats.extend(x_crop_snippet)
-         y_crop_all_rats.extend(y_crop_snippet)
+         #x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets(sessions_subset, event=4, offset=360, folder = 'Trial_idx_cleaned.csv')
+         x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets_ephys(sessions_subset, event=2, offset=240, folder = 'Trial_idx.csv')
+             
+         #x_crop_all_rats.extend(x_crop_snippet)
+         #y_crop_all_rats.extend(y_crop_snippet)
          x_shaders_all_rats.extend(x_shader_snippet)
          y_shaders_all_rats.extend(y_shader_snippet)
 
@@ -297,8 +298,8 @@ for r, rat in enumerate(rat_summary_table_path[8:]):
         continue    
     
     
-print(len(x_crop_all_rats))      
-print(len(y_crop_all_rats))         
+#print(len(x_crop_all_rats))      
+#print(len(y_crop_all_rats))         
 print(len(x_shaders_all_rats))    
 print(len(y_shaders_all_rats))
 

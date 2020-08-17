@@ -2,9 +2,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 from scipy import stats
+import seaborn as sns
+import os 
+
+
+hardrive_path = r'F:/' 
+
+
+#main folder rat ID
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
 
 # Load trial table
-filename = 'F:/Videogame_Assay/Trial_tables/Trial_table_final_level_2_touching_light.csv'
+filename = 'F:/Videogame_Assay/Trial_tables/Trial_table_final_level_2_touching_light_ephys.csv'
 trial_table = np.genfromtxt(filename, delimiter=',')
 ids = trial_table[:,0]
 current_id = 0
@@ -29,20 +47,21 @@ y_ball = trial_table[:,17]
 num_trials = len(x_ball)
 
 # Load X and Y shader snippet arrays
-filename =  'F:/Videogame_Assay/Snippets/x_crop_snippets_around_touch_touching_light.csv'
+filename =  'F:/Videogame_Assay/Snippets/x_shaders_snippets_around_touch_touching_light_ephys.csv'
 x_snippets = np.genfromtxt(filename, delimiter=',')
-filename = 'F:/Videogame_Assay/Snippets/y_crop_snippets_around_touch_touching_light.csv'
+filename = 'F:/Videogame_Assay/Snippets/y_shaders_snippets_around_touch_touching_light_ephys.csv'
 y_snippets = np.genfromtxt(filename, delimiter=',')
 
 
  #400  <ball_final[i,1]<800 and  600 <ball_final[i,0]<1000:      
 # Filter trials
 all_trials = np.ones(num_trials, np.bool)
-central_trials = (x_ball > 600) * (x_ball < 1100) * (y_ball > 450) * (y_ball < 850)
+#central_trials = (x_ball > 600) * (x_ball < 1100) * (y_ball > 450) * (y_ball < 850)
+central_trials = (x_ball > -.7) * (x_ball < .3) * (y_ball > -.7) * (y_ball < .3)
 from_above_trials = (y_touch > y_ball)
 from_below_trials = (y_touch < y_ball)
-early_trials = trial_counts < 50#100
-late_trials = trial_counts > 300
+early_trials = trial_counts < #50#100
+late_trials = trial_counts > #300
 from_left_trials = (x_touch < x_ball)
 from_right_trials = (x_touch > x_ball)
 
@@ -75,7 +94,7 @@ sem_below = stats.sem(speed_below, nan_policy='omit', axis=0)
 
 # Plot average speeds
 
-figure_name = 'median_speed_above_below_touching_crop.png'
+figure_name = 'median_speed_above_below_touching_shader_ephys.png'
   
 f,ax = plt.subplots(figsize=(15,7))
 
@@ -86,7 +105,7 @@ sns.despine(left=False)
 
 
 #plt.vlines(359, 0.001, 0.004, 'k')
-plt.vlines(359, 0.0, 3.0, 'k')
+#plt.vlines(359, 0.0, 3.0, 'k')
 
 
 
@@ -211,7 +230,7 @@ sns.despine(left=False)
 
 
 #plt.vlines(359, 0.001, 0.004, 'k')
-plt.vlines(359, 0.0, 3.0, 'k')
+#plt.vlines(359, 0.0, 3.0, 'k')
 
 plt.plot(avg_speed,color= 'k')
 plt.fill_between(range(len(sem_avg_speed)),avg_speed-sem_avg_speed,avg_speed+sem_avg_speed, alpha = 0.4, facecolor ='k')

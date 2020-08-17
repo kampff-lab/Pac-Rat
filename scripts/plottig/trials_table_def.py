@@ -610,7 +610,57 @@ def rat_position_around_event_snippets(sessions_subset, event=2, offset=240, fol
     return x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet
 
 
+def rat_position_around_event_snippets_ephys(sessions_subset, event=4, offset=240, folder = 'Trial_idx_cleaned.csv'): # 4 for miving light and joytick (when ball move away)
+    
+    l = len(sessions_subset)
 
+    x_shader_snippet = []
+    y_shader_snippet = []
+    
+    
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]
+        
+    
+        script_dir = os.path.join(hardrive_path + session) 
+
+        trial_idx_path = os.path.join(script_dir+ '/events/' + folder)
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+        #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+        shader_tracking_path = os.path.join(script_dir + '/events/' +'Tracking.csv')
+        shader_tracking = np.genfromtxt(shader_tracking_path)
+        
+
+        
+       
+        rat_event = trial_idx[:,event]
+        offset_before = rat_event-offset
+        offset_after = rat_event+offset
+        
+
+        
+        x_shader_snippet_session = np.zeros((len(rat_event),offset*2))          
+        y_shader_snippet_session = np.zeros((len(rat_event),offset*2))
+        
+        for i in range(len(rat_event)):
+            
+            rat_around_event_shaders = shader_tracking[offset_before[i]:offset_after[i]]
+
+            
+
+            x_shader_snippet_session[i] =  rat_around_event_shaders[:,0]
+            y_shader_snippet_session[i]=  rat_around_event_shaders[:,1]
+        
+
+        x_shader_snippet.extend(x_shader_snippet_session)
+        y_shader_snippet.extend(y_shader_snippet_session)
+            
+        print(count)
+                
+        
+    return x_shader_snippet,y_shader_snippet
 
 
 
