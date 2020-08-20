@@ -29,7 +29,7 @@ sessions_subset = Level_2_post
 
 
 # Specify paths
-session  = sessions_subset[1]
+session  = sessions_subset[0]
 session_path =  os.path.join(hardrive_path,session)
 
 #recording data path

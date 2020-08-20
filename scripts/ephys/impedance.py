@@ -109,7 +109,7 @@ bad_channels_idx = [[] for _ in range(len(final_mean_impedance_Level_2_post))]
 
 for count in range(len(final_mean_impedance_Level_2_post)):
 
-    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 6000000 ] 
+    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 5000000 ] 
     print (min(final_mean_impedance_Level_2_post[count]))
     print (max(final_mean_impedance_Level_2_post[count]))
     if idx_bad_imp == 0 :

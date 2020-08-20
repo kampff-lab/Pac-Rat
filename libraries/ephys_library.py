@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 num_raw_channels = 128
 bytes_per_sample = 2
 raw_sample_rate = 30000
+hardrive_path = 'F:/'
 
 # Probe from superficial to deep electrode, left side is shank 11 (far back)
 probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
@@ -32,6 +33,121 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
 flatten_probe = probe_map.flatten()
+
+#np.set_printoptions(suppress=True)
+
+
+def bad_channel(session, min_imp = 10000, max_imp = 6000000):
+    
+    mean_impedance_Level_2_post = np.zeros((1,121))
+    sem_impedance_Level_2_post = np.zeros((1,121))
+    
+
+    #list_impedance_path = []
+    impedance_path = os.path.join(hardrive_path, session)
+    matching_files_daily_imp = glob.glob(impedance_path + "\*imp*") 
+    #for matching_file in matching_files:
+       # list_impedance_path.append(matching_file)
+        
+    impedance_list_array=np.array(matching_files_daily_imp)
+    session_all_measurements = np.zeros((len(impedance_list_array), 121))
+    
+    for i, imp in enumerate(impedance_list_array):
+        read_file = pd.read_csv(imp)
+        impedance = np.array(read_file['Impedance Magnitude at 1000 Hz (ohms)']).astype(dtype=int)
+        imp_remapped= impedance[flatten_probe]
+        session_all_measurements[i,:] = imp_remapped
+            
+
+    mean_imp_session= np.mean(session_all_measurements,axis=0)
+    sem_imp= stats.sem(session_all_measurements,axis=0)
+    
+    mean_impedance_Level_2_post[:]=mean_imp_session
+    sem_impedance_Level_2_post[:]=sem_imp
+   
+           
+    bad_channels_idx = [[] for _ in range(len(mean_impedance_Level_2_post))] 
+    csv_name = '/bad_channels.csv'
+   
+    for count in range(len(mean_impedance_Level_2_post)):
+
+        idx_bad_imp = [idx for idx, val in enumerate(mean_impedance_Level_2_post[count]) if val > max_imp or val < min_imp] 
+        print (min(final_mean_impedance_Level_2_post[count]))
+        print (max(final_mean_impedance_Level_2_post[count]))
+        if idx_bad_imp == 0 :
+                
+            bad_channels_idx[count] = []
+        else:
+           bad_channels_idx[count] = idx_bad_imp 
+
+    np.savetxt(impedance_path + csv_name,bad_channels_idx, delimiter=',', fmt='%s')
+        
+    return bad_channels_idx
+
+
+#remove the double sessions which do not contain the impedance measures 
+
+#mask = (np.nan_to_num(mean_impedance_Level_2_post) != 0).any(axis=1)
+#
+#final_mean_impedance_Level_2_post = mean_impedance_Level_2_post[mask]
+#final_sem_impedance_Level_2_post = sem_impedance_Level_2_post[mask]
+#
+
+
+
+
+
+#find outlier channels
+
+       
+bad_channels_idx = [[] for _ in range(len(mean_impedance_Level_2_post))] 
+
+
+for count in range(len(mean_impedance_Level_2_post)):
+
+    idx_bad_imp = [idx for idx, val in enumerate(mean_impedance_Level_2_post[count]) if val > 5000000 ] 
+    print (min(final_mean_impedance_Level_2_post[count]))
+    print (max(final_mean_impedance_Level_2_post[count]))
+    if idx_bad_imp == 0 :
+        
+        bad_channels_idx[count] = []
+    else:
+       bad_channels_idx[count] = idx_bad_imp 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Measure channel means and stds and save
 def measure_raw_amplifier_stats(filename):
