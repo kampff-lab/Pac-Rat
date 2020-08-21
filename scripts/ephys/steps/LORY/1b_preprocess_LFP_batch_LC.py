@@ -11,13 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
-import parser_library as parser
+import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
 
 # Reload modules
 import importlib
-importlib.reload(parser)
+importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
 
@@ -54,20 +54,29 @@ for r, rat in enumerate(rat_summary_table_path):
         for s, session in enumerate(sessions_subset):            
                     
             # Specify data path
-            data_path = os.path.join(session_path +'/Amplifier.bin')
+            data_path = os.path.join(hardrive_path+session +'/Amplifier.bin')
             
             # Downsample data 
             ephys.downsample_raw_amplifier(data_path)
             
             # Load and display downsampled data
-            ch = 21
-            raw = np.fromfile(data_path, count=(30000*30*128), dtype=np.uint16)
-            raw = np.reshape(raw, (-1, 128)).T
-            downsampled_path = data_path[:-4] + '_downsampled.bin'
-            downsampled = np.fromfile(downsampled_path, count=(1000*30*128), dtype=np.uint16)
-            downsampled = np.reshape(downsampled, (-1, 128)).T
-            plt.plot(raw[ch,:], 'r')
-            plt.plot(np.arange(30000) * 30, downsampled[ch,:], 'b')
-            plt.show()
+ 
+
+
+
+
+
+           
             
-        #FIN
+# Load and display downsampled data
+ch = 35
+cleaned = np.fromfile(data_path, count=(30000*30*128), dtype=np.uint16)
+cleaned = np.reshape(cleaned, (-1, 128)).T
+downsampled_path = data_path[:-4] + '_downsampled.bin'
+downsampled = np.fromfile(downsampled_path, count=(1000*30*128), dtype=np.uint16)
+downsampled = np.reshape(downsampled, (-1, 128)).T
+plt.plot(cleaned[55,:], 'r')
+plt.plot(np.arange(30000) * 30, downsampled[55,:], 'b')
+plt.show()
+
+ 

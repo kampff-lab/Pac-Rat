@@ -12,7 +12,9 @@ import math
 import scipy.signal as signal
 from scipy.signal import butter, filtfilt
 import matplotlib.pyplot as plt
-
+import glob
+import pandas as pd
+from scipy import stats
 # Ephys Constants
 num_raw_channels = 128
 bytes_per_sample = 2
@@ -72,8 +74,7 @@ def bad_channel(session, min_imp = 10000, max_imp = 6000000):
     for count in range(len(mean_impedance_Level_2_post)):
 
         idx_bad_imp = [idx for idx, val in enumerate(mean_impedance_Level_2_post[count]) if val > max_imp or val < min_imp] 
-        print (min(final_mean_impedance_Level_2_post[count]))
-        print (max(final_mean_impedance_Level_2_post[count]))
+
         if idx_bad_imp == 0 :
                 
             bad_channels_idx[count] = []
@@ -92,28 +93,6 @@ def bad_channel(session, min_imp = 10000, max_imp = 6000000):
 #final_mean_impedance_Level_2_post = mean_impedance_Level_2_post[mask]
 #final_sem_impedance_Level_2_post = sem_impedance_Level_2_post[mask]
 #
-
-
-
-
-
-#find outlier channels
-
-       
-bad_channels_idx = [[] for _ in range(len(mean_impedance_Level_2_post))] 
-
-
-for count in range(len(mean_impedance_Level_2_post)):
-
-    idx_bad_imp = [idx for idx, val in enumerate(mean_impedance_Level_2_post[count]) if val > 5000000 ] 
-    print (min(final_mean_impedance_Level_2_post[count]))
-    print (max(final_mean_impedance_Level_2_post[count]))
-    if idx_bad_imp == 0 :
-        
-        bad_channels_idx[count] = []
-    else:
-       bad_channels_idx[count] = idx_bad_imp 
-
 
 
 

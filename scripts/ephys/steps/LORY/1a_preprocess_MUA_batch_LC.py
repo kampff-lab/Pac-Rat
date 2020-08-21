@@ -39,8 +39,8 @@ hardrive_path = r'F:/'
 
 #s = len(rat_summary_table_path)
 
-
 rat_summary_table_path=rat_summary_ephys
+
 
 
 for r, rat in enumerate(rat_summary_table_path): 
@@ -54,7 +54,7 @@ for r, rat in enumerate(rat_summary_table_path):
         for s, session in enumerate(sessions_subset):
                      
             # Specify raw data path
-            raw_path = os.path.join(session_path +'/Amplifier.bin')
+            raw_path = os.path.join(session +'/Amplifier.bin')
             
             # Specify channels to exclude (in reference calculation)
             disconnected_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
@@ -64,20 +64,23 @@ for r, rat in enumerate(rat_summary_table_path):
             bad_channels = np.genfromtxt(bad_channels_path, delimiter=',',dtype=int)
             
             exclude_channels = np.sort(np.hstack((disconnected_channels,bad_channels)))
-            
+            print(len(exclude_channels))
             
             # Clean raw data and store binary file
             ephys.clean_raw_amplifier(raw_path, exclude_channels)   
-            
-            # Load cleaned data and display
-            data = np.fromfile(raw_path, count=(30000*3*128), dtype=np.uint16)
-            data = np.reshape(data, (-1, 128)).T
-            plt.plot(data[70,:], 'r')
-            
-            cleaned_path = raw_path[:-4] + '_cleaned.bin'
-            cleaned_data = np.fromfile(cleaned_path, count=(30000*3*128), dtype=np.uint16)
-            cleaned_data = np.reshape(cleaned_data, (-1, 128)).T
-            plt.plot(cleaned_data[70,:], 'b')
-            plt.show()
+#            
+#            # Load cleaned data and display
+#            data = np.fromfile(raw_path, count=(30000*3*128), dtype=np.uint16)
+#            data = np.reshape(data, (-1, 128)).T
+#            plt.plot(data[87,:], 'r')
+#            
+#            cleaned_path = raw_path[:-4] + '_cleaned.bin'
+#            cleaned_data = np.fromfile(cleaned_path, count=(30000*3*128), dtype=np.uint16)
+#            cleaned_data = np.reshape(cleaned_data, (-1, 128)).T
+#            plt.plot(cleaned_data[87,:], 'b')
+#            plt.show()
 
+    except Exception: 
+        print(session+'error')
+        continue   
 #FIN
