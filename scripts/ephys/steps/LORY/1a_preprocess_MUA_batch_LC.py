@@ -45,21 +45,22 @@ rat_summary_table_path=rat_summary_ephys
 
 for r, rat in enumerate(rat_summary_table_path): 
     
-    
-    try:    
+       
 
-        Level_2_post = prs.Level_2_post_paths(rat)
-        sessions_subset = Level_2_post
+    Level_2_post = prs.Level_2_post_paths(rat)
+    sessions_subset = Level_2_post
+    
+    for s, session in enumerate(sessions_subset):
         
-        for s, session in enumerate(sessions_subset):
-                     
+        try:
+                 
             # Specify raw data path
-            raw_path = os.path.join(session +'/Amplifier.bin')
+            raw_path = os.path.join(hardrive_path+session +'/Amplifier.bin')
             
             # Specify channels to exclude (in reference calculation)
             disconnected_channels = np.array([12, 13, 18, 19, 108, 109 ,115])
             
-            bad_channels_idx = bad_channel(session, min_imp = 10000, max_imp = 6000000)
+            bad_channels_idx = ephys.bad_channel(session, min_imp = 10000, max_imp = 6000000)
             bad_channels_path =  os.path.join(hardrive_path + session+'/bad_channels.csv')
             bad_channels = np.genfromtxt(bad_channels_path, delimiter=',',dtype=int)
             
@@ -68,19 +69,20 @@ for r, rat in enumerate(rat_summary_table_path):
             
             # Clean raw data and store binary file
             ephys.clean_raw_amplifier(raw_path, exclude_channels)   
-#            
-#            # Load cleaned data and display
-#            data = np.fromfile(raw_path, count=(30000*3*128), dtype=np.uint16)
-#            data = np.reshape(data, (-1, 128)).T
-#            plt.plot(data[87,:], 'r')
-#            
-#            cleaned_path = raw_path[:-4] + '_cleaned.bin'
-#            cleaned_data = np.fromfile(cleaned_path, count=(30000*3*128), dtype=np.uint16)
-#            cleaned_data = np.reshape(cleaned_data, (-1, 128)).T
-#            plt.plot(cleaned_data[87,:], 'b')
-#            plt.show()
+    #            
+    #            # Load cleaned data and display
+    #            data = np.fromfile(raw_path, count=(30000*3*128), dtype=np.uint16)
+    #            data = np.reshape(data, (-1, 128)).T
+    #            plt.plot(data[87,:], 'r')
+    #            
+    #            cleaned_path = raw_path[:-4] + '_cleaned.bin'
+    #            cleaned_data = np.fromfile(cleaned_path, count=(30000*3*128), dtype=np.uint16)
+    #            cleaned_data = np.reshape(cleaned_data, (-1, 128)).T
+    #            plt.plot(cleaned_data[87,:], 'b')
+    #            plt.show()
+            print(session + 'saved')
 
-    except Exception: 
-        print(session+'error')
-        continue   
+        except Exception: 
+            print(session+'error')
+            continue   
 #FIN

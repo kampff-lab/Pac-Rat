@@ -27,7 +27,7 @@ bytes_per_sample = 2
 raw_sample_rate = 30000
 
 # Specify session folder
-session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26'
 #session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify cleaned data path

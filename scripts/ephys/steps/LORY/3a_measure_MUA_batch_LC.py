@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ephys Analysis: Step 1b: downsample to 1 kHz for LFP analysis
+Ephys Analysis: Step 2a: measure MUA
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
@@ -20,6 +20,7 @@ import importlib
 importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
+
 
 
 
@@ -52,10 +53,10 @@ for r, rat in enumerate(rat_summary_table_path):
         try:
                 
             # Specify data path
-            data_path = os.path.join(hardrive_path+session +'/Amplifier.bin')
+            data_path = os.path.join(hardrive_path+session +'/Amplifier_cleaned.bin')
             
             # Downsample data 
-            ephys.downsample_raw_amplifier(data_path)
+            ephys.detect_MUA(data_path)
             
             # Load and display downsampled data
      
@@ -67,19 +68,17 @@ for r, rat in enumerate(rat_summary_table_path):
     
     
 
+# Specify session folder
+#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
+# Specify data paths
+data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
 
-           
-            
-# Load and display downsampled data
-ch = 35
-cleaned = np.fromfile(data_path, count=(30000*30*128), dtype=np.uint16)
-cleaned = np.reshape(cleaned, (-1, 128)).T
-downsampled_path = data_path[:-4] + '_downsampled.bin'
-downsampled = np.fromfile(downsampled_path, count=(1000*30*128), dtype=np.uint16)
-downsampled = np.reshape(downsampled, (-1, 128)).T
-plt.plot(cleaned[55,:], 'r')
-plt.plot(np.arange(30000) * 30, downsampled[55,:], 'b')
-plt.show()
+# Detect spikes on each channel (using weak thresholds for picking up many spikes)
+ephys.detect_MUA(data_path)
 
- 
+# To Do...
+# - Detect artifact spikes (when spikes occur on too many channels within 1 ms of one another)
+# - Count spikes per video-frame (removing or setting to NaN frames with artifact spikes)
+# -  - this "spike count" per frame per channel will be the MUA signal that we use for subsequent analysis 
