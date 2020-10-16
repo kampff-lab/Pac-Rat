@@ -657,12 +657,13 @@ for count, row in enumerate(success_L_1):
     #plt.xticks((np.arange(0, 5, 1)))
     ax.axes.get_xaxis().set_visible(True) 
     #ax.set_ylim(ymin= -10 ,ymax= 260)
-    #plt.yticks((np.arange(0, 300, 50)))
-       
+    #plt.yticks((np.arange(0, 350, 50)))
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)   
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     #plt.xlim(-0.1,3.5)
-    #plt.ylim(0,160)
+    #plt.ylim(-10,300)
 
 
 mean_trial_count = np.nanmean(success_L_1, axis=0)
@@ -673,7 +674,7 @@ sem = stats.sem(success_L_1, nan_policy='omit', axis=0)
 plt.plot(mean_trial_count,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_count, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
-
+plt.yticks((np.arange(0, 350, 50)))
 #plt.legend()
 f.tight_layout()
 
@@ -715,9 +716,11 @@ for count, row in enumerate(miss_L_1):
     plt.title('Level 1 Trial count',fontsize = 16)
     plt.ylabel('trial number', fontsize = 13)
     plt.xlabel('Level 1 Sessions', fontsize = 13)
-    plt.ylim(0,80)
-    plt.yticks((np.arange(0, 80, 20)))
-    ax.axes.get_xaxis().set_visible(True) 
+    #plt.ylim(0,80)
+    #plt.yticks((np.arange(0, 100, 20)))
+    ax.axes.get_xaxis().set_visible(True)
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
        
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -733,7 +736,7 @@ sem = stats.sem(miss_L_1, nan_policy='omit', axis=0)
 plt.plot(mean_trial_miss,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(4), mean_trial_miss, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
-
+plt.yticks((np.arange(0, 150, 50)))
 #plt.legend()
 f.tight_layout()
 
@@ -870,8 +873,10 @@ for count, row in enumerate(final_success_L_2):
     ax.xaxis.set_ticks_position('bottom')
     #plt.xlim(-0.1,3.5)
     #plt.ylim(0,150)
-    plt.xticks((np.arange(0, 150, 50)))
-    ax.set_ylim(ymin= 0,ymax= 150)
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
+    #plt.yticks((np.arange(0, 160, 20)))
+    #ax.set_ylim(ymin= 0,ymax= 150)
 
 
 mean_trial_count_L_2 = np.nanmean(final_success_L_2, axis=0)
@@ -882,7 +887,7 @@ sem_L_2 = stats.sem(final_success_L_2, nan_policy='omit', axis=0)
 plt.plot(mean_trial_count_L_2,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_count_L_2, yerr= sem_L_2, fmt='o', ecolor='k',color='k', capsize=2)  
-
+plt.yticks((np.arange(0, 200, 50)))
 #plt.legend()
 f.tight_layout()
 
@@ -920,8 +925,10 @@ for count, row in enumerate(final_miss_L_2):
     plt.title('Level 2 Trial count',fontsize = 16)
     plt.ylabel('trial number', fontsize = 13)
     plt.xlabel('Level 2 Sessions', fontsize = 13)
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
     #plt.ylim(0,10)
-    #plt.yticks((np.arange(0, 10, 1)))
+    #plt.yticks((np.arange(0, 10, 2)))
     ax.axes.get_xaxis().set_visible(True) 
        
     ax.yaxis.set_ticks_position('left')
@@ -938,7 +945,7 @@ sem_L_2 = stats.sem(final_miss_L_2, nan_policy='omit', axis=0)
 plt.plot(mean_trial_miss_L_2,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(sessions_to_consider), mean_trial_miss_L_2, yerr= sem_L_2, fmt='o', ecolor='k',color='k', capsize=2)  
-
+plt.yticks((np.arange(0, 15, 5)))
 #plt.legend()
 f.tight_layout()
 
