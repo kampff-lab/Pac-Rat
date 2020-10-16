@@ -182,14 +182,43 @@ rat_sem = []
 
 for d in range(len(RAT_ID)):
     
-    sel = rat_trial_per_min_good[0][:4]
+    sel = rat_trial_per_min_good[d][:4]
     mean = np.mean(sel)
     sem = stats.sem(sel, nan_policy='omit', axis=0)
     rat_means.append(mean)
     rat_sem.append(sem)
     
 
+pre_success =[[ 124, 77, 72, 65],
+ [ 37, 89, 34, 66],
+ [ 37, 54, 96, 77],
+ [ 27, 30, 101, 113],
+ [ 38, 63, 64, 106],
+ [ 68, 48, 43, 101, ]]
 
+
+pre_trial_lenght = [[64.41458333333334,43.877361111111114,33.93666666666667,39.78652777777778],
+ [41.40763888888889,58.49875,52.24180555555555,63.66152777777778],
+ [50.01208333333333,32.84986111111111,56.97097222222222,58.53125],
+ [44.68013888888889,31.65041666666667,65.69013888888888,59.931805555555556],
+ [47.96736111111111,60.89236111111111,50.817083333333336,51.51958333333334],
+ [55.159305555555555,30.60875,41.569583333333334, 49.69625]]
+
+
+trials_per_minutes_L_2_pre=np.array(pre_success)/np.array(pre_trial_lenght)
+
+
+rat_means_pre = []
+rat_sem_pre = []
+
+for d in range(len(RAT_ID)):
+    
+    sel = trials_per_minutes_L_2_pre[d]
+    mean = np.mean(sel)
+    sem = stats.sem(sel, nan_policy='omit', axis=0)
+    rat_means_pre.append(mean)
+    rat_sem_pre.append(sem)
+    
 
 
 figure_name =  '_avg_trial_per_min_level2_ephys.pdf'
@@ -231,40 +260,7 @@ f.savefig(results_dir + figure_name, transparent=True)
 
 
 
-
-pre_success =[[ 124, 77, 72, 65],
- [ 37, 89, 34, 66],
- [ 37, 54, 96, 77],
- [ 27, 30, 101, 113],
- [ 38, 63, 64, 106],
- [ 68, 48, 43, 101, ]]
-
-
-pre_trial_lenght = [[64.41458333333334,43.877361111111114,33.93666666666667,39.78652777777778],
- [41.40763888888889,58.49875,52.24180555555555,63.66152777777778],
- [50.01208333333333,32.84986111111111,56.97097222222222,58.53125],
- [44.68013888888889,31.65041666666667,65.69013888888888,59.931805555555556],
- [47.96736111111111,60.89236111111111,50.817083333333336,51.51958333333334],
- [55.159305555555555,30.60875,41.569583333333334, 49.69625]]
-
-
-trials_per_minutes_L_2_pre=np.array(pre_success)/np.array(pre_trial_lenght)
-
-
-rat_means_pre = []
-rat_sem_pre = []
-
-for d in range(len(RAT_ID)):
-    
-    sel = trials_per_minutes_L_2_pre[d]
-    mean = np.mean(sel)
-    sem = stats.sem(sel, nan_policy='omit', axis=0)
-    rat_means_pre.append(mean)
-    rat_sem_pre.append(sem)
-    
-
-pre_misses = rat_miss
-
+#######################
 
 event_means = []
 event_sem= []
@@ -276,6 +272,20 @@ for d in range(len(RAT_ID)):
     sem = stats.sem(sel, nan_policy='omit', axis=0)
     event_means.append(mean)
     event_sem.append(sem)
+
+
+event_means_pre = []
+event_sem_pre= []
+
+for d in range(len(RAT_ID)):
+    
+    sel = pre_success[d]#[:4]
+    mean = np.mean(sel)
+    sem = stats.sem(sel, nan_policy='omit', axis=0)
+    event_means_pre.append(mean)
+    event_sem_pre.append(sem)
+
+
 
 
 
@@ -326,6 +336,14 @@ for d in range(len(RAT_ID)):
 
     percentage_change = (initial-final)/initial *100
     percent.append(percentage_change)
+
+
+
+target = open(main_folder +"%_of_change_pre_post_surgery_trial_count.txt", 'w')
+target.writelines(str(percent) +' 4 session pre and 4 session post (>15) initial(pre)-final(post))/initial *100, trials_plots_ephys.py')
+
+target.close()
+
 
 
 
