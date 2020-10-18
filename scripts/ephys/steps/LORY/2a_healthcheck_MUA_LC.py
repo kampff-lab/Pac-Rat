@@ -27,7 +27,7 @@ bytes_per_sample = 2
 raw_sample_rate = 30000
 
 # Specify session folder
-session_path =  'F:/Videogame_Assay/AK_41.1/2019_02_07-15_37'
+session_path =  'F:/Videogame_Assay/AK_33.2/2018_04_29-15_43'
 #session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify cleaned data path
@@ -81,10 +81,11 @@ for ch in range(128):
 #FIN
 
 
-ch = 100
 
-start_sample = 180000
-end_sample = 300000
+ch = 21
+
+start_sample = 5800000
+end_sample = 5890000
 samples_diff = end_sample-start_sample
 
 data_raw = os.path.join(session_path +'/Amplifier.bin')
@@ -97,14 +98,14 @@ raw = None
 raw_T = reshaped_raw.T
 reshaped_raw=None
 
-raw_ch = raw_T[20,:]
+raw_ch = raw_T[ch,:]
 raw_T=None
 
 raw_ch_uV = (raw_ch.astype(np.float32) - 32768) * 0.195
 raw_ch = None
 
 plt.figure()
-plt.plot(raw_ch_uV[start_sample:end_sample],alpha=.3)
+plt.plot(raw_ch_uV[start_sample:end_sample],alpha=.5, color='red')
 raw_ch_uV = None
 
 
@@ -128,11 +129,11 @@ data_ch = reshaped_data_T[ch,:]
 reshaped_data_T = None
 
 data_ch_uV = (data_ch.astype(np.float32) - 32768) * 0.195
-plt.plot(data_ch_uV[start_sample:end_sample],alpha=.3)
+plt.plot(data_ch_uV[start_sample:end_sample],alpha=.4, color='b')
 
 highpass_ch_uV = ephys.highpass(data_ch_uV,BUTTER_ORDER=3, F_HIGH=14250,sampleFreq=30000.0,passFreq=500)
 
-plt.plot(highpass_ch_uV[start_sample:end_sample],alpha = .3)
+plt.plot(highpass_ch_uV[start_sample:end_sample],alpha = .5, color='green')
 data_ch=None 
 data_ch_uV=None
 highpass_ch_uV=None
@@ -149,8 +150,8 @@ down_T=None
 down_ch_uV = (down_ch.astype(np.float32) - 32768) * 0.195
 down_ch=None 
 #plt.figure()
-plt.plot(np.arange(0,samples_diff,30),down_ch_uV[int(start_sample/30):int(end_sample/30)],'b',alpha=.3)
+plt.plot(np.arange(0,samples_diff,30),down_ch_uV[int(start_sample/30):int(end_sample/30)],'k',alpha=.5)
 down_ch_uV=None 
 
-
+plt.title('RAW = red, CLEANED = blue, HIGH = green, DOWN = black')
 

@@ -65,18 +65,18 @@ for r, rat in enumerate(rat_summary_table_path):
             print(session+'error')
             continue   
     
-    
+raw =    'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Amplifier.bin'
 
-
-
-           
-            
+data_path_cleaned =   'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Amplifier_cleaned.bin'     
+data_path_down = r'F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/Amplifier_downsampled.bin'  
 # Load and display downsampled data
 ch = 35
-cleaned = np.fromfile(data_path, count=(30000*30*128), dtype=np.uint16)
+cleaned = np.fromfile(data_path_cleaned, count=(30000*30*128), dtype=np.uint16)
 cleaned = np.reshape(cleaned, (-1, 128)).T
-downsampled_path = data_path[:-4] + '_downsampled.bin'
-downsampled = np.fromfile(downsampled_path, count=(1000*30*128), dtype=np.uint16)
+
+downsampled_path = data_path_cleaned[:-4] + '_downsampled.bin'
+
+downsampled = np.fromfile(data_path_down, count=(1000*30*128), dtype=np.uint16)
 downsampled = np.reshape(downsampled, (-1, 128)).T
 plt.plot(cleaned[55,:], 'r')
 plt.plot(np.arange(30000) * 30, downsampled[55,:], 'b')

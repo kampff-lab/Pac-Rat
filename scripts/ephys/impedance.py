@@ -109,7 +109,7 @@ bad_channels_idx = [[] for _ in range(len(final_mean_impedance_Level_2_post))]
 
 for count in range(len(final_mean_impedance_Level_2_post)):
 
-    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 5000000 ] 
+    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 6000000 ] #6000000
     print (min(final_mean_impedance_Level_2_post[count]))
     print (max(final_mean_impedance_Level_2_post[count]))
     if idx_bad_imp == 0 :
@@ -677,7 +677,8 @@ plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Pt,flat_pedot_Pt), color='k',
 plt.yscale('log')
 ax.set_xlim(-.5,2.5)
 ax.set_ylim(0.001,100)
-
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
 
 # Save the figure and show
 plt.tight_layout()
@@ -692,7 +693,7 @@ plt.close()
 #plt.minorticks_off() 
 ######################################data cleaning
 
-th = 5
+th = 6
 
 Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < th]
 
@@ -714,14 +715,15 @@ test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
 
 
 
-target = open(main_folder +"stats_Pt_saline_VS_PEDOT.txt", 'w')
-target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 479, impedance.py')
+target = open(main_folder +"stats_Pt_saline_VS_PEDOT_th_6.txt", 'w')
+target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 482, th=6, impedance.py')
 
 target.close()
 
 
 
 #th 5 =  Ttest_relResult(statistic=19.698943557103416, pvalue=1.1115078141741984e-63) n = 479
+#th 6 =  Ttest_relResult(statistic=16.924951583851268, pvalue=9.417706940703045e-51) n=482
 #th 8 =  Ttest_relResult(statistic=15.086107783897232, pvalue=2.052201403381959e-42)  n = 484
 #th 10 =   Ttest_relResult(statistic=14.825585811695863, pvalue=2.547211031857156e-41)
 #th 1 = statistic=25.58967226582703, pvalue=8.682862522544012e-91 n=466
@@ -760,7 +762,7 @@ ax2.bar(x_pos[1], means_Pt[1], yerr=errors_Pt[1], align='center', color ='g', ed
 #ax.set_xticks(x_pos)
 #ax.set_xticklabels(materials)
 #ax.set_title('saline_VS_pedot_iridium_probe')
-
+plt.yticks(fontsize=15)
 ax2.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
 
 ax1.tick_params(bottom='off', left='off', labelleft='on')
@@ -773,11 +775,12 @@ plt.xlim(-.5,1.5)
 
 ax2.set_ylim(0,.1)
 #ax1.set_ylim(0,.6)
-ax1.set_ylim(0.4,0.5)
+ax1.set_ylim(0.4,0.7)
 #ax1.set_yticks(np.arange(1000,1501,100))
 ax1.tick_params(axis='both', which='major', pad=15)
 ax2.tick_params(axis='both', which='major', pad=15)
-
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
 
 
 for tick in ax2.get_xticklabels():
@@ -789,6 +792,7 @@ ax1.plot((1 - d, 1 + d), (-d, +d), **kwargs)
 kwargs.update(transform=ax2.transAxes)  
 ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  
 ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)
+plt.yticks(fontsize=15)
 plt.show()
 
 # Save the figure and show
@@ -904,10 +908,12 @@ plt.scatter(x_axis_pedot, flat_pedot_Ir,s=20, facecolors='g', edgecolors='g')
 
 plt.plot((x_axis_saline,x_axis_pedot),(flat_saline_Ir,flat_pedot_Ir), color='k', alpha = .3 , linewidth= .2)
 
-ax.set_yscale('log')
+
+plt.yscale('log')
 ax.set_xlim(-.5,2.5)
 ax.set_ylim(0.001,100)
-
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
 
 # Save the figure and show
 
@@ -924,7 +930,7 @@ __
 #####################cleaning con th 5 e 10
 
 
-th = 5
+th = 6 # as well as for ephys pre processing
 
 
 Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < th]
@@ -947,6 +953,7 @@ test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 
 
 #th 5 = statistic=28.456691199228985, pvalue=2.387479347949912e-75  n = 219
+#th 6 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n =220
 #th 8 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 #th 10 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
 # th 1 =  Ttest_relResult(statistic=20.991170460032713, pvalue=6.457309854275329e-31n = 67
@@ -957,8 +964,8 @@ test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 #Ttest_relResult(statistic=-5.1325785753223885, pvalue=0.0003269935176528684)
 
 
-target = open(main_folder +"stats_IrOx_saline_VS_PEDOT.txt", 'w')
-target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=219,, impedance.py')
+target = open(main_folder +"stats_IrOx_saline_VS_PEDOT_th_6.txt", 'w')
+target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=220, th=6,, impedance.py')
 
 target.close()
 
@@ -1007,10 +1014,12 @@ plt.xlim(-.5,1.5)
 
 ax2.set_ylim(0,.1)
 #ax1.set_ylim(0,.6)
-ax1.set_ylim(.4,1)
+ax1.set_ylim(.4,1.6)
 #ax1.set_yticks(np.arange(1000,1501,100))
 ax1.tick_params(axis='both', which='major', pad=15)
 ax2.tick_params(axis='both', which='major', pad=15)
+plt.yticks(fontsize=15)
+plt.xticks(fontsize=15)
 
 
 
@@ -1290,8 +1299,11 @@ for s in range(n):
         plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
         ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
         #plt.ticklabel_format(axis="y", style="sci")
-        #ax.set_ylim(ymax=9000000)
+        ax.set_ylim(ymin=-1000000,ymax=10000000)
         ax.set_xlim(xmax=30)
+        plt.yticks(fontsize=15)
+        plt.xticks(fontsize=15)
+
         #ax.set_yscale('log')
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
@@ -1302,8 +1314,11 @@ for s in range(n):
         plt.errorbar(range(len(slice_median)), slice_median, yerr= error, ecolor='k',color='r', capsize=0,elinewidth = 1)  #fmt='.'
         ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
         #plt.ticklabel_format(axis="y", style="sci")
-        #ax.set_ylim(ymax=9000000)
+        ax.set_ylim(ymin= -1000000,ymax=10000000)
         ax.set_xlim(xmax=30)
+        plt.yticks(fontsize=15)
+        plt.xticks(fontsize=15)
+
         #ax.set_yscale('log')
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
@@ -1366,9 +1381,11 @@ for s in range(n):
         plt.errorbar(range(len(slice_median_to_use)), slice_median_to_use, yerr= error_to_use, ecolor='k',color='#6495ED', capsize=0,elinewidth = 1)  #fmt='.'
         ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
         #plt.ticklabel_format(axis="y", style="sci")
-        #ax.set_ylim(ymax=9000000)
+        ax.set_ylim(ymin= -600000,ymax=1500000)
         #ax.set_xlim(xmax=30)
         #ax.set_yscale('log')
+        plt.yticks(fontsize=15)
+        plt.xticks(fontsize=15)
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
     else:
@@ -1378,9 +1395,11 @@ for s in range(n):
         plt.errorbar(range(len(slice_median_to_use)), slice_median_to_use, yerr= error_to_use, ecolor='k',color='r', capsize=0,elinewidth = 1)  #fmt='.'
         ax.tick_params(bottom='off', left='off', labelleft='on', labelbottom='off')
         #plt.ticklabel_format(axis="y", style="sci")
-        #ax.set_ylim(ymax=9000000)
+        ax.set_ylim(ymin=-600000,ymax=1500000)
         #ax.set_xlim(xmax=4)
         #ax.set_yscale('log')
+        plt.yticks(fontsize=15)
+        plt.xticks(fontsize=15)
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
         
         
