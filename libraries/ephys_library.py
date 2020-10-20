@@ -632,6 +632,15 @@ def threshold_crossing(channel_data_highpass,spike_threshold_hard,spike_threshol
 
 
 
+def event_finder(event_file,video_csv,samples_for_frames_file_path):
+    
+    event_time = timestamp_CSV_to_pandas(event_file)
+    video_time = timestamp_CSV_to_pandas(video_csv)
+    closest_event = closest_timestamps_to_events(video_time, event_time)
+    sample_for_each_video_frame = np.genfromtxt(samples_for_frames_file_path, delimiter=',', usecols=0, dtype=np.uint32)
+    event_list = sample_for_each_video_frame[closest_event]
+    offset_list = event_list
+    return offset_list
 
 
 

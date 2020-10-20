@@ -40,7 +40,6 @@ session_path =  os.path.join(hardrive_path,session)
 #recording data path
 raw_recording = os.path.join(session_path +'/Amplifier.bin')
 downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
-downsampled_recording = os.path.join(session_path +'/Amplifier_cleaned_downsampled.bin')
 cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
 
 #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
@@ -77,93 +76,77 @@ downsampled_end= np.uint32(np.array(trial_end)/30)
 freq = 30000
 offset = 3000
 num_raw_channels = 128
+#
+#
+data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(down))/num_raw_channels)
+reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
+down=None
+down_T = reshaped_down.T
 
-
-data = np.memmap(cleaned_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_raw_channels)
-reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-down_sample_lenght = num_samples/30
 
 # 60000 so it starts 1 min into the task
 
 start = 60000
-stop = down_sample_lenght-offset*2
-idx = len(touching_light)
-
-
+stop = len(reshaped_down)-start#offset*2
+idx = 1500 #len(touching_light)
 
 
 baseline_random = randint(start,stop,idx)
 baseline_idx = np.sort(baseline_random)
-test_baseline = downsampled_touch - baseline_idx
-min_distance = np.min(abs(test_baseline))
-max_distance = np.max(abs(test_baseline))
-print(min_distance)
-print(max_distance)
-#plt.figure()
-#plt.hist(baseline_random,bins=20)
+#
+#test_baseline = downsampled_touch - baseline_idx
+#min_distance = np.min(abs(test_baseline))
+#max_distance = np.max(abs(test_baseline))
+#print(min_distance)
+#print(max_distance)
+plt.figure()
+plt.hist(baseline_random,bins=20)
 
 
-baseline_idx = downsampled_touch + 6000
-
+#baseline_idx = downsampled_touch + 6000
 
 
 
 probe_map_flatten = ephys.probe_map.flatten()
-new_probe_flatten_test =probe_map_flatten[[103,7,21,90,75,30]] #[103,7,21,90,75,30]
+new_probe_flatten=[103,7,21,90,75,30,1,123,88,17]
 
-downsampled_event_idx =downsampled_touch
 
-for ch, channel in enumerate(new_probe_flatten_test):
+#remove the first early trials
+downsampled_event_idx = downsampled_touch[1:]
+
+f0 =plt.figure(figsize=(20,20))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+ 
+
+for ch, channel in enumerate(new_probe_flatten):
     try:
                 
-        #data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
-        #num_samples = int(int(len(data))/num_raw_channels)
-
-        # Reshape data to have 128 rows
-        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        #data = None
         
-        # Extract selected channel (using probe map)
-        # = probe_map[depth, shank]
-        raw = reshaped_data[channel, :]
-        #reshaped_data = None
-        
-        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-        raw = None
-        print('converted_in_uv')
-        
-        ch_lowpass = ephys.butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
-        ch_raw_uV = None
-        
-        #plt.figure()
-        #plt.plot(ch_lowpass[30000:45000])
-        
-        ch_downsampled = ch_lowpass[::30]        
-        print('lowpassed_and_downsampled')
-        
-        
-        #plt.figure()
-        #plt.plot(ch_downsampled[1000:1500])
-        
-
+        ch_downsampled = down_T[ch,:]
+        #down_T=None
 
         chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
         
-        baseline_chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+        baseline_chunk_around_event = np.zeros((len(baseline_idx),offset*2))
 
         for e, event in enumerate(downsampled_event_idx):
              
             chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
             print(e)
+        print('epoch_event_DONE')
 
-
-
-        for b, base in enumerate(baseline_idx):
    
+        #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+        for b, base in enumerate(baseline_idx):
+             
             baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
-            print(b)
+            #print(b)    
+        print('epoch_baseline_DONE')
             
             
         ch_downsampled = None
@@ -179,31 +162,34 @@ for ch, channel in enumerate(new_probe_flatten_test):
         p_ch_sem = stats.sem(p_ch, axis = 0)
 
         p_base_avg = np.mean(p_base, axis =0)
-        p_base_sem = stats.sem(p_base)
-
-        sns.set()
-        fig = plt.figure()
+        p_base_sem = stats.sem(p_base, axis = 0)
         
 
-        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)    
+        ax = f0.add_subplot(5, 2, 1+ch, frameon=False)#all the probe is 11 11
+        
+        #plt.figure()
+        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
         plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
-                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')
+                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
+
         
         plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
         plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
-                         alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')
+                         alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
        
-        
-        plt.title('ch_'+ str(channel))
-        plt.legend(loc='best') 
-        
-        results_dir = 'F:/Videogame_Assay/test_plots/'
-        figure_name = 'Freq_spec_around_touch'+ str(channel) + '.png'
-        fig.savefig(results_dir + figure_name)
-        plt.close()    
+        plt.ylim(0,4e7)
+        plt.xticks(fontsize=4, rotation=0)
+        plt.yticks(fontsize=4, rotation=0)
+        #plt.title('ch_'+ str(channel))
+        #plt.legend(loc='best') 
+         
             
     except Exception:
         continue 
+       
+
+ 
+f0.subplots_adjust(wspace=.02, hspace=.02)
        
 
 
@@ -226,12 +212,12 @@ for i, idx in enumerate(baseline_chunk_around_event):
 #create epochs 
 test_epochs= None
         
-data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_raw_channels)
-
-# Reshape data to have 128 rows
-reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        
+data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(down))/num_raw_channels)
+reshaped_down=  np.reshape(down,(num_samples,128))  
+down=None
+down_T = reshaped_down.T
 
 
 test_epochs = np.zeros((len(downsampled_event_idx), len(probe_map_flatten),offset*2))  
@@ -240,37 +226,9 @@ for ch, channel in enumerate(probe_map_flatten):
     try:
         
         
-        #data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
-        #num_samples = int(int(len(data))/num_raw_channels)
-
-        # Reshape data to have 128 rows
-        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        #data = None
-        
-        # Extract selected channel (using probe map)
-        # = probe_map[depth, shank]
-        raw = reshaped_data[channel, :]
-        #reshaped_data = None
-        
-        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-        raw = None
-        print('converted_in_uv')
-        
-        #ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
-        #ch_raw_uV = None
-        
-        #plt.figure()
-        #plt.plot(ch_lowpass[30000:45000])
-        
-        #ch_downsampled = ch_lowpass[::30]        
-        #print('lowpassed_and_downsampled')
-        
-        
-        #plt.figure()
-        #plt.plot(ch_downsampled[1000:1500])
-        
-        ch_downsampled=ch_raw_uV 
+       
+        ch_downsampled = down_T[ch,:]
+        down_T=None
 
         chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
         
@@ -296,81 +254,7 @@ for ch, channel in enumerate(probe_map_flatten):
     except Exception:
         continue     
     
-# old data 
-
-
-
-
-data = np.memmap(raw_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_raw_channels)
-
-# Reshape data to have 128 rows
-reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        
-
-
-test_epochs = np.zeros((len(downsampled_event_idx), len(probe_map_flatten),offset*2))  
-#new_probe_flatten_test = [103,7,21,90,75,30]    
-for ch, channel in enumerate(probe_map_flatten):
-    try:
-        
-        
-        #data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
-        #num_samples = int(int(len(data))/num_raw_channels)
-
-        # Reshape data to have 128 rows
-        #reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-        #data = None
-        
-        # Extract selected channel (using probe map)
-        # = probe_map[depth, shank]
-        raw = reshaped_data[channel, :]
-        #reshaped_data = None
-        
-        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-        raw = None
-        print('converted_in_uv')
-        
-        ch_lowpass = butter_filter_lowpass(ch_raw_uV, lowcut=250,  fs=30000, order=3, btype='lowpass')
-        ch_raw_uV = None
-        
-        #plt.figure()
-        #plt.plot(ch_lowpass[30000:45000])
-        
-        ch_downsampled = ch_lowpass[::30]        
-        print('lowpassed_and_downsampled')
-        
-        
-        #plt.figure()
-        #plt.plot(ch_downsampled[1000:1500])
-        
-        #ch_downsampled=ch_raw_uV 
-
-        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
-        
-        #baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
-
-        for e, event in enumerate(downsampled_event_idx):
-             
-            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
-            print(e)
-
-        test_epochs[:,ch,:] = chunk_around_event
-        print(ch)
-        #baseline_chunk_around_event = np.zeros((len(downsampled_touch),offset*2))
-
-
-        #for b, base in enumerate(baseline_idx):
-   
-            #baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
-            #print(b)
-            
-
-            
-    except Exception:
-        continue     
-#test = test_epochs[:,:,ch]    
+################################
 
 test= None
     
@@ -378,14 +262,14 @@ freqs = np.arange(3.0, 100.0, 2.0)
     
 test_tfr = time_frequency.tfr_array_multitaper(test_epochs,sfreq= 1000,freqs = freqs, output= 'avg_power',n_jobs=8)   
 
-norm = np.mean(test_tfr[94,:20,:1000],axis=1)
+norm = np.mean(test_tfr2[94,:20,:1000],axis=1)
 
 norm_expanded = np.repeat([norm], offset*2, axis=0).T
 
-ch_test_norm = test_tfr[94,:20,:]/norm_expanded
+ch_test_norm = test_tfr2[94,:20,:]/norm_expanded
 
 
-ch_test = np.log(test_tfr[94,:20,:])
+ch_test = np.log(test_tfr2[94,:20,:])
 plt.figure()
 plt.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
 #plt.axvline(6000,20,color='k')
@@ -399,10 +283,10 @@ for i, ch in enumerate(probe_map_flatten):
     #inner_grid = gridspec.GridSpecFromSubplotSpec(1, 1,
      #       subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
 
-    norm = np.mean(test_tfr[i,:20,:1000],axis=1)
+    norm = np.mean(test_tfr2[i,:20,:1000],axis=1)
     norm_expanded = np.repeat([norm], offset*2, axis=0).T
-    ch_test_norm = test_tfr[i,:20,:]/norm_expanded
-    ch_test = np.log(test_tfr[i,:20,:])
+    ch_test_norm = test_tfr2[i,:20,:]/norm_expanded
+    ch_test = np.log(test_tfr2[i,:20,:])
        
     ax = f0.add_subplot(11, 11, 1+i, frameon=False)
 
@@ -463,34 +347,10 @@ ch_downsampled = ch_lowpass[::30]
  
 
 
-plt.figure()
-plt.plot(ch_downsampled[1000:1500])
-plt.title('downsampled')
-    
-#test new pre process
 
 
 
 
-
-
-
-
-
-
-
-data_downsampled = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data_downsampled))/num_raw_channels)
-
-# Reshape data to have 128 rows
-reshaped_downsampled_data = np.reshape(data_downsampled,(num_samples,num_raw_channels)).T
-downsampled = reshaped_downsampled_data[channel, :]
-       
-ch_down_uV = (downsampled.astype(np.float32) - 32768) * 0.195
-
-plt.figure()
-plt.plot(ch_down_uV[1000:1500])
-plt.title('downsampled_cleaned')
 
 
 
@@ -605,6 +465,12 @@ for t, trial in enumerate(touch_to_reward):
 #    else:
 #       bad_channels_idx[s] = idx_bad_imp 
 #
+    
+    
+    
+    
+    
+    
 p_all = []
 f_all = []
 
@@ -676,7 +542,8 @@ baseline_idx = 23000
 
 # event before baseline
 
-#
+baseline = 
+
 
 
 probe_map_flatten = ephys.probe_map.flatten()
@@ -785,11 +652,18 @@ offset = 3000
 num_raw_channels = 128
 
 
-data = np.memmap(downsampled_recording, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(data))/num_raw_channels)
-reshaped_data = np.reshape(data,(num_samples,num_raw_channels)).T
-down_sample_lenght = num_samples/30
 
+
+data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+num_samples = int(int(len(down))/num_raw_channels)
+reshaped_down=  np.reshape(down,(num_samples,128))  
+down=None
+down_T = reshaped_down.T
+#ch_downsampled = down_T[channel,:]
+#down_T=None
+
+down_sample_lenght = num_samples/30
 
 baseline_event_idx = downsampled_end[1:]
 
@@ -815,14 +689,10 @@ for ch, channel in enumerate(probe_map_flatten):
         
         # Extract selected channel (using probe map)
         # = probe_map[depth, shank]
-        raw = reshaped_data[channel, :]
+        ch_downsampled = down_T[ch,:]
         #reshaped_data = None
         
-        # Convert from interger values to microvolts, sub 32768 to go back to signed, 0.195 from analog to digital converter
-        ch_raw_uV = (raw.astype(np.float32) - 32768) * 0.195
-        raw = None
-        ch_downsampled=ch_raw_uV
-                
+       
         #plt.figure()
         #plt.plot(ch_downsampled[1000:1500])
         
@@ -875,7 +745,7 @@ for ch, channel in enumerate(probe_map_flatten):
         plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
                          alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9)
 
-        #'plt.figure()
+        #plt.figure()
         plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)   
         plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
                          alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')
