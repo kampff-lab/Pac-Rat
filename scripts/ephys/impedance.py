@@ -109,7 +109,7 @@ bad_channels_idx = [[] for _ in range(len(final_mean_impedance_Level_2_post))]
 
 for count in range(len(final_mean_impedance_Level_2_post)):
 
-    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 6000000 ] #6000000
+    idx_bad_imp = [idx for idx, val in enumerate(final_mean_impedance_Level_2_post[count]) if val > 6000000 or val < 10000 ] #6000000 
     print (min(final_mean_impedance_Level_2_post[count]))
     print (max(final_mean_impedance_Level_2_post[count]))
     if idx_bad_imp == 0 :
@@ -693,9 +693,11 @@ plt.close()
 #plt.minorticks_off() 
 ######################################data cleaning
 
-th = 6
+th_max = 6
+th_min = 0.01
+ 
 
-Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if v < th]
+Pt_ok = [i for i,v in enumerate(flat_saline_Pt) if  th_min< v < th_max]
 
 flat_saline_Pt_cleaned = flat_saline_Pt[Pt_ok] 
 flat_pedot_Pt_cleaned = flat_pedot_Pt[Pt_ok]
@@ -715,13 +717,13 @@ test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
 
 
 
-target = open(main_folder +"stats_Pt_saline_VS_PEDOT_th_6.txt", 'w')
-target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 482, th=6, impedance.py')
+target = open(main_folder +"stats_Pt_saline_VS_PEDOT_thmax_6_thmin_001.txt", 'w')
+target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 481, thmax=6 thmin = 0.01, impedance.py')
 
 target.close()
 
 
-
+#th min 0.01 and t  max 6 =  Ttest_relResult(statistic=16.935291422777482, pvalue=8.846732106309465e-51) n=481
 #th 5 =  Ttest_relResult(statistic=19.698943557103416, pvalue=1.1115078141741984e-63) n = 479
 #th 6 =  Ttest_relResult(statistic=16.924951583851268, pvalue=9.417706940703045e-51) n=482
 #th 8 =  Ttest_relResult(statistic=15.086107783897232, pvalue=2.052201403381959e-42)  n = 484
@@ -737,7 +739,7 @@ means_Pt = [mean_saline_Pt, sem_saline_Pt]
 errors_Pt = [sem_saline_Pt, sem_pedot_Pt]
 
 
-figure_name = 'th_'+ str(th) +'_platinum_saline_VS_pedot.pdf'
+figure_name = 'th_'+ str(th_max) +str(th_min) +'_platinum_saline_VS_pedot.pdf'
 
 f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
 
@@ -930,10 +932,13 @@ __
 #####################cleaning con th 5 e 10
 
 
-th = 6 # as well as for ephys pre processing
+#th = 6 # as well as for ephys pre processing
 
+th_max = 6
+th_min = 0.01
+ 
 
-Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if v < th]
+Ir_ok = [i for i,v in enumerate(flat_saline_Ir) if th_min< v < th_max]
 
 flat_saline_Ir_cleaned = flat_saline_Ir[Ir_ok]   
 flat_pedot_Ir_cleaned = flat_pedot_Ir[Ir_ok]
@@ -951,7 +956,7 @@ sem_pedot_Ir = stats.sem(flat_pedot_Ir_cleaned)
 
 test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 
-
+#th min 0.01 th max 6  Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n=220
 #th 5 = statistic=28.456691199228985, pvalue=2.387479347949912e-75  n = 219
 #th 6 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n =220
 #th 8 = Ttest_relResult(statistic=26.75295406609847, pvalue=5.99192743175084e-71) n = 220
@@ -964,8 +969,8 @@ test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 #Ttest_relResult(statistic=-5.1325785753223885, pvalue=0.0003269935176528684)
 
 
-target = open(main_folder +"stats_IrOx_saline_VS_PEDOT_th_6.txt", 'w')
-target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=220, th=6,, impedance.py')
+target = open(main_folder +"stats_IrOx_saline_VS_PEDOT_th_6_tmin_001.txt", 'w')
+target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=220, th max =6,th min =0.01, impedance.py')
 
 target.close()
 
@@ -983,7 +988,7 @@ means_Ir = [mean_saline_Ir, mean_pedot_Ir]
 errors_Ir = [sem_saline_Ir, sem_pedot_Ir]
 
 
-figure_name = 'th_' +str(th)+'iridium_saline_VS_pedot.pdf'
+figure_name = 'th_' +str(th_min) +str(th_max)+'iridium_saline_VS_pedot.pdf'
 
 f,(ax1,ax2) = plt.subplots(2,1,sharex=True,figsize=(5,7))
 

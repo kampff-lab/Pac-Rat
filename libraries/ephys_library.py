@@ -289,7 +289,7 @@ def downsample_raw_amplifier(filename):
         data_ch_uV = (data_ch.astype(np.float32) - 32768) * 0.195
 
         # Low-pass (anti-alias) filter at 500 Hz
-        lowpass_ch_uV = butter_filter_lowpass(data_ch_uV, 500)
+        lowpass_ch_uV = butter_filter_lowpass(data_ch_uV, 250)
 
         # Decimate to 1 kHz
         downsampled_ch_uV = lowpass_ch_uV[::30]

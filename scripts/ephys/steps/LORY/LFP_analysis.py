@@ -16,6 +16,8 @@ from mne import time_frequency
 import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
+import seaborn as sns
+import matplotlib.ticker as ticker
 
 # Reload modules
 import importlib
@@ -23,89 +25,49 @@ importlib.reload(prs)
 importlib.reload(behaviour)
 importlib.reload(ephys)
 
+main_folder = 'E:/thesis_figures/'
+figure_folder = 'Tracking_figures/'
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
 
 #test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
-
-rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
-hardrive_path = r'F:/' 
-Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-sessions_subset = Level_2_post
+rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                              'F:/Videogame_Assay/AK_48.1_IrO2.csv','F:/Videogame_Assay/AK_48.4_IrO2.csv']
 
 
-# Specify paths
-session  = sessions_subset[1]
-session_path =  os.path.join(hardrive_path,session)
-
-#recording data path
-raw_recording = os.path.join(session_path +'/Amplifier.bin')
-downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
-cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
-
-#idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
-csv_dir_path = os.path.join(session_path + '/events/')
-touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
-ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
-#trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
-trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
-#trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
-
-video_csv = os.path.join(session_path + '/Video.csv')
-
-samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
-samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
 
+RAT_ID = RAT_ID_ephys [0]
+
+hardrive_path = r'F:/'
 
 
+#rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv']
+
+#s = len(rat_summary_table_path)
 
 
-trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
-#trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
-touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
-ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
-#generate random idx for baseline freq spectrum 
-downsampled_touch = np.uint32(np.array(touching_light)/30)
-downsampled_ball = np.uint32(np.array(ball)/30)
-downsampled_end= np.uint32(np.array(trial_end)/30)
-#end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
-#samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
-#sample_start_clip = end_samples[21]
-#clip_sample_lenght = samples_lenght_end_to_end[22]
+rat_summary_table_path=rat_summary_ephys[0]
 
-freq = 30000
-offset = 3000
-num_raw_channels = 128
+#
+#rat_summary_table_path = 'F:/Videogame_Assay/AK_33.2_Pt.csv'
+#hardrive_path = r'F:/' 
+#Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+#sessions_subset = Level_2_post
+
 #
 #
-data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
-down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
-num_samples = int(int(len(down))/num_raw_channels)
-reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
-down=None
-down_T = reshaped_down.T
+## Specify paths
+#session  = sessions_subset[1]
 
 
-# 60000 so it starts 1 min into the task
-
-start = 60000
-stop = len(reshaped_down)-start#offset*2
-idx = 1500 #len(touching_light)
-
-
-baseline_random = randint(start,stop,idx)
-baseline_idx = np.sort(baseline_random)
-#
-#test_baseline = downsampled_touch - baseline_idx
-#min_distance = np.min(abs(test_baseline))
-#max_distance = np.max(abs(test_baseline))
-#print(min_distance)
-#print(max_distance)
-plt.figure()
-plt.hist(baseline_random,bins=20)
-
-
-#baseline_idx = downsampled_touch + 6000
 
 
 
@@ -113,84 +75,505 @@ probe_map_flatten = ephys.probe_map.flatten()
 new_probe_flatten=[103,7,21,90,75,30,1,123,88,17]
 
 
-#remove the first early trials
-downsampled_event_idx = downsampled_touch[1:]
 
-f0 =plt.figure(figsize=(20,20))
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
- 
 
-for ch, channel in enumerate(new_probe_flatten):
-    try:
+for r, rat in enumerate(rat_summary_table_path): 
+    
+    Level_2_post = prs.Level_2_post_paths(rat)
+    sessions_subset = Level_2_post
+    
+    for s, session in enumerate(sessions_subset):        
+       
+        
+        session_path =  os.path.join(hardrive_path,session)
+        
+        #recording data path
+        raw_recording = os.path.join(session_path +'/Amplifier.bin')
+        downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
+        cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
+        
+        #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
+        csv_dir_path = os.path.join(session_path + '/events/')
+        touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
+        ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
+        #trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+        trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
+        #trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        
+        video_csv = os.path.join(session_path + '/Video.csv')
+        
+        samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+        samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+        
+
+
+
+        trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
+        #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
+        touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
+        ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
+        #generate random idx for baseline freq spectrum 
+        downsampled_touch = np.uint32(np.array(touching_light)/30)
+        downsampled_ball = np.uint32(np.array(ball)/30)
+        downsampled_end= np.uint32(np.array(trial_end)/30)
+        #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+        #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+        #sample_start_clip = end_samples[21]
+        #clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+        data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+        down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+        num_samples = int(int(len(down))/num_raw_channels)
+        reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
+        down=None
+        down_T = reshaped_down.T
+
+        freq = 30000
+        offset = 3000
+        num_raw_channels = 128
+        
+        start = 60000
+        stop = len(reshaped_down)-start#offset*2
+        idx = 2000 #len(touching_light)
+        
+        
+
+        baseline_random = randint(start,stop,idx)
+        baseline_idx = np.sort(baseline_random)
+        #
+        #test_baseline = downsampled_touch - baseline_idx
+        #min_distance = np.min(abs(test_baseline))
+        #max_distance = np.max(abs(test_baseline))
+        #print(min_distance)
+        #print(max_distance)
+#            plt.figure()
+#            plt.hist(baseline_random,bins=20)
+#            
+#            
+#            #baseline_idx = downsampled_touch + 6000
+
+        
+    
+        #remove the first early trials
+        downsampled_event_idx = downsampled_touch[1:]
+        
+        f0 =plt.figure(figsize=(20,20))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+         
+        
+        for ch, channel in enumerate(probe_map_flatten): #new_map_flatten
+            try:
+                        
+                
+                ch_downsampled = down_T[channel,:]#should use channel
+                #down_T=None
+        
+                chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+                
+                baseline_chunk_around_event = np.zeros((len(baseline_idx),offset*2))
+        
+                for e, event in enumerate(downsampled_event_idx):
+                     
+                    chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+                    print(e)
+                print('epoch_event_DONE')
+        
+           
+                #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+                for b, base in enumerate(baseline_idx):
+                     
+                    baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+                    #print(b)    
+                print('epoch_baseline_DONE')
+                    
+                    
+                ch_downsampled = None
+                
+                chunk_lenght = offset*2
+                    
+                p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+        
+                p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+        
+        
+                for t in arange(len(downsampled_event_idx)):
+                    
+                    
+                    figure_name= str(t)+'.png'
+                    plt.plot(f_base, p_base[t], color = '#228B22',alpha=0.3, label = 'touch', linewidth= 1)
+                    plt.title('base')
+                    #f0.savefig(results_dir + figure_name, transparent=True)
+        
+                plt.figure()
+                for t in arange(len(downsampled_event_idx)):
+                    
+                    
+                    figure_name= str(t)+'.png'
+        
+                    plt.plot(f_ch, p_ch[t], color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
+                    plt.title('touch')
+                   # f0.savefig(results_dir + figure_name, transparent=True)
+        
                 
         
-        ch_downsampled = down_T[ch,:]
-        #down_T=None
-
-        chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
         
-        baseline_chunk_around_event = np.zeros((len(baseline_idx),offset*2))
-
-        for e, event in enumerate(downsampled_event_idx):
-             
-            chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
-            print(e)
-        print('epoch_event_DONE')
-
-   
-        #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
-        for b, base in enumerate(baseline_idx):
-             
-            baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
-            #print(b)    
-        print('epoch_baseline_DONE')
-            
-            
-        ch_downsampled = None
         
-        chunk_lenght = offset*2
-            
-        p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
-
-        p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
-
-
-        p_ch_avg = np.mean(p_ch, axis =0)
-        p_ch_sem = stats.sem(p_ch, axis = 0)
-
-        p_base_avg = np.mean(p_base, axis =0)
-        p_base_sem = stats.sem(p_base, axis = 0)
+                p_ch_avg = np.mean(p_ch, axis =0)
+                p_ch_sem = stats.sem(p_ch, axis = 0)
         
-
-        ax = f0.add_subplot(5, 2, 1+ch, frameon=False)#all the probe is 11 11
-        
-        #plt.figure()
-        plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
-        plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
-                         alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
+                p_base_avg = np.mean(p_base, axis =0) #[:len(downsampled_event_idx)]
+                p_base_sem = stats.sem(p_base, axis = 0)
 
         
-        plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
-        plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
-                         alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
-       
-        plt.ylim(0,4e7)
-        plt.xticks(fontsize=4, rotation=0)
-        plt.yticks(fontsize=4, rotation=0)
-        #plt.title('ch_'+ str(channel))
-        #plt.legend(loc='best') 
+        
+                ax = f0.add_subplot(5, 2, 1+ch, frameon=False)#all the probe is 11 11
+                
+                plt.figure()
+                plt.plot(f_ch, p_ch_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
+                plt.fill_between(f_ch, p_ch_avg-p_ch_sem, p_ch_avg+p_ch_sem,
+                                 alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
+        
+                plt.figure()
+                plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+                plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+                                 alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
+               
+                
+                plt.xlim(0,100,2)
+                plt.ylim(0,4e7)
+                ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+                plt.xticks(fontsize=4, rotation=0)
+                plt.yticks(fontsize=4, rotation=0)
+                #plt.title('ch_'+ str(channel))
+                #plt.legend(loc='best') 
+                 
+                    
+            except Exception:
+                continue 
+               
+        
          
-            
-    except Exception:
-        continue 
-       
+        f0.subplots_adjust(wspace=.02, hspace=.02)
+        figure_name =  RAT_ID + str(s) +'_freq_spectrum.pdf'
+        f0.savefig(results_dir + figure_name, transparent=True)
+        print('plot_saved')
 
- 
-f0.subplots_adjust(wspace=.02, hspace=.02)
+
+
+
+######## avg 3 range of frequencies 
+
+
+
+#delta = 1-4 Hz
+#theta = 4-8 Hz
+#alpha = 8-12 Hz
+#beta = 12-30 Hz
+#gamma = 30-100 Hz
+#high gamma = 60-100 Hz
+        
+probe_map_flatten = ephys.probe_map.flatten()
+new_probe_flatten=[103,7,21]
+
+
+
+
+for r, rat in enumerate(rat_summary_table_path): 
+    
+    Level_2_post = prs.Level_2_post_paths(rat)
+    sessions_subset = Level_2_post
+    
+    alpha_rat =  np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    beta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    theta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    delta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    
+    alpha_base = np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    delta_base= np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    theta_base= np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    beta_base =  np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    
+
+    
+    
+    for s, session in enumerate(sessions_subset):        
        
+        
+        session_path =  os.path.join(hardrive_path,session)
+        
+        #recording data path
+        raw_recording = os.path.join(session_path +'/Amplifier.bin')
+        downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
+        cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
+        
+        #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
+        csv_dir_path = os.path.join(session_path + '/events/')
+        touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
+        ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
+        #trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+        trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
+        #trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
+        
+        video_csv = os.path.join(session_path + '/Video.csv')
+        
+        samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+        samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+        
+
+
+
+        trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
+        #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
+        touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
+        ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
+        #generate random idx for baseline freq spectrum 
+        downsampled_touch = np.uint32(np.array(touching_light)/30)
+        downsampled_ball = np.uint32(np.array(ball)/30)
+        downsampled_end= np.uint32(np.array(trial_end)/30)
+        #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+        #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+        #sample_start_clip = end_samples[21]
+        #clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+        data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+        down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+        num_samples = int(int(len(down))/num_raw_channels)
+        reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
+        down=None
+        down_T = reshaped_down.T
+
+        freq = 30000
+        offset = 3000
+        num_raw_channels = 128
+        
+        start = 60000
+        stop = len(reshaped_down)-start#offset*2
+        idx = 2000 #len(touching_light)
+        
+        
+
+        baseline_random = randint(start,stop,idx)
+        baseline_idx = np.sort(baseline_random)
+        #
+        #test_baseline = downsampled_touch - baseline_idx
+        #min_distance = np.min(abs(test_baseline))
+        #max_distance = np.max(abs(test_baseline))
+        #print(min_distance)
+        #print(max_distance)
+#            plt.figure()
+#            plt.hist(baseline_random,bins=20)
+#            
+#            
+#            #baseline_idx = downsampled_touch + 6000
+
+        
+    
+        #remove the first early trials
+        downsampled_event_idx = downsampled_touch[1:]
+        
+
+         
+        #delta = 1-4 Hz
+        #theta = 4-8 Hz
+        #alpha = 8-12 Hz
+        #beta = 12-30 Hz        
+        
+        delta = []
+        theta = []
+        alpha = []
+        beta = []
+        
+        alpha_b = []
+        delta_b = []
+        beta_b = []
+        theta_b=[]
+        
+        csv_alpha = RAT_ID + session[24:] +'_alpha.csv'
+        
+        csv_beta = RAT_ID[r] + session[24:]+'_beta.csv'
+
+        csv_gamma = RAT_ID[r] + session[24:]+'_gamma.csv'
+   
+        csv_theta = RAT_ID[r]+ session[24:] +'_theta.csv'
+        
+        
+        
+        
+        
+        
+                
+        for ch, channel in enumerate(new_probe_flatten): #new_probe_flatten probe_map_flatten
+            try:
+                        
+                
+                ch_downsampled = down_T[channel,:]#should use channel
+                #down_T=None
+        
+                chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
+                
+                baseline_chunk_around_event = np.zeros((len(baseline_idx),offset*2))
+        
+                for e, event in enumerate(downsampled_event_idx):
+                     
+                    chunk_around_event[e,:] = ch_downsampled[event-offset : event+offset]
+                    print(e)
+                print('epoch_event_DONE')
+        
+           
+                #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+                for b, base in enumerate(baseline_idx):
+                     
+                    baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+                    #print(b)    
+                print('epoch_baseline_DONE')
+                    
+                    
+                ch_downsampled = None
+                
+                chunk_lenght = offset*2
+                    
+                p_ch, f_ch = time_frequency.psd_array_multitaper(chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+        
+                p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+        
+                
+        
+                p_ch_avg = np.mean(p_ch, axis =0)
+                p_ch_sem = stats.sem(p_ch, axis = 0)
+        
+                p_base_avg = np.mean(p_base, axis =0) #[:len(downsampled_event_idx)]
+                p_base_sem = stats.sem(p_base, axis = 0)
+
+
+                delta_ch = [i for i,v in enumerate(f_ch) if 1< v <4 ]
+                delta_avg = np.mean(p_ch_avg[delta_ch])
+                delta.append(delta_avg)
+                
+                theta_ch = [i for i,v in enumerate(f_ch) if 4< v <8 ]
+                theta_avg = np.mean(p_ch_avg[theta_ch])
+                theta.append(theta_avg)
+                
+                alpha_ch = [i for i,v in enumerate(f_ch) if 8< v <12 ]
+                alpha_avg = np.mean(p_ch_avg[alpha_ch])
+                alpha.append(alpha_avg)
+                
+                beta_ch = [i for i,v in enumerate(f_ch) if 12< v <30 ]
+                beta_avg = np.mean(p_ch_avg[beta_ch])
+                beta.append(beta_avg)
+            
+  
+            #np.savetxt(results_dir + csv_alpha, np.vstack(delta),delimiter=',', fmt='%s')
+            
+            except Exception:
+                continue 
+               
+        alpha_rat[:,s]= alpha
+        beta_rat[:,s] = beta
+        delta_rat[:,s] = delta 
+        theta_rat[:,s] =theta
+        
+        alpha_base[:,s]=alpha_b
+        theta_base[:,s]=theta_b
+        beta_base[:,s]=beta_b
+        delta_base [:,s]=delta_b
+        print('session_done')
+    
+    
+
+np.savetxt(results_dir + '_'+ csv_alpha, alpha_rat,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta, beta_rat,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta, delta_ratdelimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta, theta_rat,delimiter=',', fmt='%s')
+
+
+
+
+
+
+
+
+    
+csv_name = RAT_ID[r] +'_Trial_table_ephys.csv'
+         #csv_name = RAT_ID[8:][r] +'_Trial_table.csv'
+         
+         #moving_str = ['moving_light'  for x in range(len(ball_flat) - 6)]
+         
+         #trial_type_array = ['touhing_light', 'touching_light','touching_light','touching_light', 'touching light', 'first_moving_light']
+         
+
+         #final_trial_type = trial_type_array + moving_str
+         
+         #print(len(final_trial_type))
+         
+         np.savetxt(results_dir + csv_name, np.vstack((rat_id,
+                                                       st_idx_diff_flat,
+                                                       te_idx_diff_flat,
+                                                       se_idx_diff_flat,
+                                                       np.array(rat_pos_at_start_flat)[:,0],
+                                                       np.array(rat_pos_at_start_flat)[:,1],
+                                                       np.array(rat_pos_at_touch_flat)[:,0],
+                                                       np.array(rat_pos_at_touch_flat)[:,1],
+                                                       np.array(rat_pos_before_touch)[:,0],
+                                                       np.array(rat_pos_before_touch)[:,1],
+                                                       np.array(rat_pos_after_touch)[:,0],
+                                                       np.array(rat_pos_after_touch)[:,1],
+                                                       dist_rat_at_start_ball_flat,
+                                                       dist_rat_at_touch_poke_flat,
+                                                       dist_rat_ball_before_touch_flat,
+                                                       dist_rat_ball_after_touch_flat,
+                                                       np.array(ball_flat)[:,0],
+                                                       np.array(ball_flat)[:,1],
+                                                       trial_count_flat
+                                                       
+                                                       )).T, delimiter=',', fmt='%s') 
+
+
+
+
+
+
+        
+test = [i for i,v in enumerate(f_ch) if 1< v <4 ]
+test_avg = np.mean(p_ch_avg[test])
+
+plt.title('avg freq bands delta theta alpha beta')
+xcoords = [1, 4, 8,12,30,100]
+for xc in xcoords:
+    plt.axvline(x=xc,color='k')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -219,7 +602,7 @@ reshaped_down=  np.reshape(down,(num_samples,128))
 down=None
 down_T = reshaped_down.T
 
-
+downsampled_event_idx = downsampled_touch[1:]
 test_epochs = np.zeros((len(downsampled_event_idx), len(probe_map_flatten),offset*2))  
 #new_probe_flatten_test = [103,7,21,90,75,30]    
 for ch, channel in enumerate(probe_map_flatten):
@@ -228,7 +611,7 @@ for ch, channel in enumerate(probe_map_flatten):
         
        
         ch_downsampled = down_T[ch,:]
-        down_T=None
+        #down_T=None
 
         chunk_around_event = np.zeros((len(downsampled_event_idx),offset*2))
         
@@ -269,7 +652,7 @@ norm_expanded = np.repeat([norm], offset*2, axis=0).T
 ch_test_norm = test_tfr2[94,:20,:]/norm_expanded
 
 
-ch_test = np.log(test_tfr2[94,:20,:])
+ch_test = np.log(test_tfr[94,:20,:])
 plt.figure()
 plt.imshow(np.flipud(ch_test_norm),aspect='auto', cmap='jet')#,vmin=0.4, vmax =1.9)
 #plt.axvline(6000,20,color='k')
@@ -283,10 +666,10 @@ for i, ch in enumerate(probe_map_flatten):
     #inner_grid = gridspec.GridSpecFromSubplotSpec(1, 1,
      #       subplot_spec=outer_grid[i], wspace=0.0, hspace=0.0)
 
-    norm = np.mean(test_tfr2[i,:20,:1000],axis=1)
+    norm = np.mean(test_tfr[i,:20,:1000],axis=1)
     norm_expanded = np.repeat([norm], offset*2, axis=0).T
-    ch_test_norm = test_tfr2[i,:20,:]/norm_expanded
-    ch_test = np.log(test_tfr2[i,:20,:])
+    ch_test_norm = test_tfr[i,:20,:]/norm_expanded
+    ch_test = np.log(test_tfr[i,:20,:])
        
     ax = f0.add_subplot(11, 11, 1+i, frameon=False)
 
