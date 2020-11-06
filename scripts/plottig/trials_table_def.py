@@ -382,6 +382,62 @@ def trial_counter(sessions_subset, trial_file= 'Trial_idx_cleaned.csv'):
 #sesssion_trials = trial_counter(sessions_subset)
 
 
+#####tot outcome
+ 
+    
+
+def outcome_over_sessions(sessions_subset, trial_file = '/TrialEnd.csv'):
+    
+    l = len(sessions_subset)
+    session_outcome = [[] for _ in range(l)]
+  
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]       
+    
+        script_dir = os.path.join(hardrive_path + session)     
+        trial_end_path = os.path.join(script_dir+ '/events/' + trial_file)
+        outcome = np.genfromtxt(trial_end_path, usecols = [1], dtype = str)
+        
+        session_outcome[count] = outcome
+        
+    return session_outcome
+
+    
+    
+
+#######moving light outcome
+    
+def cleaned_outcome_sessions(sessions_subset, trial_file = 'Trial_outcome_cleaned.csv'):
+
+
+    l = len(sessions_subset)
+    cleaned_outcome = [[] for _ in range(l)]
+  
+    for count in np.arange(l):
+    
+        
+        session = sessions_subset[count]       
+    
+        script_dir = os.path.join(hardrive_path + session)     
+        outcome_cleaned_path = os.path.join(script_dir+ '/events/' + trial_file)
+        outcome = np.genfromtxt(outcome_cleaned_path, dtype = str)
+        
+        cleaned_outcome[count] = outcome
+        
+    return cleaned_outcome
+
+
+
+
+
+
+
+
+
+
+
 ###################
     
 

@@ -88,9 +88,9 @@ for r, rat in enumerate(rat_summary_table_path):
         session_path =  os.path.join(hardrive_path,session)
         
         #recording data path
-        raw_recording = os.path.join(session_path +'/Amplifier.bin')
+        #raw_recording = os.path.join(session_path +'/Amplifier.bin')
         downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
-        cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
+        #cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
         
         #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
         csv_dir_path = os.path.join(session_path + '/events/')
@@ -165,8 +165,8 @@ for r, rat in enumerate(rat_summary_table_path):
         sns.despine() 
          
         
-        for ch, channel in enumerate(probe_map_flatten): #new_map_flatten
-            try:
+        for ch, channel in enumerate(new_probe_flatten): #new_probe_flatten #probe_map_flatten
+            #try:
                         
                 
                 ch_downsampled = down_T[channel,:]#should use channel
@@ -199,13 +199,17 @@ for r, rat in enumerate(rat_summary_table_path):
         
                 p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
         
-        
+                
+                test = np.sum(p_base)
+                
+                
                 for t in arange(len(downsampled_event_idx)):
                     
                     
                     figure_name= str(t)+'.png'
                     plt.plot(f_base, p_base[t], color = '#228B22',alpha=0.3, label = 'touch', linewidth= 1)
                     plt.title('base')
+                    #plt.ylim(0,10e7)
                     #f0.savefig(results_dir + figure_name, transparent=True)
         
                 plt.figure()
@@ -287,15 +291,18 @@ for r, rat in enumerate(rat_summary_table_path):
     Level_2_post = prs.Level_2_post_paths(rat)
     sessions_subset = Level_2_post
     
-    alpha_rat =  np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    beta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    theta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    delta_rat = np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    N = 121
+    tot_sessions = len(sessions_subset)
     
-    alpha_base = np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    delta_base= np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    theta_base= np.zeros((len(new_probe_flatten),len(sessions_subset)))
-    beta_base =  np.zeros((len(new_probe_flatten),len(sessions_subset)))
+    alpha_rat =  np.zeros((N,tot_sessions))
+    beta_rat = np.zeros((N,tot_sessions))
+    theta_rat = np.zeros((N,tot_sessions))
+    delta_rat = np.zeros((N,tot_sessions))
+    
+    alpha_base = np.zeros((N,tot_sessions))
+    delta_base= np.zeros((N,tot_sessions))
+    theta_base= np.zeros((N,tot_sessions))
+    beta_base =  np.zeros((N,tot_sessions))
     
 
     
@@ -306,31 +313,29 @@ for r, rat in enumerate(rat_summary_table_path):
         session_path =  os.path.join(hardrive_path,session)
         
         #recording data path
-        raw_recording = os.path.join(session_path +'/Amplifier.bin')
-        downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
-        cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
+        #raw_recording = os.path.join(session_path +'/Amplifier.bin')
+        #downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
+        #cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
         
-        #idx ro identify the start and the end of the clip of interest both in ephys samples and frames   
+        #filed needed path 
         csv_dir_path = os.path.join(session_path + '/events/')
         touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
         ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
         #trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
         trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
-        #trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)
-        
-        video_csv = os.path.join(session_path + '/Video.csv')
-        
+        #trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)       
+        video_csv = os.path.join(session_path + '/Video.csv')       
         samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+        
+        
+        #files opening
         samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
         
-
-
-
         trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
-        #trial prior end to current trial end based on ephys samples tp use with raw and cleaned recordings
         touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
         ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
-        #generate random idx for baseline freq spectrum 
+    
+    
         downsampled_touch = np.uint32(np.array(touching_light)/30)
         downsampled_ball = np.uint32(np.array(ball)/30)
         downsampled_end= np.uint32(np.array(trial_end)/30)
@@ -355,24 +360,10 @@ for r, rat in enumerate(rat_summary_table_path):
         stop = len(reshaped_down)-start#offset*2
         idx = 2000 #len(touching_light)
         
-        
 
-        baseline_random = randint(start,stop,idx)
-        baseline_idx = np.sort(baseline_random)
-        #
-        #test_baseline = downsampled_touch - baseline_idx
-        #min_distance = np.min(abs(test_baseline))
-        #max_distance = np.max(abs(test_baseline))
-        #print(min_distance)
-        #print(max_distance)
-#            plt.figure()
-#            plt.hist(baseline_random,bins=20)
-#            
-#            
-#            #baseline_idx = downsampled_touch + 6000
+        baseline_idx = np.arange(60000,num_samples-60000,6000)        
 
-        
-    
+
         #remove the first early trials
         downsampled_event_idx = downsampled_touch[1:]
         
@@ -393,22 +384,28 @@ for r, rat in enumerate(rat_summary_table_path):
         beta_b = []
         theta_b=[]
         
-        csv_alpha = RAT_ID + session[24:] +'_alpha.csv'
+        csv_alpha = RAT_ID  +'_alpha_touch.csv'
         
-        csv_beta = RAT_ID[r] + session[24:]+'_beta.csv'
+        csv_beta = RAT_ID[r] +'_beta_touch.csv'
 
-        csv_gamma = RAT_ID[r] + session[24:]+'_gamma.csv'
+        csv_delta = RAT_ID[r] + '_delta_touch.csv'
    
-        csv_theta = RAT_ID[r]+ session[24:] +'_theta.csv'
+        csv_theta = RAT_ID[r] +'_theta_touch.csv'
         
         
+        csv_alpha_b = RAT_ID + '_alpha_base_2000_touch.csv'
         
+        csv_beta_b = RAT_ID[r] + '_beta_base_2000_touch.csv'
+
+        csv_delta_b = RAT_ID[r] + '_delta_base_2000_touch.csv'
+   
+        csv_theta_b = RAT_ID[r]+ '_theta_base_2000_touch.csv'       
         
         
         
                 
         for ch, channel in enumerate(new_probe_flatten): #new_probe_flatten probe_map_flatten
-            try:
+            #try:
                         
                 
                 ch_downsampled = down_T[channel,:]#should use channel
@@ -450,22 +447,64 @@ for r, rat in enumerate(rat_summary_table_path):
                 p_base_sem = stats.sem(p_base, axis = 0)
 
 
+                   
+                # tot baseline excluding noise and sum 
+                
+                baseline_tot = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
+                baseline_sel = p_base[baseline_tot]
+                baseline_sum_tot = np.sum(baseline_sel)
+
+                
+                #events bands
                 delta_ch = [i for i,v in enumerate(f_ch) if 1< v <4 ]
-                delta_avg = np.mean(p_ch_avg[delta_ch])
+                delta_sel = p_ch_avg[delta_ch]
+                delta_avg = np.mean(delta_sel)
+                delta_sum = np.sum(delta_sel)
                 delta.append(delta_avg)
                 
                 theta_ch = [i for i,v in enumerate(f_ch) if 4< v <8 ]
-                theta_avg = np.mean(p_ch_avg[theta_ch])
+                theta_sel = p_ch_avg[theta_ch]
+                theta_avg = np.mean(theta_sel)
+                theta_sum = np.sum(theta_sel)
                 theta.append(theta_avg)
                 
                 alpha_ch = [i for i,v in enumerate(f_ch) if 8< v <12 ]
-                alpha_avg = np.mean(p_ch_avg[alpha_ch])
+                alpha_sel = p_ch_avg[alpha_ch]
+                alpha_avg = np.mean(alpha_sel)
+                alpha_sum = np.sum(alpha_sel)
                 alpha.append(alpha_avg)
                 
                 beta_ch = [i for i,v in enumerate(f_ch) if 12< v <30 ]
-                beta_avg = np.mean(p_ch_avg[beta_ch])
+                beta_sel = p_ch_avg[beta_ch]
+                beta_avg = np.mean(beta_sel)
+                beta_sum= np.sum(beta_sel)
                 beta.append(beta_avg)
-            
+                
+                #baseline bands
+                delta_ch_base = [i for i,v in enumerate(f_base) if 1< v <4 ]
+                delta_sel_base = p_base_avg[delta_ch_base]
+                delta_avg_base = np.mean(delta_sel_base)
+                delta_sum_base = np.sum(delta_sel_base)
+                delta_b.append(delta_avg_base)
+                
+                theta_ch_base = [i for i,v in enumerate(f_base) if 4< v <8 ]
+                theta_sel_base = p_base_avg[theta_ch_base]
+                theta_avg_base = np.mean(theta_sel_base)
+                theta_sum_base = np.sum(theta_sel_base)
+                theta_b.append(theta_avg_base)
+                
+                alpha_ch_base = [i for i,v in enumerate(f_base) if 8< v <12 ]
+                alpha_sel_base = p_base_avg[alpha_ch_base]
+                alpha_avg_base = np.mean(alpha_sel_base)
+                alpha_sum_base = np.sum(alpha_sel_base)
+                alpha_b.append(alpha_avg_base)
+                
+                beta_ch_base = [i for i,v in enumerate(f_base) if 12< v <30 ]
+                beta_sel_base = p_base_avg[beta_ch_base]
+                beta_avg_base = np.mean(beta_sel_base)
+                beta_sum_base = np.sum(beta_sel_base)
+                beta_b.append(beta_avg_base)
+                
   
             #np.savetxt(results_dir + csv_alpha, np.vstack(delta),delimiter=',', fmt='%s')
             
@@ -480,82 +519,101 @@ for r, rat in enumerate(rat_summary_table_path):
         alpha_base[:,s]=alpha_b
         theta_base[:,s]=theta_b
         beta_base[:,s]=beta_b
-        delta_base [:,s]=delta_b
+        delta_base[:,s]=delta_b
+        
         print('session_done')
     
     
 
 np.savetxt(results_dir + '_'+ csv_alpha, alpha_rat,delimiter=',', fmt='%s')
 np.savetxt(results_dir + '_'+ csv_beta, beta_rat,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_' + csv_delta, delta_ratdelimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta, delta_rat,delimiter=',', fmt='%s')
 np.savetxt(results_dir + '_'+ csv_theta, theta_rat,delimiter=',', fmt='%s')
 
 
 
+np.savetxt(results_dir + '_'+ csv_alpha_b, alpha_base,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta_b, beta_base,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta_b, delta_base,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta_b, theta_base,delimiter=',', fmt='%s')
 
 
 
 
 
+test_to_sum = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
+
+test = np.sum(p_base[test_to_sum])
+
+test_f= np.sum(p_ch[test_to_sum])
+
+test_p  =
+
+plt.title('sum baseline = 930480536937.9689, alpha =1.334794174295339e-09, beta=1.3799321415420415e-08, theta = 7.415523190529662e-10, delta =  1.644311663987012e-10' )
+
+
+
+
+test_2 = np.sum(p_ch[test_to_sum])
+
+plt.figure()
+plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
+                 alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
+ 
     
-csv_name = RAT_ID[r] +'_Trial_table_ephys.csv'
-         #csv_name = RAT_ID[8:][r] +'_Trial_table.csv'
-         
-         #moving_str = ['moving_light'  for x in range(len(ball_flat) - 6)]
-         
-         #trial_type_array = ['touhing_light', 'touching_light','touching_light','touching_light', 'touching light', 'first_moving_light']
-         
+    
+    
+sum([3,6,2])    
+#
+#
+#        
+#test = [i for i,v in enumerate(f_ch) if 1< v <4 ]
+#test_avg = np.mean(p_ch_avg[test])
+#
+#plt.title('avg freq bands delta theta alpha beta')
+#xcoords = [1, 4, 8,12,30,100]
+#for xc in xcoords:
+#    plt.axvline(x=xc,color='k')
+#
 
-         #final_trial_type = trial_type_array + moving_str
-         
-         #print(len(final_trial_type))
-         
-         np.savetxt(results_dir + csv_name, np.vstack((rat_id,
-                                                       st_idx_diff_flat,
-                                                       te_idx_diff_flat,
-                                                       se_idx_diff_flat,
-                                                       np.array(rat_pos_at_start_flat)[:,0],
-                                                       np.array(rat_pos_at_start_flat)[:,1],
-                                                       np.array(rat_pos_at_touch_flat)[:,0],
-                                                       np.array(rat_pos_at_touch_flat)[:,1],
-                                                       np.array(rat_pos_before_touch)[:,0],
-                                                       np.array(rat_pos_before_touch)[:,1],
-                                                       np.array(rat_pos_after_touch)[:,0],
-                                                       np.array(rat_pos_after_touch)[:,1],
-                                                       dist_rat_at_start_ball_flat,
-                                                       dist_rat_at_touch_poke_flat,
-                                                       dist_rat_ball_before_touch_flat,
-                                                       dist_rat_ball_after_touch_flat,
-                                                       np.array(ball_flat)[:,0],
-                                                       np.array(ball_flat)[:,1],
-                                                       trial_count_flat
-                                                       
-                                                       )).T, delimiter=',', fmt='%s') 
+########freq bands heatmap from.csv
 
 
+freq_band_file =  'E:/thesis_figures/Tracking_figures/beta/_A2018_05_04-16_57_beta_base_2000_touch.csv'
+band = np.genfromtxt(freq_band_file, delimiter = ',', dtype = float) 
+
+test = band[:,0]
 
 
+probe_map =ephys.get_probe_map()
+N=121
+#map the impedance
+probe_remap=np.reshape(probe_map, newshape=N)
+band_map =test[np.array(probe_remap)]
+band_final =np.reshape(test,newshape=probe_map.shape)
 
-
-        
-test = [i for i,v in enumerate(f_ch) if 1< v <4 ]
-test_avg = np.mean(p_ch_avg[test])
-
-plt.title('avg freq bands delta theta alpha beta')
-xcoords = [1, 4, 8,12,30,100]
-for xc in xcoords:
-    plt.axvline(x=xc,color='k')
-
-
+#
+#
+##main folder rat ID
+#script_dir = os.path.dirname(day)
+##create a folder where to store the plots inside the daily sessions
+#session=os.path.join(script_dir,'Analysis')
+##create a folder where to save the plots
+#results_dir = os.path.join(session, 'Daily_Health_Check/')
+##plot name
+#sample_file_name_heatmap = "Impedance_heatmap"
+#
+#if not os.path.isdir(results_dir):
+#    os.makedirs(results_dir)
+#
+plt.figure(1)
+ax = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin=100000 , vmax = 1000000, annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
 
 
 
-
-
-
-
-
-
+#alpha = vmin=100000 , vmax = 10000000
+#beta = vmin=100000 , vmax = 1000000
 
 
 

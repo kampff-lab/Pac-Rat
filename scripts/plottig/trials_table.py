@@ -92,7 +92,7 @@ for r, rat in enumerate(rat_summary_table_path):
     
     
     try:    
-         Level_2_post= prs.Level_2_post_paths(rat)
+         Level_2_post= prs.Level_2_pre_paths(rat)
          sessions_subset = Level_2_post
          
          distance_rat_at_start_ball, distance_rat_at_touch_poke, distance_rat_ball_before_touch, distance_rat_ball_after_touch = trial.distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx.csv',
@@ -162,7 +162,12 @@ for r, rat in enumerate(rat_summary_table_path):
          
          print(len(trial_count_flat))
          
-         csv_name = RAT_ID[r] +'_Trial_table_ephys.csv'
+                 
+         outcome_sessions = outcome_over_sessions(sessions_subset, trial_file = '/TrialEnd.csv')
+         outcome = [val for sublist in outcome_sessions for val in sublist]
+         print(len(outcome))
+         
+         csv_name = RAT_ID[r] +'_Trial_table.csv'
          #csv_name = RAT_ID[8:][r] +'_Trial_table.csv'
          
          #moving_str = ['moving_light'  for x in range(len(ball_flat) - 6)]
@@ -192,7 +197,8 @@ for r, rat in enumerate(rat_summary_table_path):
                                                        dist_rat_ball_after_touch_flat,
                                                        np.array(ball_flat)[:,0],
                                                        np.array(ball_flat)[:,1],
-                                                       trial_count_flat
+                                                       trial_count_flat,
+                                                       outcome
                                                        
                                                        )).T, delimiter=',', fmt='%s') #final_trial_type (only for moving light)
                                                        
@@ -213,7 +219,7 @@ for r, rat in enumerate(rat_summary_table_path):
 
         
 
-trial_table_folder = 'E:/thesis_figures/Tracking_figures/Trial_table_ephys_touching_light/'
+trial_table_folder = 'E:/thesis_figures/Tracking_figures/Trial_table/'
 
 
 csv_in_folder = os.listdir(trial_table_folder)
@@ -234,7 +240,7 @@ flat_table = [val for sublist in all_rats_trial_table for val in sublist]
 
 final_table = np.array(flat_table)
 
-csv_name = '/Trial_table_final_level_2_touching_light_ephys.csv'
+csv_name = '/Trial_table_final_level_2_touching_light.csv'
 
 
 np.savetxt(results_dir + csv_name, final_table,delimiter=',', fmt='%s')
@@ -305,13 +311,13 @@ print(len(y_shaders_all_rats))
 
 
 
-csv_name = 'x_crop_snippets_around_touch_' + session_type +'.csv'
+#csv_name = 'x_crop_snippets_around_touch_' + session_type +'.csv'
 
-np.savetxt(results_dir + csv_name,x_crop_all_rats, delimiter=',', fmt='%s')
+#np.savetxt(results_dir + csv_name,x_crop_all_rats, delimiter=',', fmt='%s')
 
 
-csv_name = 'y_crop_snippets_around_touch_'  + session_type +'.csv'
-np.savetxt(results_dir + csv_name,y_crop_all_rats, delimiter=',', fmt='%s')
+#csv_name = 'y_crop_snippets_around_touch_'  + session_type +'.csv'
+#np.savetxt(results_dir + csv_name,y_crop_all_rats, delimiter=',', fmt='%s')
 
 
 csv_name = 'x_shaders_snippets_around_touch_'  + session_type +'.csv'
@@ -368,10 +374,15 @@ bounds =  [0,648, 1247, 1710, 2599, 2841, 3418, 3614, 4272, 4643, 4921, 5225]
 rat_summary_table_path_moving_light = ['F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
                         'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
 
+rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                              'F:/Videogame_Assay/AK_48.1_IrO2.csv','F:/Videogame_Assay/AK_48.4_IrO2.csv']
+
+RAT_ID_moving = ['AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
 
 RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
-RAT_ID = RAT_ID_ephys 
+RAT_ID = RAT_ID_ephys
 
 
 
@@ -398,7 +409,7 @@ for r, rat in enumerate(rat_summary_table_path):
     
     
     try:    
-         Level_3_pre= Level_3_joystick_post_paths(rat)
+         Level_3_pre=  Level_3_joystick_postpaths(rat) #joystick_post   Level_3_moving_post_paths  Level_3_moving_light_paths #joystick_post_paths
          sessions_subset = Level_3_pre
          
          distance_rat_at_start_ball, distance_rat_at_touch_poke, distance_rat_ball_before_touch, distance_rat_ball_after_touch = trial.distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx_cleaned.csv',
@@ -479,8 +490,13 @@ for r, rat in enumerate(rat_summary_table_path):
          session_trials = trial.trial_counter(sessions_subset, trial_file= 'Trial_idx_cleaned.csv')
          
          trial_count_flat = [val for sublist in session_trials for val in sublist]
-
          
+         
+         claned_outcome = cleaned_outcome_sessions(sessions_subset, trial_file = 'Trial_outcome_cleaned.csv')
+
+         outcome = [val for sublist in claned_outcome for val in sublist]
+         
+         print(len(outcome))
          print(len(trial_count_flat))
          
          csv_name = RAT_ID[r] +'_Trial_table_joystick_ephys.csv'
@@ -521,7 +537,8 @@ for r, rat in enumerate(rat_summary_table_path):
                                                        dist_rat_ball_after_touch_flat,
                                                        np.array(ball_flat)[:,0],
                                                        np.array(ball_flat)[:,1],
-                                                       trial_count_flat
+                                                       trial_count_flat,
+                                                       outcome
                                                        
                                                        )).T, delimiter=',', fmt='%s') #final_trial_type (only for moving light)
                                                        
@@ -538,7 +555,7 @@ for r, rat in enumerate(rat_summary_table_path):
        
 
 
-trial_table_folder = r'E:/thesis_figures/Tracking_figures/Trial_table_ephys_joystick/'
+trial_table_folder = 'E:/thesis_figures/Tracking_figures/Trial_Table_ephys_moving_light/'
 
 
 csv_in_folder = os.listdir(trial_table_folder)
@@ -559,7 +576,7 @@ flat_table = [val for sublist in all_rats_trial_table for val in sublist]
 
 final_table = np.array(flat_table)
 
-csv_name = '/Trial_table_final_level_3_joystick_ephys.csv'
+csv_name = '/Trial_table_final_level_3_moving_light_ephys.csv'
 
 
 np.savetxt(results_dir + csv_name, final_table,delimiter=',', fmt='%s')
