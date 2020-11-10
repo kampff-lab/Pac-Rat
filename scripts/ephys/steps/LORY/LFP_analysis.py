@@ -72,7 +72,7 @@ rat_summary_table_path=rat_summary_ephys[0]
 
 
 probe_map_flatten = ephys.probe_map.flatten()
-new_probe_flatten=[103,7,21,90,75,30,1,123,88,17]
+#new_probe_flatten=[103,7,21,90,75,30,1,123,88,17]
 
 
 
@@ -153,7 +153,7 @@ for r, rat in enumerate(rat_summary_table_path):
 #            
 #            #baseline_idx = downsampled_touch + 6000
 
-        
+        baseline_idx = np.arange(120000,num_samples-60000,6000)  
     
         #remove the first early trials
         downsampled_event_idx = downsampled_touch[1:]
@@ -205,10 +205,13 @@ for r, rat in enumerate(rat_summary_table_path):
                 
                 for t in arange(len(downsampled_event_idx)):
                     
-                    
-                    figure_name= str(t)+'.png'
-                    plt.plot(f_base, p_base[t], color = '#228B22',alpha=0.3, label = 'touch', linewidth= 1)
-                    plt.title('base')
+                    if t < 5:
+                        figure_name= str(t)+'.png'
+                        plt.plot(f_base, p_base[t], color = 'k',alpha=1, label = 'touch', linewidth= 1)
+                        plt.title('base')
+                    else:
+                        plt.plot(f_base, p_base[t], color = '#228B22',alpha=0.3, label = 'touch', linewidth= 1)
+                        plt.title('base')
                     #plt.ylim(0,10e7)
                     #f0.savefig(results_dir + figure_name, transparent=True)
         
@@ -304,7 +307,18 @@ for r, rat in enumerate(rat_summary_table_path):
     theta_base= np.zeros((N,tot_sessions))
     beta_base =  np.zeros((N,tot_sessions))
     
-
+    alpha_rat_sum =  np.zeros((N,tot_sessions))
+    beta_rat_sum = np.zeros((N,tot_sessions))
+    theta_rat_sum = np.zeros((N,tot_sessions))
+    delta_rat_sum = np.zeros((N,tot_sessions))
+    
+    alpha_base_sum = np.zeros((N,tot_sessions))
+    delta_base_sum= np.zeros((N,tot_sessions))
+    theta_base_sum= np.zeros((N,tot_sessions))
+    beta_base_sum =  np.zeros((N,tot_sessions))    
+    
+    tot_base_sum_rat =  np.zeros((N,tot_sessions)) 
+    tot_touch_sum_rat =  np.zeros((N,tot_sessions))
     
     
     for s, session in enumerate(sessions_subset):        
@@ -358,10 +372,10 @@ for r, rat in enumerate(rat_summary_table_path):
         
         start = 60000
         stop = len(reshaped_down)-start#offset*2
-        idx = 2000 #len(touching_light)
+        #idx = 2000 #len(touching_light)
         
 
-        baseline_idx = np.arange(60000,num_samples-60000,6000)        
+        baseline_idx = np.arange(120000,num_samples-120000,6000)        
 
 
         #remove the first early trials
@@ -374,6 +388,7 @@ for r, rat in enumerate(rat_summary_table_path):
         #alpha = 8-12 Hz
         #beta = 12-30 Hz        
         
+        #saving means
         delta = []
         theta = []
         alpha = []
@@ -384,28 +399,63 @@ for r, rat in enumerate(rat_summary_table_path):
         beta_b = []
         theta_b=[]
         
-        csv_alpha = RAT_ID  +'_alpha_touch.csv'
+        csv_alpha = RAT_ID  +'_avg_alpha_touch.csv' #[r]
         
-        csv_beta = RAT_ID[r] +'_beta_touch.csv'
+        csv_beta = RAT_ID +'_avg_beta_touch.csv'
 
-        csv_delta = RAT_ID[r] + '_delta_touch.csv'
+        csv_delta = RAT_ID + '_avg_delta_touch.csv'
    
-        csv_theta = RAT_ID[r] +'_theta_touch.csv'
+        csv_theta = RAT_ID +'_avg_theta_touch.csv'
         
         
-        csv_alpha_b = RAT_ID + '_alpha_base_2000_touch.csv'
+        csv_alpha_b = RAT_ID + '_avg_alpha_base.csv'
         
-        csv_beta_b = RAT_ID[r] + '_beta_base_2000_touch.csv'
+        csv_beta_b = RAT_ID + '_avg_beta_base.csv'
 
-        csv_delta_b = RAT_ID[r] + '_delta_base_2000_touch.csv'
+        csv_delta_b = RAT_ID + '_avg_delta_base.csv'
    
-        csv_theta_b = RAT_ID[r]+ '_theta_base_2000_touch.csv'       
+        csv_theta_b = RAT_ID+ '_avg_theta_base.csv'       
+        
+        #saving sums
+        
+        a_sum =[]
+        b_sum= []
+        d_sum = []
+        t_sum =[]
+        
+        a_sum_base =[]
+        b_sum_base= []
+        d_sum_base = []
+        t_sum_base =[]
         
         
+        tot_base_sum = []
+        tot_touch_sum = []
         
+        csv_alpha_sum = RAT_ID  +'_sum_alpha_touch.csv'
+        
+        csv_beta_sum = RAT_ID +'_sum_beta_touch.csv'
+
+        csv_delta_sum = RAT_ID + '_sum_delta_touch.csv'
+   
+        csv_theta_sum = RAT_ID +'_sum_theta_touch.csv'
+        
+        
+        csv_alpha_b_sum = RAT_ID + '_sum_alpha_base.csv'
+        
+        csv_beta_b_sum = RAT_ID + '_sum_beta_base.csv'
+
+        csv_delta_b_sum = RAT_ID + '_sum_delta_base.csv'
+   
+        csv_theta_b_sum = RAT_ID+ '_sum_theta_base.csv'  
+        
+        
+        csv_tot_baseline_sum = RAT_ID+ '_sum_tot_base.csv'  
+          
+        csv_tot_touch_sum =  RAT_ID+ '_sum_tot_touch.csv'
                 
-        for ch, channel in enumerate(new_probe_flatten): #new_probe_flatten probe_map_flatten
-            #try:
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
+            try:
                         
                 
                 ch_downsampled = down_T[channel,:]#should use channel
@@ -447,13 +497,18 @@ for r, rat in enumerate(rat_summary_table_path):
                 p_base_sem = stats.sem(p_base, axis = 0)
 
 
-                   
+                touch_tot = [i for i,v in enumerate(f_ch) if  v <45 or v>55 ]
+                touch_sel = p_ch_avg[touch_tot]
+                touch_sum_tot = np.sum(touch_sel)
+                tot_touch_sum.append(touch_sum_tot)
+                
+                
                 # tot baseline excluding noise and sum 
                 
                 baseline_tot = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
-                baseline_sel = p_base[baseline_tot]
+                baseline_sel = p_base_avg[baseline_tot]
                 baseline_sum_tot = np.sum(baseline_sel)
-
+                tot_base_sum.append(baseline_sum_tot)
                 
                 #events bands
                 delta_ch = [i for i,v in enumerate(f_ch) if 1< v <4 ]
@@ -461,24 +516,28 @@ for r, rat in enumerate(rat_summary_table_path):
                 delta_avg = np.mean(delta_sel)
                 delta_sum = np.sum(delta_sel)
                 delta.append(delta_avg)
+                d_sum.append(delta_sum)
                 
                 theta_ch = [i for i,v in enumerate(f_ch) if 4< v <8 ]
                 theta_sel = p_ch_avg[theta_ch]
                 theta_avg = np.mean(theta_sel)
                 theta_sum = np.sum(theta_sel)
                 theta.append(theta_avg)
+                t_sum.append(theta_sum)
                 
                 alpha_ch = [i for i,v in enumerate(f_ch) if 8< v <12 ]
                 alpha_sel = p_ch_avg[alpha_ch]
                 alpha_avg = np.mean(alpha_sel)
                 alpha_sum = np.sum(alpha_sel)
                 alpha.append(alpha_avg)
+                a_sum.append(alpha_sum)
                 
                 beta_ch = [i for i,v in enumerate(f_ch) if 12< v <30 ]
                 beta_sel = p_ch_avg[beta_ch]
                 beta_avg = np.mean(beta_sel)
                 beta_sum= np.sum(beta_sel)
                 beta.append(beta_avg)
+                b_sum.append(beta_sum)
                 
                 #baseline bands
                 delta_ch_base = [i for i,v in enumerate(f_base) if 1< v <4 ]
@@ -486,31 +545,34 @@ for r, rat in enumerate(rat_summary_table_path):
                 delta_avg_base = np.mean(delta_sel_base)
                 delta_sum_base = np.sum(delta_sel_base)
                 delta_b.append(delta_avg_base)
+                d_sum_base.append(delta_sum_base)
                 
                 theta_ch_base = [i for i,v in enumerate(f_base) if 4< v <8 ]
                 theta_sel_base = p_base_avg[theta_ch_base]
                 theta_avg_base = np.mean(theta_sel_base)
                 theta_sum_base = np.sum(theta_sel_base)
                 theta_b.append(theta_avg_base)
+                t_sum_base.append(theta_sum_base)
                 
                 alpha_ch_base = [i for i,v in enumerate(f_base) if 8< v <12 ]
                 alpha_sel_base = p_base_avg[alpha_ch_base]
                 alpha_avg_base = np.mean(alpha_sel_base)
                 alpha_sum_base = np.sum(alpha_sel_base)
                 alpha_b.append(alpha_avg_base)
+                a_sum_base.append(alpha_sum_base)
                 
                 beta_ch_base = [i for i,v in enumerate(f_base) if 12< v <30 ]
                 beta_sel_base = p_base_avg[beta_ch_base]
                 beta_avg_base = np.mean(beta_sel_base)
                 beta_sum_base = np.sum(beta_sel_base)
                 beta_b.append(beta_avg_base)
-                
+                b_sum_base.append(beta_sum_base)
   
             #np.savetxt(results_dir + csv_alpha, np.vstack(delta),delimiter=',', fmt='%s')
             
             except Exception:
                 continue 
-               
+        #avg      
         alpha_rat[:,s]= alpha
         beta_rat[:,s] = beta
         delta_rat[:,s] = delta 
@@ -520,6 +582,20 @@ for r, rat in enumerate(rat_summary_table_path):
         theta_base[:,s]=theta_b
         beta_base[:,s]=beta_b
         delta_base[:,s]=delta_b
+        
+        #sum
+        alpha_rat_sum[:,s]= a_sum
+        beta_rat_sum[:,s] = b_sum
+        delta_rat_sum[:,s] = d_sum
+        theta_rat_sum[:,s] = t_sum
+        
+        alpha_base_sum[:,s]= a_sum_base
+        theta_base_sum[:,s]= t_sum_base
+        beta_base_sum[:,s]= b_sum_base
+        delta_base_sum[:,s]=d_sum_base    
+                
+        tot_base_sum_rat[:,s] = tot_base_sum
+        tot_touch_sum_rat[:,s] = tot_touch_sum
         
         print('session_done')
     
@@ -538,33 +614,33 @@ np.savetxt(results_dir + '_' + csv_delta_b, delta_base,delimiter=',', fmt='%s')
 np.savetxt(results_dir + '_'+ csv_theta_b, theta_base,delimiter=',', fmt='%s')
 
 
+np.savetxt(results_dir + '_'+ csv_tot_baseline_sum, tot_base_sum_rat,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_tot_touch_sum, tot_touch_sum_rat,delimiter=',', fmt='%s')
+
+
+np.savetxt(results_dir + '_'+ csv_alpha_sum, alpha_rat_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta_sum, beta_rat_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta_sum, delta_rat_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta_sum, theta_rat_sum,delimiter=',', fmt='%s')
 
 
 
-test_to_sum = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
-
-test = np.sum(p_base[test_to_sum])
-
-test_f= np.sum(p_ch[test_to_sum])
-
-test_p  =
-
-plt.title('sum baseline = 930480536937.9689, alpha =1.334794174295339e-09, beta=1.3799321415420415e-08, theta = 7.415523190529662e-10, delta =  1.644311663987012e-10' )
+np.savetxt(results_dir + '_'+ csv_alpha_b_sum, alpha_base_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta_b_sum, beta_base_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta_b_sum, delta_base_sum,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta_b_sum, theta_base_sum,delimiter=',', fmt='%s')
 
 
 
 
-test_2 = np.sum(p_ch[test_to_sum])
 
-plt.figure()
-plt.plot(f_base, p_base_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
-plt.fill_between(f_base, p_base_avg-p_base_sem, p_base_avg+p_base_sem,
-                 alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
- 
-    
-    
-    
-sum([3,6,2])    
+
+
+
+
+
+
+   
 #
 #
 #        
@@ -579,22 +655,59 @@ sum([3,6,2])
 
 ########freq bands heatmap from.csv
 
+tot_base_file = 'E:/thesis_figures/Tracking_figures/tot_base/_AK 33.2_sum_tot_base.csv'
+tot_sum = np.genfromtxt(tot_base_file, delimiter = ',', dtype = float) 
 
-freq_band_file =  'E:/thesis_figures/Tracking_figures/beta/_A2018_05_04-16_57_beta_base_2000_touch.csv'
+freq_band_file =  'E:/thesis_figures/Tracking_figures/delta_base/_AK 33.2_sum_delta_base.csv'
 band = np.genfromtxt(freq_band_file, delimiter = ',', dtype = float) 
 
-test = band[:,0]
-
-
-probe_map =ephys.get_probe_map()
-N=121
-#map the impedance
-probe_remap=np.reshape(probe_map, newshape=N)
-band_map =test[np.array(probe_remap)]
-band_final =np.reshape(test,newshape=probe_map.shape)
-
+#session_tot = tot_sum[:,0]
+#session_freq = band[:,0]
 #
+#rel_power = session_freq/session_tot
 #
+#probe_map =ephys.get_probe_map()
+#N=121
+##map the impedance
+##probe_remap=np.reshape(probe_map, newshape=N)
+##band_map =test[np.array(probe_remap)]
+#band_final =np.reshape(rel_power,newshape=probe_map.shape)
+#
+
+
+lfp_band = '_delta'
+
+
+f =plt.figure(figsize=(20,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+title = RAT_ID+lfp_band+ '_sum  base / sum tot base'
+figure_name = RAT_IDc+ lfp_band+ '_baseline_over_tot_baseline.png'
+
+for i in arange(band.shape[1]):
+    
+    
+   session_tot = tot_sum[:,i]
+   session_freq = band[:,i]
+   to_plot = session_freq/session_tot
+   band_final =np.reshape(to_plot,newshape=probe_map.shape)
+
+
+   ax = f.add_subplot(2,3, 1+i, frameon=True)
+   plot = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin = 0.0001, vmax=0.001,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"),norm=LogNorm())
+
+
+plt.title(title)
+
+
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+
 ##main folder rat ID
 #script_dir = os.path.dirname(day)
 ##create a folder where to store the plots inside the daily sessions
@@ -606,10 +719,10 @@ band_final =np.reshape(test,newshape=probe_map.shape)
 #
 #if not os.path.isdir(results_dir):
 #    os.makedirs(results_dir)
-#
+from matplotlib.colors import LogNorm
 plt.figure(1)
-ax = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin=100000 , vmax = 1000000, annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))
-
+ax = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin = 0.0001, vmax=0.001,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"),norm=LogNorm())
+plt.title('theta' + 'base/tot sum )
 
 
 #alpha = vmin=100000 , vmax = 10000000
@@ -617,8 +730,10 @@ ax = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin=100000 , vmax = 100
 
 
 
-
-
+#delta = 0.04653653049695702
+#beta = 0.026683299335356486
+#alpha =  0.026920338213548892
+#=  0.04812825028922024
 
 
 
