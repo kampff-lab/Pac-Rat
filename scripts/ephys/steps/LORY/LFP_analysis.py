@@ -18,7 +18,7 @@ import behaviour_library as behaviour
 import ephys_library as ephys 
 import seaborn as sns
 import matplotlib.ticker as ticker
-
+from matplotlib.colors import LogNorm
 # Reload modules
 import importlib
 importlib.reload(prs)
@@ -284,9 +284,12 @@ for r, rat in enumerate(rat_summary_table_path):
 #high gamma = 60-100 Hz
         
 probe_map_flatten = ephys.probe_map.flatten()
-new_probe_flatten=[103,7,21]
+#new_probe_flatten=[103,7,21]
 
 
+RAT_ID = RAT_ID_ephys [1]
+
+rat_summary_table_path=rat_summary_ephys[1]
 
 
 for r, rat in enumerate(rat_summary_table_path): 
@@ -655,10 +658,16 @@ np.savetxt(results_dir + '_'+ csv_theta_b_sum, theta_base_sum,delimiter=',', fmt
 
 ########freq bands heatmap from.csv
 
-tot_base_file = 'E:/thesis_figures/Tracking_figures/tot_base/_AK 33.2_sum_tot_base.csv'
+
+# plot sum each freq baseline/tot baseline sum 
+
+lfp_band = 'beta'
+
+
+tot_base_file = 'E:/thesis_figures/Tracking_figures/tot_base/_'+RAT_ID+'_sum_tot_base.csv'
 tot_sum = np.genfromtxt(tot_base_file, delimiter = ',', dtype = float) 
 
-freq_band_file =  'E:/thesis_figures/Tracking_figures/delta_base/_AK 33.2_sum_delta_base.csv'
+freq_band_file = 'E:/thesis_figures/Tracking_figures/' + lfp_band +'_base/_'+RAT_ID+'_sum_'+lfp_band+'_base.csv'
 band = np.genfromtxt(freq_band_file, delimiter = ',', dtype = float) 
 
 #session_tot = tot_sum[:,0]
@@ -675,17 +684,15 @@ band = np.genfromtxt(freq_band_file, delimiter = ',', dtype = float)
 #
 
 
-lfp_band = '_delta'
-
 
 f =plt.figure(figsize=(20,10))
 sns.set()
 sns.set_style('white')
 sns.axes_style('white')
 sns.despine(left=False)
-
-title = RAT_ID+lfp_band+ '_sum  base / sum tot base'
-figure_name = RAT_IDc+ lfp_band+ '_baseline_over_tot_baseline.png'
+#plt.title(title)
+title = RAT_ID+'_'+lfp_band+ '_sum  base / sum tot base'
+figure_name = RAT_ID+'_'+ lfp_band+ '_baseline_over_tot_baseline.png'
 
 for i in arange(band.shape[1]):
     
@@ -697,43 +704,425 @@ for i in arange(band.shape[1]):
 
 
    ax = f.add_subplot(2,3, 1+i, frameon=True)
-   plot = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin = 0.0001, vmax=0.001,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"),norm=LogNorm())
+   plot = sns.heatmap(band_final,annot=False,  cmap="bwr", 
+annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm()
 
-
-plt.title(title)
-
-
+#vmin = 0.01, vmax=.5
 
 
 f.savefig(results_dir + figure_name, transparent=True)
 
 
-##main folder rat ID
-#script_dir = os.path.dirname(day)
-##create a folder where to store the plots inside the daily sessions
-#session=os.path.join(script_dir,'Analysis')
-##create a folder where to save the plots
-#results_dir = os.path.join(session, 'Daily_Health_Check/')
-##plot name
-#sample_file_name_heatmap = "Impedance_heatmap"
-#
-#if not os.path.isdir(results_dir):
-#    os.makedirs(results_dir)
-from matplotlib.colors import LogNorm
-plt.figure(1)
-ax = sns.heatmap(band_final,annot=False,  cmap="YlGnBu",vmin = 0.0001, vmax=0.001,annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"),norm=LogNorm())
-plt.title('theta' + 'base/tot sum )
+###########################################
+
+#lfp_band = 'delta'
 
 
-#alpha = vmin=100000 , vmax = 10000000
-#beta = vmin=100000 , vmax = 1000000
+touch_sum_file =  'E:/thesis_figures/Tracking_figures/' + lfp_band +'_touch/_'+RAT_ID+'_sum_'+lfp_band+'_touch.csv'
+band_touch =  np.genfromtxt(touch_sum_file, delimiter = ',', dtype = float) 
+
+
+tot_base_file = 'E:/thesis_figures/Tracking_figures/tot_base/_'+RAT_ID+'_sum_tot_base.csv'
+tot_sum = np.genfromtxt(tot_base_file, delimiter = ',', dtype = float) 
 
 
 
-#delta = 0.04653653049695702
-#beta = 0.026683299335356486
-#alpha =  0.026920338213548892
-#=  0.04812825028922024
+
+
+
+f =plt.figure(figsize=(20,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+#plt.title(title)
+title = RAT_ID+'_'+lfp_band+ '_sum  touch/ sum tot base'
+figure_name = RAT_ID+ '_'+ lfp_band+ '_touch_over_tot_baseline.png'
+
+for i in arange(band.shape[1]):
+    
+    
+   session_tot = tot_sum[:,i]
+   session_freq_touch = band_touch[:,i]
+   to_plot = session_freq_touch/session_tot
+   band_final =np.reshape(to_plot,newshape=probe_map.shape)
+
+
+   ax = f.add_subplot(2,3, 1+i, frameon=True)
+   plot = sns.heatmap(band_final,annot=False,  cmap="bwr", 0, vmax=.5,
+annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm()
+
+#vmin = 0.01, vmax=.5
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+
+####plot freq touch/freq base
+
+#lfp_band = 'delta'
+
+
+touch_sum_file =  'E:/thesis_figures/Tracking_figures/' + lfp_band +'_touch/_'+RAT_ID+'_sum_'+lfp_band+'_touch.csv'
+band_touch =  np.genfromtxt(touch_sum_file, delimiter = ',', dtype = float) 
+
+
+
+freq_band_file = 'E:/thesis_figures/Tracking_figures/' + lfp_band +'_base/_'+RAT_ID+'_sum_'+lfp_band+'_base.csv'
+band = np.genfromtxt(freq_band_file, delimiter = ',', dtype = float) 
+
+
+
+f =plt.figure(figsize=(20,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+#plt.title(title)
+title = RAT_ID+'_'+lfp_band+ '_sum  touch/ sum  base'
+figure_name = RAT_ID+ '_'+lfp_band+ '_touch_over_baseline.png'
+
+for i in arange(band.shape[1]):
+    
+    
+   session_freq_base = band[:,i]
+   session_freq_touch = band_touch[:,i]
+   to_plot = session_freq_touch/session_freq_base
+   band_final =np.reshape(to_plot,newshape=probe_map.shape)
+
+
+   ax = f.add_subplot(2,3, 1+i, frameon=True)
+   plot = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0, vmax=2,
+annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+
+#vmin = 0.01, vmax=.5
+
+plt.title(title)
+f.savefig(results_dir + figure_name, transparent=True)
+
+
+
+
+
+#######################touch+/- 3s
+
+
+
+        
+probe_map_flatten = ephys.probe_map.flatten()
+#new_probe_flatten=[103,7,21]
+
+
+RAT_ID = RAT_ID_ephys [1]
+
+rat_summary_table_path=rat_summary_ephys[1]
+
+
+for r, rat in enumerate(rat_summary_table_path): 
+    
+    Level_2_post = prs.Level_2_post_paths(rat)
+    sessions_subset = Level_2_post
+    
+    N = 121
+    tot_sessions = len(sessions_subset)
+    
+    alpha_rat_pre =  np.zeros((N,tot_sessions))
+    beta_rat_pre = np.zeros((N,tot_sessions))
+    theta_rat_pre = np.zeros((N,tot_sessions))
+    delta_rat_pre = np.zeros((N,tot_sessions))
+    
+    alpha_rat_post =  np.zeros((N,tot_sessions))
+    beta_rat_post = np.zeros((N,tot_sessions))
+    theta_rat_post = np.zeros((N,tot_sessions))
+    delta_rat_post = np.zeros((N,tot_sessions))
+    
+
+   
+    
+    for s, session in enumerate(sessions_subset):        
+       
+        
+        session_path =  os.path.join(hardrive_path,session)
+        
+        #recording data path
+        #raw_recording = os.path.join(session_path +'/Amplifier.bin')
+        #downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
+        #cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
+        
+        #filed needed path 
+        csv_dir_path = os.path.join(session_path + '/events/')
+        touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
+        ball_on = os.path.join(hardrive_path, session +'/events/'+'BallON.csv')
+        #trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx.csv')
+        trial_end_idx = os.path.join(csv_dir_path + 'TrialEnd.csv')
+        #trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int)       
+        video_csv = os.path.join(session_path + '/Video.csv')       
+        samples_for_frames_file_path = os.path.join(session_path + '/Analysis/samples_for_frames.csv')
+        
+        
+        #files opening
+        samples_for_frames = np.genfromtxt(samples_for_frames_file_path, dtype = int)
+        
+        trial_end = event_finder(trial_end_idx, video_csv, samples_for_frames_file_path)
+        touching_light = event_finder(touch_path, video_csv, samples_for_frames_file_path)
+        ball = event_finder(ball_on, video_csv, samples_for_frames_file_path)
+    
+    
+        downsampled_touch = np.uint32(np.array(touching_light)/30)
+        downsampled_ball = np.uint32(np.array(ball)/30)
+        downsampled_end= np.uint32(np.array(trial_end)/30)
+        #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
+        #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
+        #sample_start_clip = end_samples[21]
+        #clip_sample_lenght = samples_lenght_end_to_end[22]
+
+
+        data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
+        down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
+        num_samples = int(int(len(down))/num_raw_channels)
+        reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
+        down=None
+        down_T = reshaped_down.T
+
+        freq = 30000
+        offset = 1500
+        num_raw_channels = 128
+        
+
+        #remove the first early trials
+        downsampled_event_idx = downsampled_touch[1:]
+        
+
+         
+        #delta = 1-4 Hz
+        #theta = 4-8 Hz
+        #alpha = 8-12 Hz
+        #beta = 12-30 Hz        
+        
+        #saving means
+        delta_pre = []
+        theta_pre = []
+        alpha_pre = []
+        beta_pre = []
+        
+        alpha_post = []
+        delta_post = []
+        beta_post = []
+        theta_post=[]
+        
+        csv_alpha_pre = RAT_ID  +'_alpha_before_touch.csv' #[r]
+        
+        csv_beta_pre = RAT_ID +'_beta_before_touch.csv'
+
+        csv_delta_pre = RAT_ID + '_delta_before_touch.csv'
+   
+        csv_theta_pre = RAT_ID +'_theta_before_touch.csv'
+        
+        
+        csv_alpha_post = RAT_ID + '_alpha_after_touch.csv'
+        
+        csv_beta_post = RAT_ID + '_beta_after_touch.csv'
+
+        csv_delta_post = RAT_ID + '_delta_after_touch.csv'
+   
+        csv_theta_post = RAT_ID+ '_theta_after_touch.csv'       
+        
+        f0 =plt.figure(figsize=(20,20))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+        figure_name =  RAT_ID + '_'+ session[-16:] + '_pre_post.png'
+                
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
+            try:
+                        
+                
+                ch_downsampled = down_T[channel,:]#should use channel
+                #down_T=None
+        
+                chunk_before = np.zeros((len(downsampled_event_idx),offset))
+                
+                chunk_after = np.zeros((len(downsampled_event_idx),offset))
+        
+                for e, event in enumerate(downsampled_event_idx):
+                     
+                    chunk_before[e,:] = ch_downsampled[event-offset : event]
+                    chunk_after[e,:] = ch_downsampled[event : event+offset]
+                    
+                    print(e)
+                print('epoch_event_DONE')
+        
+           
+
+                #half size chunk double  bandwidth   
+                ch_downsampled = None
+                
+                
+                    
+                p_before, f_before = time_frequency.psd_array_multitaper(chunk_before, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+        
+                p_after, f_after= time_frequency.psd_array_multitaper(chunk_after, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
+        
+                
+        
+                p_before_avg = np.mean(p_before, axis =0)
+                p_before_sem = stats.sem(p_before, axis = 0)
+        
+                p_after_avg = np.mean(p_after, axis =0) #[:len(downsampled_event_idx)]
+                p_after_sem = stats.sem(p_after, axis = 0)
+
+
+
+                ax = f0.add_subplot(11, 11, 1+ch, frameon=False)#all the probe is 11 11
+                
+
+                #plt.figure()
+                plt.plot(f_before, p_before_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
+                plt.fill_between(f_before, p_before_avg-p_before_sem, p_before_avg+p_before_sem,
+                                 alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
+        
+                #plt.figure()
+                plt.plot(f_after, p_after_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
+                plt.fill_between(f_after, p_after_avg-p_after_sem, p_after_avg+p_after_sem,
+                                 alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
+      
+
+                
+                #events bands BEFORE
+                
+                delta_ch = [i for i,v in enumerate(f_before) if 1< v <4 ]
+                delta_sel = p_before_avg[delta_ch]        
+                delta_sum = np.sum(delta_sel)
+                delta_pre.append(delta_sum)
+                
+                theta_ch = [i for i,v in enumerate(f_before) if 4< v <8 ]
+                theta_sel = p_before_avg[theta_ch]
+                theta_sum = np.sum(theta_sel)
+                theta_pre.append(theta_sum)
+                
+                alpha_ch = [i for i,v in enumerate(f_before) if 8< v <12 ]
+                alpha_sel = p_before_avg[alpha_ch]
+                alpha_sum = np.sum(alpha_sel)           
+                alpha_pre.append(alpha_sum)
+                
+                beta_ch = [i for i,v in enumerate(f_before) if 12< v <30 ]
+                beta_sel = p_before_avg[beta_ch]             
+                beta_sum= np.sum(beta_sel)             
+                beta_pre.append(beta_sum)
+
+                #events bands AFTER
+                
+                delta_ch = [i for i,v in enumerate(f_after) if 1< v <4 ]
+                delta_sel = p_after_avg[delta_ch]            
+                delta_sum = np.sum(delta_sel)             
+                delta_post.append(delta_sum)
+                
+                theta_ch = [i for i,v in enumerate(f_after) if 4< v <8 ]
+                theta_sel = p_after_avg[theta_ch]              
+                theta_sum = np.sum(theta_sel)             
+                theta_post.append(theta_sum)
+                
+                alpha_ch = [i for i,v in enumerate(f_after) if 8< v <12 ]
+                alpha_sel = p_after_avg[alpha_ch]
+                alpha_sum = np.sum(alpha_sel)               
+                alpha_post.append(alpha_sum)
+                
+                beta_ch = [i for i,v in enumerate(f_after) if 12< v <30 ]
+                beta_sel = p_after_avg[beta_ch]               
+                beta_sum= np.sum(beta_sel)               
+                beta_post.append(beta_sum)
+
+
+            except Exception:
+                continue 
+             
+        alpha_rat_pre[:,s]= alpha_pre
+        beta_rat_pre[:,s] = beta_pre
+        delta_rat_pre[:,s] = delta_pre
+        theta_rat_pre[:,s] =theta_pre
+        
+  
+        alpha_rat_post[:,s]= alpha_post
+        beta_rat_post[:,s] = beta_post
+        delta_rat_post[:,s] = delta_post
+        theta_rat_post[:,s] = theta_post
+        
+        plt.tight_layout()
+
+
+
+        f0.savefig(results_dir + figure_name, transparent=False)
+        plt.close()                
+                                
+        print('session_done')
+    
+    
+#pre touch
+np.savetxt(results_dir + '_'+ csv_alpha_pre, alpha_rat_pre,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta_pre, beta_rat_pre,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta_pre, delta_rat_pre,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta_pre, theta_rat_pre,delimiter=',', fmt='%s')
+
+
+#pos touch
+np.savetxt(results_dir + '_'+ csv_alpha_post, alpha_rat_post,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_beta_post, beta_rat_post,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_' + csv_delta_post, delta_rat_post,delimiter=',', fmt='%s')
+np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt='%s')
+
+
+
+#plot before/post touch
+
+
+
+lfp_band = 'beta'
+
+
+before_touch_file =  'E:/thesis_figures/Tracking_figures/pre_touch/_'+RAT_ID + '_'+ lfp_band+ '_before_touch.csv'
+before_touch =  np.genfromtxt(before_touch_file, delimiter = ',', dtype = float) 
+
+
+after_touch_file = 'E:/thesis_figures/Tracking_figures/post_touch/_'+RAT_ID + '_'+ lfp_band+ '_after_touch.csv'
+after_touch = np.genfromtxt(after_touch_file, delimiter = ',', dtype = float) 
+
+
+
+f =plt.figure(figsize=(20,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+#plt.title(title)
+title = RAT_ID+'_'+lfp_band+ '_post/pre'
+figure_name = RAT_ID+ '_'+lfp_band+ '_post_over_pre.png'
+
+for i in arange(after_touch.shape[1]):
+    
+    
+   session_freq_before = before_touch[:,i]
+   session_freq_after = after_touch[:,i]
+   to_plot = session_freq_after/session_freq_before
+   band_final =np.reshape(to_plot,newshape=probe_map.shape)
+
+
+   ax = f.add_subplot(2,3, 1+i, frameon=True)
+   plot = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0.5, vmax=1,
+annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+
+#vmin = 0.01, vmax=.5
+
+plt.title(title)
+f.savefig(results_dir + figure_name, transparent=False)
+
+
+
+
+
+
+
+
 
 
 
