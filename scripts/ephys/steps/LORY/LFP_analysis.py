@@ -1076,6 +1076,9 @@ np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt=
 #plot before/post touch
 
 
+RAT_ID = RAT_ID_ephys [0]
+
+rat_summary_table_path=rat_summary_ephys[0]
 
 lfp_band = 'beta'
 
@@ -1088,6 +1091,10 @@ after_touch_file = 'E:/thesis_figures/Tracking_figures/post_touch/_'+RAT_ID + '_
 after_touch = np.genfromtxt(after_touch_file, delimiter = ',', dtype = float) 
 
 
+    
+Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
+sessions_subset = Level_2_post   
+ 
 
 f =plt.figure(figsize=(20,10))
 sns.set()
@@ -1098,23 +1105,51 @@ sns.despine(left=False)
 title = RAT_ID+'_'+lfp_band+ '_post/pre'
 figure_name = RAT_ID+ '_'+lfp_band+ '_post_over_pre.png'
 
-for i in arange(after_touch.shape[1]):
     
+for s, session in enumerate(sessions_subset):   
+
+    session_path =  os.path.join(hardrive_path,session)     
+    csv_dir_path = os.path.join(session_path +'/bad_channels.csv')
     
-   session_freq_before = before_touch[:,i]
-   session_freq_after = after_touch[:,i]
-   to_plot = session_freq_after/session_freq_before
-   band_final =np.reshape(to_plot,newshape=probe_map.shape)
+    bad_ch = np.genfromtxt(csv_dir_path, delimiter = ',', dtype=int)
+
+    session_freq_before = before_touch[:,s]
+    session_freq_after = after_touch[:,s]
+        
+    to_plot = session_freq_after/session_freq_before
+
+    c = np.array(bad_ch.astype(int).tolist())
+    
+    to_plot[c]=np.nan
+    
+    band_final =np.reshape(to_plot,newshape=probe_map.shape)
 
 
-   ax = f.add_subplot(2,3, 1+i, frameon=True)
-   plot = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0.5, vmax=1,
-annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
-
-#vmin = 0.01, vmax=.5
+    ax = f.add_subplot(2,3, 1+s, frameon=True)
+    ax = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
+                      annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+    ax.patch.set(hatch='//', edgecolor='black')
+    bottom, top = ax.get_ylim()
+    ax.set_ylim(bottom + 0.5, top - 0.5)
 
 plt.title(title)
 f.savefig(results_dir + figure_name, transparent=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
