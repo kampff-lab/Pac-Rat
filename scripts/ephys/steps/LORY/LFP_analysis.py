@@ -813,13 +813,15 @@ probe_map_flatten = ephys.probe_map.flatten()
 #new_probe_flatten=[103,7,21]
 
 
-RAT_ID = RAT_ID_ephys [1]
+RAT_ID = RAT_ID_ephys [4]
 
-rat_summary_table_path=rat_summary_ephys[1]
+rat_summary_table_path=rat_summary_ephys[4]
 
 
 for r, rat in enumerate(rat_summary_table_path): 
     
+    
+    rat = rat_summary_table_path
     Level_2_post = prs.Level_2_post_paths(rat)
     sessions_subset = Level_2_post
     
@@ -1076,9 +1078,9 @@ np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt=
 #plot before/post touch
 
 
-RAT_ID = RAT_ID_ephys [0]
+#RAT_ID = RAT_ID_ephys [0]
 
-rat_summary_table_path=rat_summary_ephys[0]
+#rat_summary_table_path=rat_summary_ephys[0]
 
 lfp_band = 'beta'
 
