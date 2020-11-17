@@ -813,15 +813,15 @@ probe_map_flatten = ephys.probe_map.flatten()
 #new_probe_flatten=[103,7,21]
 
 
-RAT_ID = RAT_ID_ephys [4]
+RAT_ID = RAT_ID_ephys [0]
 
-rat_summary_table_path=rat_summary_ephys[4]
+rat_summary_table_path=rat_summary_ephys[0]
 
 
 for r, rat in enumerate(rat_summary_table_path): 
     
     
-    rat = rat_summary_table_path
+    #rat = rat_summary_table_path
     Level_2_post = prs.Level_2_post_paths(rat)
     sessions_subset = Level_2_post
     
@@ -894,7 +894,7 @@ for r, rat in enumerate(rat_summary_table_path):
         #remove the first early trials
         downsampled_event_idx = downsampled_touch[1:]
         
-
+        event_name= 'reward.csv'
          
         #delta = 1-4 Hz
         #theta = 4-8 Hz
@@ -912,29 +912,29 @@ for r, rat in enumerate(rat_summary_table_path):
         beta_post = []
         theta_post=[]
         
-        csv_alpha_pre = RAT_ID  +'_alpha_before_touch.csv' #[r]
+        csv_alpha_pre = RAT_ID[r]  +'_alpha_before_' +event_name  #[r]
         
-        csv_beta_pre = RAT_ID +'_beta_before_touch.csv'
+        csv_beta_pre = RAT_ID[r] +'_beta_before_' +event_name
 
-        csv_delta_pre = RAT_ID + '_delta_before_touch.csv'
+        csv_delta_pre = RAT_ID[r] + '_delta_before_' +event_name
    
-        csv_theta_pre = RAT_ID +'_theta_before_touch.csv'
+        csv_theta_pre = RAT_ID[r] +'_theta_before_' +event_name
         
         
-        csv_alpha_post = RAT_ID + '_alpha_after_touch.csv'
+        csv_alpha_post = RAT_ID[r] + '_alpha_after_' +event_name
         
-        csv_beta_post = RAT_ID + '_beta_after_touch.csv'
+        csv_beta_post = RAT_ID[r] + '_beta_after_' +event_name
 
-        csv_delta_post = RAT_ID + '_delta_after_touch.csv'
+        csv_delta_post = RAT_ID[r] + '_delta_after_' +event_name
    
-        csv_theta_post = RAT_ID+ '_theta_after_touch.csv'       
+        csv_theta_post = RAT_ID[r]+ '_theta_after_' +event_name     
         
         f0 =plt.figure(figsize=(20,20))
         sns.set()
         sns.set_style('white')
         sns.axes_style('white')
         sns.despine() 
-        figure_name =  RAT_ID + '_'+ session[-16:] + '_pre_post.png'
+        figure_name =  RAT_ID[r] + '_'+ session[-16:] + '_pre_post.png'
                 
         for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
             try:
@@ -959,7 +959,6 @@ for r, rat in enumerate(rat_summary_table_path):
 
                 #half size chunk double  bandwidth   
                 ch_downsampled = None
-                
                 
                     
                 p_before, f_before = time_frequency.psd_array_multitaper(chunk_before, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
@@ -1059,19 +1058,37 @@ for r, rat in enumerate(rat_summary_table_path):
                                 
         print('session_done')
     
+
+    results_dir =os.path.join(main_folder + figure_folder + 'pre_reward/')
     
-#pre touch
-np.savetxt(results_dir + '_'+ csv_alpha_pre, alpha_rat_pre,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_'+ csv_beta_pre, beta_rat_pre,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_' + csv_delta_pre, delta_rat_pre,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_'+ csv_theta_pre, theta_rat_pre,delimiter=',', fmt='%s')
+    
+    #pre touch
+    np.savetxt(results_dir + '_'+ csv_alpha_pre, alpha_rat_pre,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_'+ csv_beta_pre, beta_rat_pre,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_' + csv_delta_pre, delta_rat_pre,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_'+ csv_theta_pre, theta_rat_pre,delimiter=',', fmt='%s')
+    
+    
+    results_dir =os.path.join(main_folder + figure_folder + 'post_reward/')
+    #pos touch
+    np.savetxt(results_dir + '_'+ csv_alpha_post, alpha_rat_post,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_'+ csv_beta_post, beta_rat_post,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_' + csv_delta_post, delta_rat_post,delimiter=',', fmt='%s')
+    np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt='%s')
+    
 
 
-#pos touch
-np.savetxt(results_dir + '_'+ csv_alpha_post, alpha_rat_post,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_'+ csv_beta_post, beta_rat_post,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_' + csv_delta_post, delta_rat_post,delimiter=',', fmt='%s')
-np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt='%s')
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1082,62 +1099,74 @@ np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt=
 
 #rat_summary_table_path=rat_summary_ephys[0]
 
-lfp_band = 'beta'
 
 
-before_touch_file =  'E:/thesis_figures/Tracking_figures/pre_touch/_'+RAT_ID + '_'+ lfp_band+ '_before_touch.csv'
-before_touch =  np.genfromtxt(before_touch_file, delimiter = ',', dtype = float) 
 
+lfp_band = ['alpha','beta','delta','theta']
 
-after_touch_file = 'E:/thesis_figures/Tracking_figures/post_touch/_'+RAT_ID + '_'+ lfp_band+ '_after_touch.csv'
-after_touch = np.genfromtxt(after_touch_file, delimiter = ',', dtype = float) 
-
+for rat in range(len(RAT_ID)):
 
     
-Level_2_post = prs.Level_2_post_paths(rat_summary_table_path)
-sessions_subset = Level_2_post   
- 
-
-f =plt.figure(figsize=(20,10))
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine(left=False)
-#plt.title(title)
-title = RAT_ID+'_'+lfp_band+ '_post/pre'
-figure_name = RAT_ID+ '_'+lfp_band+ '_post_over_pre.png'
-
-    
-for s, session in enumerate(sessions_subset):   
-
-    session_path =  os.path.join(hardrive_path,session)     
-    csv_dir_path = os.path.join(session_path +'/bad_channels.csv')
-    
-    bad_ch = np.genfromtxt(csv_dir_path, delimiter = ',', dtype=int)
-
-    session_freq_before = before_touch[:,s]
-    session_freq_after = after_touch[:,s]
+    for b, band in enumerate(lfp_band):
         
-    to_plot = session_freq_after/session_freq_before
-
-    c = np.array(bad_ch.astype(int).tolist())
+        
+        
+        before_touch_file =  'E:/thesis_figures/Tracking_figures/pre_ball_on/_'+RAT_ID[rat] + '_'+ band+ '_before_ball.csv'
+        before_touch =  np.genfromtxt(before_touch_file, delimiter = ',', dtype = float) 
+        
+        
+        after_touch_file = 'E:/thesis_figures/Tracking_figures/post_ball_on/_'+RAT_ID[rat] + '_'+ band+ '_after_ball.csv'
+        after_touch = np.genfromtxt(after_touch_file, delimiter = ',', dtype = float) 
+        
+        
+            
+        Level_2_post = prs.Level_2_post_paths(rat_summary_table_path[rat])
+        sessions_subset = Level_2_post   
+         
+        
+        f =plt.figure(figsize=(20,10))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=False)
+        #plt.title(title)
+        title = RAT_ID[rat]+'_'+band+ '_post/pre_ball_on'
+        figure_name = RAT_ID[rat]+ '_'+band+ '_post_over_pre_ball_on.png'
+        
+            
+        for s, session in enumerate(sessions_subset):   
+        
+            session_path =  os.path.join(hardrive_path,session)     
+            csv_dir_path = os.path.join(session_path +'/bad_channels.csv')
+            
+            bad_ch = np.genfromtxt(csv_dir_path, delimiter = ',', dtype=int)
+        
+            session_freq_before = before_touch[:,s]
+            session_freq_after = after_touch[:,s]
+                
+            to_plot = session_freq_after/session_freq_before
+        
+            c = np.array(bad_ch.astype(int).tolist())
+            
+            to_plot[c]=np.nan
+            
+            band_final =np.reshape(to_plot,newshape=probe_map.shape)
+        
+        
+            ax = f.add_subplot(2,3, 1+s, frameon=True)
+            ax = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
+                              annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+            ax.patch.set(hatch='//', edgecolor='black')
+            bottom, top = ax.get_ylim()
+            ax.set_ylim(bottom + 0.5, top - 0.5)
+        
+        plt.title(title)
+        f.savefig(results_dir + figure_name, transparent=False)
+        print(band)
+    print(session)
+print(rat)
     
-    to_plot[c]=np.nan
     
-    band_final =np.reshape(to_plot,newshape=probe_map.shape)
-
-
-    ax = f.add_subplot(2,3, 1+s, frameon=True)
-    ax = sns.heatmap(band_final,annot=False,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
-                      annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
-    ax.patch.set(hatch='//', edgecolor='black')
-    bottom, top = ax.get_ylim()
-    ax.set_ylim(bottom + 0.5, top - 0.5)
-
-plt.title(title)
-f.savefig(results_dir + figure_name, transparent=False)
-
-
 
 
 
