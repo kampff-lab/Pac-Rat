@@ -19,6 +19,8 @@ import ephys_library as ephys
 import seaborn as sns
 import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
+import glob
+
 # Reload modules
 import importlib
 importlib.reload(prs)
@@ -74,8 +76,8 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 
 
-RAT_ID = RAT_ID_ephys [1]
-rat_summary_table_path=rat_summary_ephys[1]
+RAT_ID = RAT_ID_ephys #[0]
+rat_summary_table_path=rat_summary_ephys#[0]
 
 probe_map_flatten = ephys.probe_map.flatten()
 
@@ -150,9 +152,9 @@ for r, rat in enumerate(rat_summary_table_path):
         
 
         #remove the first early trials
-        downsampled_event_idx = downsampled_touch[1:]
+        downsampled_event_idx = downsampled_ball[1:]
         
-        event_name= 'touch.csv'
+        event_name= 'ball_on.csv'
          
         
     
@@ -320,7 +322,7 @@ for r, rat in enumerate(rat_summary_table_path):
         
 #retrieve saved files and create 11x11 hist to check distribution pre VS post and t test for each ch 
 #files are saved with words after and before so alfabetically after is [0] and before is [1] in the matching array         
-band = 'beta'
+band = 'delta'
        
 
         
@@ -341,10 +343,10 @@ for r, rat in enumerate(rat_summary_table_path):
         session_path =  os.path.join(hardrive_path,session)    
         csv_dir_path = os.path.join(session_path + figure_folder)
        
-        matching_files_before  = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*before*" ))
+        matching_files_before  = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*before*" + "*"+event_name+"*"))
         sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
         
-        matching_files_after = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*after*" ))
+        matching_files_after = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*after*"+"*"+event_name+"*" ))
         sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
  
         f0 =plt.figure(figsize=(20,20))
@@ -371,7 +373,7 @@ for r, rat in enumerate(rat_summary_table_path):
             
                
             
-        plt.suptitle(session)
+        plt.suptitle(session + band + event_name[:-4])
         plt.legend(loc='upper right')  
         plt.close()           
 
@@ -391,7 +393,7 @@ for r, rat in enumerate(rat_summary_table_path):
     #ax.patch.set(hatch='//', edgecolor='black')
     bottom, top = ax.get_ylim()
     ax.set_ylim(bottom + 0.5, top - 0.5)
-    plt.suptitle(session)
+    plt.suptitle(session+band + event_name[:-4])
     
     from statsmodels.sandbox.stats.multicomp import multipletests
     p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni') # 0.05/121 = 0.0004132231404958678
@@ -399,6 +401,98 @@ for r, rat in enumerate(rat_summary_table_path):
 
 
 
+#########################create 1 file for wach rat with all the trials
+    
+
+band = ['delta','theta','beta','alpha']
+event_name = 'ball_on'   
+#RAT_ID=RAT_ID[0]
 
 
+for b in range(len(band)):
 
+            
+    for r, rat in enumerate(rat_summary_table_path): 
+        
+        
+        #rat = rat_summary_table_path
+        Level_2_post = prs.Level_2_post_paths(rat)
+        sessions_subset = Level_2_post
+        
+        N = 121
+        tot_sessions = len(sessions_subset)
+        
+        tot_trial_before = [[] for _ in range(tot_sessions)]
+        tot_trial_after = [[] for _ in range(tot_sessions)]
+        
+        
+        for s, session in enumerate(sessions_subset):        
+           
+            
+            session_path =  os.path.join(hardrive_path,session)    
+            csv_dir_path = os.path.join(session_path + figure_folder)
+           
+            matching_files_before  = np.array(glob.glob(csv_dir_path +"*"+band[b]+"*" + "*before*"+"*"+event_name+"*"))
+            sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
+            
+            matching_files_after = np.array(glob.glob(csv_dir_path +"*"+band[b]+"*" + "*after*" + "*"+event_name+"*"))
+            sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
+    
+    
+            tot_trial_before[s]=sum_before
+            tot_trial_after[s]=sum_after
+    
+    
+    
+           
+        main_folder = r'F:/Videogame_Assay/'
+        figure_folder_test = 'LFP_summary/'
+        
+        results_dir =os.path.join(main_folder + figure_folder_test)
+        
+        
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+        
+        
+        
+        csv_name_before =  RAT_ID[r] + '_'+band[b] + '_sum_before_'+event_name+'.csv'
+        csv_name_after =  RAT_ID[r] + '_'+band[b] + '_sum_after_'+event_name+'.csv'   
+        
+        if len(sessions_subset)  == 5:
+            
+            np.savetxt(results_dir + csv_name_before, np.hstack((tot_trial_before[0],
+                                                                 tot_trial_before[1],
+                                                                 tot_trial_before[2],
+                                                                 tot_trial_before[3],
+                                                                 tot_trial_before[4],
+                                                                   
+                                                                   )), delimiter=',', fmt='%s') #final_trial_type (only for moving light)
+         
+            np.savetxt(results_dir + csv_name_after, np.hstack((tot_trial_after[0],
+                                                                 tot_trial_after[1],
+                                                                 tot_trial_after[2],
+                                                                 tot_trial_after[3],
+                                                                 tot_trial_after[4],
+                                                                   
+                                                                   )), delimiter=',', fmt='%s')          
+            
+            
+            
+                                                       
+        else:
+            
+            np.savetxt(results_dir + csv_name_before, np.hstack((tot_trial_before[0],
+                                                                 tot_trial_before[1],
+                                                                 tot_trial_before[2],
+                                                                 tot_trial_before[3],
+                                                                                                                               
+                                                                   )), delimiter=',', fmt='%s')
+  
+
+            np.savetxt(results_dir + csv_name_after, np.hstack((tot_trial_after[0],
+                                                                 tot_trial_after[1],
+                                                                 tot_trial_after[2],
+                                                                 tot_trial_after[3],
+                                                                                                                               
+                                                                   )), delimiter=',', fmt='%s')         
