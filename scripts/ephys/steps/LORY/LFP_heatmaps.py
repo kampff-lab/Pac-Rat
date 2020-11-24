@@ -393,11 +393,86 @@ print(rat)
     
     
 
+#try to save heatmaps with p values
 
+summary_folder_plots = 'F:/Videogame_Assay/LFP_summary_plots/'
+summary_folder = 'F:/Videogame_Assay/LFP_summary/'
+event_folder =  'reward/'
 
+        
 
+lfp_band = ['alpha','beta','delta','theta']
 
+for rat in range(len(RAT_ID)):
 
+    for b, band in enumerate(lfp_band):
+        
+        
+        csv_dir_path = os.path.join(summary_folder_plots + event_folder)
+
+        matching_files_stats  = glob.glob(csv_dir_path +  "*stats*"+"*"+ "*"+band+"*" +"*"+RAT_ID[rat]+"*" )
+        stats =  np.genfromtxt(matching_files_stats[0], delimiter = ',', dtype = float) 
+    
+        offset_folder = 'pre/'
+        csv_to_path = os.path.join(summary_folder + event_folder + offset_folder )
+        
+        matching_files_pre  = glob.glob(csv_to_path +"*"+RAT_ID[rat]+"*"+ "*"+band+"*" )
+        pre_event =  np.genfromtxt(matching_files_pre[0], delimiter = ',', dtype = float) 
+       
+    
+        offset_folder = 'post/'
+        csv_to_path = os.path.join(summary_folder + event_folder + offset_folder )
+        
+        matching_files_post  = glob.glob(csv_to_path +"*"+RAT_ID[rat]+"*"+ "*"+band+"*" )
+        post_event =  np.genfromtxt(matching_files_post[0], delimiter = ',', dtype = float) 
+    
+        pre_mean = np.mean(pre_event, axis=1)
+        post_mean = np.mean(post_event, axis=1)
+              
+            
+        Level_2_post = prs.Level_2_post_paths(rat_summary_table_path[rat])
+        sessions_subset = Level_2_post   
+         
+        
+        session = sessions_subset[-1]
+        session_path =  os.path.join(hardrive_path,session) 
+        csv_bad_ch = os.path.join(session_path +'/bad_channels.csv')
+        bad_ch = np.genfromtxt(csv_bad_ch, delimiter = ',', dtype=int)
+        
+        f =plt.figure(figsize=(20,10))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine(left=False)
+        #plt.title(title)
+        title = RAT_ID[rat]+'_'+band+ '_mean_post/mean_pre_'+ event_folder[:-1]
+        figure_name = RAT_ID[rat]+ '_'+band+ '_mean_post_divided_by_mean_pre_'+ event_folder[:-1]+'.png'
+        
+            
+        to_plot = post_mean/pre_mean
+    
+        c = np.array(bad_ch.astype(int).tolist())
+        
+        to_plot[c]= np.nan
+        
+        band_final = np.reshape(to_plot,newshape=probe_map.shape)
+        bonferroni_annotation = stats[:,1]
+        bonf = np.reshape(bonferroni_annotation,newshape=probe_map.shape)
+    
+        
+        ax = sns.heatmap(band_final,annot=bonf,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
+                          annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+        ax.patch.set(hatch='//', edgecolor='black')
+        bottom, top = ax.get_ylim()
+        ax.set_ylim(bottom + 0.5, top - 0.5)
+    
+        plt.title(title)
+    
+        
+        f.savefig(summary_folder_plots + figure_name, transparent=False)
+        plt.close()
+        print('figure_saved' + band + RAT_ID[rat])
+    
 
 
 

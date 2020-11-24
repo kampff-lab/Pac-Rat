@@ -20,7 +20,7 @@ import seaborn as sns
 import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
 import glob
-
+from statsmodels.sandbox.stats.multicomp import multipletests
 # Reload modules
 import importlib
 importlib.reload(prs)
@@ -496,3 +496,101 @@ for b in range(len(band)):
                                                                  tot_trial_after[3],
                                                                                                                                
                                                                    )), delimiter=',', fmt='%s')         
+            
+            
+##########################################
+#stats on files with all the sessions
+            
+summary_folder = 'F:/Videogame_Assay/LFP_summary/'            
+event_folder =  'touch/'       
+
+    
+band = ['delta','theta','beta','alpha']
+       
+
+for b in range(len(band)):
+            
+    for r in range(len(rat_summary_table_path)):       
+        
+        #session_path =  os.path.join(hardrive_path,session)    
+        csv_dir_path = os.path.join(summary_folder + event_folder)
+        offset_folder = 'pre/'
+        csv_to_path = os.path.join(csv_dir_path + offset_folder)
+           
+        matching_files_before  = np.array(glob.glob(csv_to_path + "*"+RAT_ID[r]+"*"+ "*"+band[b]+"*" ))
+        sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
+        
+        offset_folder = 'post/'
+        csv_to_path = os.path.join(csv_dir_path + offset_folder)
+        
+        matching_files_after = np.array(glob.glob(csv_to_path + "*"+RAT_ID[r]+"*"+ "*"+band[b]+"*" ) )
+        sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
+    
+    
+    #plot and save distribution before and after event
+        plot_directory = 'F:/Videogame_Assay/LFP_summary_plots/'
+        
+        f0 =plt.figure(figsize=(20,20))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+                 
+        probe_t_test= []
+        
+        
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
+           
+              
+            
+            ch_t_test = stats.ttest_rel(sum_before[ch,:],sum_after[ch,:])
+            probe_t_test.append(ch_t_test[1])
+        
+           
+            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
+            
+            plt.hist(sum_before[ch,:],color= 'green', bins=50, alpha=.5,  linewidth=1,label='PRE touch')            
+            plt.hist(sum_after[ch,:], color='red' ,bins=50,alpha=.5,  linewidth=1, label='POST touch')
+                
+                   
+                
+        plt.suptitle( RAT_ID[r]+ band[b] + event_folder[:-1])
+        plt.legend(loc='upper right')  
+        f0_title = 'distibution' +'_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
+        f0.tight_layout()
+        f0.savefig(plot_directory+f0_title)
+        plt.close()           
+        
+        
+        #plot and save pvalues and bonferroni True/ False array 
+        
+        f1 =plt.figure(figsize=(10,10))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+        
+        
+        t_test_heatmap =np.reshape(probe_t_test,newshape=probe_map.shape) 
+             
+        ax = sns.heatmap(t_test_heatmap,annot=True,  cmap="bwr",vmin = 0, vmax=1,  edgecolors='white', linewidths=1,
+                                      annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+        
+        #ax.patch.set(hatch='//', edgecolor='black')
+        bottom, top = ax.get_ylim()
+        ax.set_ylim(bottom + 0.5, top - 0.5)
+        plt.suptitle(RAT_ID[r]+ band[b] + event_folder[:-1])
+        f1_title = 'p_value_heatmap' + band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
+        
+        f1.savefig(plot_directory+f1_title)
+        plt.close() 
+        
+        
+        
+        #save bonferroni and p value
+        title = 'stats_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.csv'
+        p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni')
+        # 0.05/121 = 0.0004132231404958678
+        np.savetxt(plot_directory + title, np.vstack((probe_t_test,p_adjusted[0])).T, delimiter=',', fmt='%s')
+        print(r)
+    print(band[b])
