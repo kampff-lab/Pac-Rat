@@ -397,7 +397,7 @@ print(rat)
 
 summary_folder_plots = 'F:/Videogame_Assay/LFP_summary_plots/'
 summary_folder = 'F:/Videogame_Assay/LFP_summary/'
-event_folder =  'reward/'
+event_folder =  'ball_on/'
 
         
 
@@ -426,8 +426,12 @@ for rat in range(len(RAT_ID)):
         matching_files_post  = glob.glob(csv_to_path +"*"+RAT_ID[rat]+"*"+ "*"+band+"*" )
         post_event =  np.genfromtxt(matching_files_post[0], delimiter = ',', dtype = float) 
     
-        pre_mean = np.mean(pre_event, axis=1)
-        post_mean = np.mean(post_event, axis=1)
+        tot_trials = np.shape(post_event)[1]
+    
+        trial_ratio = post_event/pre_event
+        
+        #pre_mean = np.mean(pre_event, axis=1)
+        #post_mean = np.mean(post_event, axis=1)
               
             
         Level_2_post = prs.Level_2_post_paths(rat_summary_table_path[rat])
@@ -445,26 +449,58 @@ for rat in range(len(RAT_ID)):
         sns.axes_style('white')
         sns.despine(left=False)
         #plt.title(title)
-        title = RAT_ID[rat]+'_'+band+ '_mean_post/mean_pre_'+ event_folder[:-1]
+        title = RAT_ID[rat]+'_'+band+ '_mean_post/mean_pre_'+ event_folder[:-1] +'_'+ str(tot_trials)
         figure_name = RAT_ID[rat]+ '_'+band+ '_mean_post_divided_by_mean_pre_'+ event_folder[:-1]+'.png'
         
-            
-        to_plot = post_mean/pre_mean
+
+        
+        #to_plot = post_mean/pre_mean
     
-        c = np.array(bad_ch.astype(int).tolist())
+    
+        to_plot = np.mean(trial_ratio,axis=1)  
         
-        to_plot[c]= np.nan
+        #scatter heatmap
         
-        band_final = np.reshape(to_plot,newshape=probe_map.shape)
         bonferroni_annotation = stats[:,1]
-        bonf = np.reshape(bonferroni_annotation,newshape=probe_map.shape)
-    
         
-        ax = sns.heatmap(band_final,annot=bonf,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
-                          annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
-        ax.patch.set(hatch='//', edgecolor='black')
-        bottom, top = ax.get_ylim()
-        ax.set_ylim(bottom + 0.5, top - 0.5)
+        indexes = [i for i,x in enumerate(bonferroni_annotation) if x == 1]
+        no_indexes =[ele for ele in range(max(indexes)+1) if ele not in indexes]
+        #len(indexes)+len(no_indexes)
+        
+        x_coordinate_final,y_by_flatten_probe = 
+        
+        plt.scatter(x_coordinate_final[indexes],np.array(y_by_flatten_probe)[indexes], c =np.array( probe_t_test)[indexes], cmap="bwr", marker=(5, 2),s=60, linewidth=.5)
+        
+        plt.scatter(x_coordinate_final[no_indexes],np.array(y_by_flatten_probe)[no_indexes], c =np.array(probe_t_test)[no_indexes], cmap="bwr",s=60, edgecolors="k", linewidth=.2)
+        
+      
+        plt.colorbar()
+        plt.hlines(4808,0,12)
+        plt.scatter(x_coordinate_final[c],np.array(y_by_flatten_probe)[c], c = 'k',s=60,  edgecolors="k", linewidth=.2)
+       
+
+
+
+
+
+
+
+        
+#        #heatmap 
+#        c = np.array(bad_ch.astype(int).tolist())
+#        
+#        to_plot[c]= np.nan
+#        
+#        band_final = np.reshape(to_plot,newshape=probe_map.shape)
+#        bonferroni_annotation = stats[:,1]
+#        bonf = np.reshape(bonferroni_annotation,newshape=probe_map.shape)
+#    
+#        
+#        ax = sns.heatmap(band_final,annot=bonf,  cmap="bwr", vmin = 0.75, vmax=1.25, edgecolors='white', linewidths=1,
+#                          annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+#        ax.patch.set(hatch='//', edgecolor='black')
+#        bottom, top = ax.get_ylim()
+#        ax.set_ylim(bottom + 0.5, top - 0.5)
     
         plt.title(title)
     
@@ -475,7 +511,7 @@ for rat in range(len(RAT_ID)):
     
 
 
-
+#scipy.stats.ttest_1samp(a, popmean, axis=0, nan_policy='propagate')[source]
 
 
 

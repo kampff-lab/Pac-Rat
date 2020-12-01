@@ -150,14 +150,21 @@ for r, rat in enumerate(rat_summary_table_path):
         offset = 1500
         num_raw_channels = 128
         
-
+        baseline_idx = np.arange(120000,num_samples-120000,6000) 
         #remove the first early trials
         downsampled_event_idx = downsampled_ball[1:]
         
         event_name= 'ball_on.csv'
          
         
-    
+        csv_alpha_b = RAT_ID + '_sum_of_avg_alpha_base.csv'
+        
+        csv_beta_b = RAT_ID + '_sum_of_avg_beta_base.csv'
+
+        csv_delta_b = RAT_ID + '_sum_of_avg_delta_base.csv'
+   
+        csv_theta_b = RAT_ID+ '_sum_of_avg_theta_base.csv' 
+        
         
         csv_alpha_pre = 'sum_alpha_before_ch_over_trials_' + event_name  #[r]
         
@@ -187,6 +194,7 @@ for r, rat in enumerate(rat_summary_table_path):
         beta_post = np.zeros((N,len(downsampled_event_idx)))
 
 
+
         
         for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
             try:
@@ -205,6 +213,13 @@ for r, rat in enumerate(rat_summary_table_path):
                     chunk_after[e,:] = ch_downsampled[event : event+offset]
                     
                     print(e)
+                    
+                 #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+                for b, base in enumerate(baseline_idx):
+                     
+                    baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+                    #print(b)    
+                print('epoch_baseline_DONE')
                 print('epoch_event_DONE')
         
            
@@ -217,6 +232,17 @@ for r, rat in enumerate(rat_summary_table_path):
         
                 p_after, f_after= time_frequency.psd_array_multitaper(chunk_after, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
         
+                p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+        
+                p_base_avg = np.mean(p_base, axis =0) #[:len(downsampled_event_idx)]
+                p_base_sem = stats.sem(p_base, axis = 0)
+                
+                # tot baseline excluding noise and sum 
+                
+                baseline_tot = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
+                baseline_sel = p_base_avg[baseline_tot]
+                baseline_sum_tot = np.sum(baseline_sel)
+                tot_base_sum.append(baseline_sum_tot)    
                 
                 
                 delta_trial_sum_pre = []               
@@ -401,7 +427,7 @@ for r, rat in enumerate(rat_summary_table_path):
 
 
 
-#########################create 1 file for wach rat with all the trials
+#########################create 1 file for each rat with all the trials
     
 
 band = ['delta','theta','beta','alpha']
@@ -546,11 +572,147 @@ for b in range(len(band)):
             ch_t_test = stats.ttest_rel(sum_before[ch,:],sum_after[ch,:])
             probe_t_test.append(ch_t_test[1])
         
+        
            
             ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
             
-            plt.hist(sum_before[ch,:],color= 'green', bins=50, alpha=.5,  linewidth=1,label='PRE touch')            
-            plt.hist(sum_after[ch,:], color='red' ,bins=50,alpha=.5,  linewidth=1, label='POST touch')
+            plt.hist(sum_before[channel,:],color= 'green', bins=50, alpha=.5,  linewidth=1,label='PRE touch')            
+            plt.hist(sum_after[channel,:], color='red' ,bins=50,alpha=.5,  linewidth=1, label='POST touch')
+                
+                   
+                
+        plt.suptitle( RAT_ID[r]+ band[b] + event_folder[:-1])
+        plt.legend(loc='upper right')  
+        f0_title = 'distibution' +'_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
+        f0.tight_layout()
+        f0.savefig(plot_directory+f0_title)
+        plt.close()           
+        
+        
+        #plot and save pvalues and bonferroni True/ False array 
+        
+        f1 =plt.figure(figsize=(20,10))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+        
+        
+        #plot scatter plot using probe conf 
+
+#        plt.scatter(x_coordinate_final,y_by_flatten_probe, c = probe_t_test, cmap="bwr",s=80,  edgecolors="k", linewidth=.2)
+#        plt.colorbar()
+#        plt.hlines(4808,0,12)
+
+        
+        
+        indexes = [i for i,x in enumerate(bonferroni_annotation) if x == 1]
+        no_indexes =[ele for ele in range(max(indexes)+1) if ele not in indexes]
+        #len(indexes)+len(no_indexes)
+        
+        plt.scatter(x_coordinate_final[indexes],np.array(y_by_flatten_probe)[indexes], c =np.array( probe_t_test)[indexes], cmap="bwr", marker=(5, 2),s=60, linewidth=.5)
+        
+        plt.scatter(x_coordinate_final[no_indexes],np.array(y_by_flatten_probe)[no_indexes], c =np.array(probe_t_test)[no_indexes], cmap="bwr",s=60, edgecolors="k", linewidth=.2)
+        
+      
+        plt.colorbar()
+        plt.hlines(4808,0,12)
+        plt.scatter(x_coordinate_final[c],np.array(y_by_flatten_probe)[c], c = 'k',s=60,  edgecolors="k", linewidth=.2)
+       
+    
+#        
+        #plot heatmap
+        
+        t_test_heatmap =np.reshape(probe_t_test,newshape=probe_map.shape) 
+             
+        ax = sns.heatmap(t_test_heatmap,annot=True,  cmap="bwr",vmin = 0, vmax=1,  edgecolors='white', linewidths=1,
+                                      annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+        
+        ax.patch.set(hatch='//', edgecolor='black')
+        
+        
+        bottom, top = ax.get_ylim()
+        ax.set_ylim(bottom + 0.5, top - 0.5)
+        plt.suptitle(RAT_ID[r]+ band[b] + event_folder[:-1])
+        f1_title = 'p_value_heatmap' + band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
+        
+        f1.savefig(plot_directory+f1_title)
+        plt.close() 
+        
+        
+        
+        #save bonferroni and p value
+        title = 'stats_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.csv'
+        p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni')
+        # 0.05/121 = 0.0004132231404958678
+        np.savetxt(plot_directory + title, np.vstack((probe_t_test,p_adjusted[0])).T, delimiter=',', fmt='%s')
+        print(r)
+    print(band[b])
+
+
+
+
+
+
+############################
+    
+#different stats and normalisation 
+    
+    
+            
+##########################################
+#stats on files with all the sessions
+            
+summary_folder = 'F:/Videogame_Assay/LFP_summary/'            
+event_folder =  'touch/'       
+
+    
+band = ['delta','theta','beta','alpha']
+       
+
+for b in range(len(band)):
+            
+    for r in range(len(rat_summary_table_path)):       
+        
+        #session_path =  os.path.join(hardrive_path,session)    
+        csv_dir_path = os.path.join(summary_folder + event_folder)
+        offset_folder = 'pre/'
+        csv_to_path = os.path.join(csv_dir_path + offset_folder)
+           
+        matching_files_before  = np.array(glob.glob(csv_to_path + "*"+RAT_ID[r]+"*"+ "*"+band[b]+"*" ))
+        sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
+        
+        offset_folder = 'post/'
+        csv_to_path = os.path.join(csv_dir_path + offset_folder)
+        
+        matching_files_after = np.array(glob.glob(csv_to_path + "*"+RAT_ID[r]+"*"+ "*"+band[b]+"*" ) )
+        sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
+    
+    
+    #plot and save distribution before and after event
+        plot_directory = 'F:/Videogame_Assay/LFP_summary_plots/'
+        
+        f0 =plt.figure(figsize=(20,20))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
+                 
+        probe_t_test= []
+        
+        
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
+           
+              
+            
+            ch_t_test = stats.ttest_rel(sum_before[channel,:],sum_after[channel,:])
+            probe_t_test.append(ch_t_test[1])
+        
+           
+            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
+            
+            plt.hist(sum_before[channel,:],color= 'green', bins=50, alpha=.5,  linewidth=1,label='PRE touch')            
+            plt.hist(sum_after[channel,:], color='red' ,bins=50,alpha=.5,  linewidth=1, label='POST touch')
                 
                    
                 
@@ -594,3 +756,8 @@ for b in range(len(band)):
         np.savetxt(plot_directory + title, np.vstack((probe_t_test,p_adjusted[0])).T, delimiter=',', fmt='%s')
         print(r)
     print(band[b])
+
+    
+    
+    
+    

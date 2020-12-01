@@ -30,7 +30,7 @@ rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/A
 
 RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
-RAT_ID = RAT_ID_ephys 
+RAT_ID = RAT_ID_ephys[0] 
 
 hardrive_path = r'F:/'
 
@@ -39,8 +39,8 @@ hardrive_path = r'F:/'
 
 #s = len(rat_summary_table_path)
 
-rat_summary_table_path=rat_summary_ephys
-
+rat_summary_table_path=rat_summary_ephys[0]
+probe_map_flatten = ephys.probe_map.flatten()
 
 
 for r, rat in enumerate(rat_summary_table_path): 
@@ -63,8 +63,11 @@ for r, rat in enumerate(rat_summary_table_path):
             bad_channels_idx = ephys.bad_channel(session, min_imp = 10000, max_imp = 6000000)
             bad_channels_path =  os.path.join(hardrive_path + session+'/bad_channels.csv')
             bad_channels = np.genfromtxt(bad_channels_path, delimiter=',',dtype=int)
-            
-            exclude_channels = np.sort(np.hstack((disconnected_channels,bad_channels)))
+          
+                        
+            #bad channels are idx while disconnecte are the actual channel number, for the cleaning I need the actual channel number to sepa
+            ##rate between headstages
+            exclude_channels = np.sort(np.hstack((disconnected_channels,probe_map_flatten[bad_channels])))
             print(len(exclude_channels))
             
             # Clean raw data and store binary file
