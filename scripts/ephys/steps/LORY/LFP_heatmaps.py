@@ -493,7 +493,7 @@ probe_map_flatten = ephys.probe_map.flatten()
 
 RAT_ID = RAT_ID_ephys[0]
 
-rat_summary_table_path=rat_summary_ephy[0]
+rat_summary_table_path=rat_summary_ephys[0]
 
 
 
@@ -560,24 +560,32 @@ for r, rat in enumerate(rat_summary_table_path):
             alpha_std_ch=[]
             beta_std_ch=[]
             theta_std_ch=[]
+
+
+            ch_downsampled = down_T[channel,:]#should use channel
+            #down_T=None
+                    
+            tot_chunk =  np.zeros((len(idx),offset))      
             
             for i,index in enumerate(idx):
-                
-                                       
-                ch_downsampled = down_T[channel,:]#should use channel
-                #down_T=None
-        
+
                 chunk =  ch_downsampled[index : index+offset]
-                 
+                tot_chunk[i,:]= chunk
+                
                 #half size chunk double  bandwidth   
                 ch_downsampled = None
                                 
                    
-                p, f = time_frequency.psd_array_multitaper(chunk, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
-        
-        
+            p, f = time_frequency.psd_array_multitaper(tot_chunk, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+    
+            
+            
+            for c in np.arange(len(idx)):
+                    
+                    
+                                
                 delta_ch = [i for i,v in enumerate(f) if 1< v <4 ]
-                delta_sel = p[delta_ch]        
+                delta_sel = p[:][c][delta_ch]        
                 delta_mean = np.mean(delta_sel)
                 delta_std = np.std(delta_sel)
                 delta_mean_ch.append(delta_mean)
@@ -585,21 +593,21 @@ for r, rat in enumerate(rat_summary_table_path):
                 
                 
                 theta_ch = [i for i,v in enumerate(f) if 4< v <8 ]
-                theta_sel = p[theta_ch]
+                theta_sel = p[:][c][theta_ch]
                 theta_mean = np.mean(theta_sel)
                 theta_std= np.std(theta_sel)
                 theta_mean_ch.append(theta_mean)
                 theta_std_ch.append(theta_std)
                 
                 alpha_ch = [i for i,v in enumerate(f) if 8< v <12 ]
-                alpha_sel = p[alpha_ch]
+                alpha_sel = p[:][c][alpha_ch]
                 alpha_mean = np.mean(alpha_sel)   
                 alpha_std=np.std(alpha_sel)
                 alpha_mean_ch.append(alpha_mean)
                 alpha_std_ch.append(alpha_std)
                 
                 beta_ch = [i for i,v in enumerate(f) if 12< v <30 ]
-                beta_sel = p[beta_ch]             
+                beta_sel = p[:][c][beta_ch]             
                 beta_mean= np.mean(beta_sel)
                 beta_std=np.std(beta_sel)
                 beta_mean_ch.append(beta_mean)
@@ -729,191 +737,3 @@ plt.title('zscore_beta_' +session + '_offset_'+str(offset))
 
 
  
-
-for value in range(len(theta_all_channels_mean)):
-    
-    plt.plot(theta_all_channels_mean[value],value+10)
-
-
-               
-
-        
-        csv_alpha_pre = RAT_ID[r]  +'_alpha_before_' +event_name  #[r]
-        
-        csv_beta_pre = RAT_ID[r] +'_beta_before_' +event_name
-
-        csv_delta_pre = RAT_ID[r] + '_delta_before_' +event_name
-   
-        csv_theta_pre = RAT_ID[r] +'_theta_before_' +event_name
-        
-        
-        csv_alpha_post = RAT_ID[r] + '_alpha_after_' +event_name
-        
-        csv_beta_post = RAT_ID[r] + '_beta_after_' +event_name
-
-        csv_delta_post = RAT_ID[r] + '_delta_after_' +event_name
-   
-        csv_theta_post = RAT_ID[r]+ '_theta_after_' +event_name     
-        
-        f0 =plt.figure(figsize=(20,20))
-        sns.set()
-        sns.set_style('white')
-        sns.axes_style('white')
-        sns.despine() 
-        figure_name =  RAT_ID[r] + '_'+ session[-16:] + '_pre_post.png'
-          
-        
-        
-        #finding chunks 
-        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
-            try:
-                        
-                
-                ch_downsampled = down_T[channel,:]#should use channel
-                #down_T=None
-        
-                chunk_before = np.zeros((len(downsampled_event_idx),offset))
-                
-                chunk_after = np.zeros((len(downsampled_event_idx),offset))
-        
-                for e, event in enumerate(downsampled_event_idx):
-                     
-                    chunk_before[e,:] = ch_downsampled[event-offset : event]
-                    chunk_after[e,:] = ch_downsampled[event : event+offset]
-                    
-                    print(e)
-                print('epoch_event_DONE')
-        
-           
-
-                #half size chunk double  bandwidth   
-                ch_downsampled = None
-                
-                
-                    
-                p_before, f_before = time_frequency.psd_array_multitaper(chunk_before, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
-        
-                p_after, f_after= time_frequency.psd_array_multitaper(chunk_after, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
-        
-                
-        
-                p_before_avg = np.mean(p_before, axis =0)
-                p_before_sem = stats.sem(p_before, axis = 0)
-        
-                p_after_avg = np.mean(p_after, axis =0) #[:len(downsampled_event_idx)]
-                p_after_sem = stats.sem(p_after, axis = 0)
-
-
-
-                ax = f0.add_subplot(11, 11, 1+ch, frameon=False)#all the probe is 11 11
-                
-
-                #plt.figure()
-                plt.plot(f_before, p_before_avg, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
-                plt.fill_between(f_before, p_before_avg-p_before_sem, p_before_avg+p_before_sem,
-                                 alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
-        
-                #plt.figure()
-                plt.plot(f_after, p_after_avg, color = '#228B22',alpha=0.3,  label = 'baseline', linewidth= 1)    
-                plt.fill_between(f_after, p_after_avg-p_after_sem, p_after_avg+p_after_sem,
-                                 alpha=0.4, edgecolor='#228B22', facecolor='#32CD32')#green
-      
-
-                
-                #events bands BEFORE
-                
-                delta_ch = [i for i,v in enumerate(f_before) if 1< v <4 ]
-                delta_sel = p_before_avg[delta_ch]        
-                delta_sum = np.sum(delta_sel)
-                delta_pre.append(delta_sum)
-                
-                theta_ch = [i for i,v in enumerate(f_before) if 4< v <8 ]
-                theta_sel = p_before_avg[theta_ch]
-                theta_sum = np.sum(theta_sel)
-                theta_pre.append(theta_sum)
-                
-                alpha_ch = [i for i,v in enumerate(f_before) if 8< v <12 ]
-                alpha_sel = p_before_avg[alpha_ch]
-                alpha_sum = np.sum(alpha_sel)           
-                alpha_pre.append(alpha_sum)
-                
-                beta_ch = [i for i,v in enumerate(f_before) if 12< v <30 ]
-                beta_sel = p_before_avg[beta_ch]             
-                beta_sum= np.sum(beta_sel)             
-                beta_pre.append(beta_sum)
-
-                #events bands AFTER
-                
-                delta_ch = [i for i,v in enumerate(f_after) if 1< v <4 ]
-                delta_sel = p_after_avg[delta_ch]            
-                delta_sum = np.sum(delta_sel)             
-                delta_post.append(delta_sum)
-                
-                theta_ch = [i for i,v in enumerate(f_after) if 4< v <8 ]
-                theta_sel = p_after_avg[theta_ch]              
-                theta_sum = np.sum(theta_sel)             
-                theta_post.append(theta_sum)
-                
-                alpha_ch = [i for i,v in enumerate(f_after) if 8< v <12 ]
-                alpha_sel = p_after_avg[alpha_ch]
-                alpha_sum = np.sum(alpha_sel)               
-                alpha_post.append(alpha_sum)
-                
-                beta_ch = [i for i,v in enumerate(f_after) if 12< v <30 ]
-                beta_sel = p_after_avg[beta_ch]               
-                beta_sum= np.sum(beta_sel)               
-                beta_post.append(beta_sum)
-
-
-            except Exception:
-                continue 
-             
-        alpha_rat_pre[:,s]= alpha_pre
-        beta_rat_pre[:,s] = beta_pre
-        delta_rat_pre[:,s] = delta_pre
-        theta_rat_pre[:,s] =theta_pre
-        
-  
-        alpha_rat_post[:,s]= alpha_post
-        beta_rat_post[:,s] = beta_post
-        delta_rat_post[:,s] = delta_post
-        theta_rat_post[:,s] = theta_post
-        
-        plt.tight_layout()
-
-
-
-        f0.savefig(results_dir + figure_name, transparent=False)
-        plt.close()                
-                                
-        print('session_done')
-    
-
-    results_dir =os.path.join(main_folder + figure_folder + 'pre_reward/')
-    
-    
-    #pre touch
-    np.savetxt(results_dir + '_'+ csv_alpha_pre, alpha_rat_pre,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_'+ csv_beta_pre, beta_rat_pre,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_' + csv_delta_pre, delta_rat_pre,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_'+ csv_theta_pre, theta_rat_pre,delimiter=',', fmt='%s')
-    
-    
-    results_dir =os.path.join(main_folder + figure_folder + 'post_reward/')
-    #pos touch
-    np.savetxt(results_dir + '_'+ csv_alpha_post, alpha_rat_post,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_'+ csv_beta_post, beta_rat_post,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_' + csv_delta_post, delta_rat_post,delimiter=',', fmt='%s')
-    np.savetxt(results_dir + '_'+ csv_theta_post, theta_rat_post,delimiter=',', fmt='%s')
-    
-
-
-
-
-
-
-
-
-
-
-
