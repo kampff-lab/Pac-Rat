@@ -16,6 +16,7 @@ from mne import time_frequency
 import parser_library as prs
 import behaviour_library as behaviour
 import ephys_library as ephys 
+#import plotting_probe_layout as layout
 import seaborn as sns
 import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
@@ -80,7 +81,7 @@ RAT_ID = RAT_ID_ephys #[0]
 rat_summary_table_path=rat_summary_ephys#[0]
 
 probe_map_flatten = ephys.probe_map.flatten()
-
+len(probe_map_flatten)
 
 for r, rat in enumerate(rat_summary_table_path): 
     
@@ -604,7 +605,7 @@ for b in range(len(band)):
 #        plt.colorbar()
 #        plt.hlines(4808,0,12)
 
-        
+      
         
         indexes = [i for i,x in enumerate(bonferroni_annotation) if x == 1]
         no_indexes =[ele for ele in range(max(indexes)+1) if ele not in indexes]
@@ -658,13 +659,10 @@ for b in range(len(band)):
     
 #different stats and normalisation 
     
-    
-            
-##########################################
-#stats on files with all the sessions
+
             
 summary_folder = 'F:/Videogame_Assay/LFP_summary/'            
-event_folder =  'touch/'       
+event_folder =  'reward/'       
 
     
 band = ['delta','theta','beta','alpha']
@@ -689,43 +687,22 @@ for b in range(len(band)):
         sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
     
     
-    #plot and save distribution before and after event
-        plot_directory = 'F:/Videogame_Assay/LFP_summary_plots/'
-        
-        f0 =plt.figure(figsize=(20,20))
-        sns.set()
-        sns.set_style('white')
-        sns.axes_style('white')
-        sns.despine() 
-                 
+        ratio = sum_after/sum_before    
+        #plot and save distribution before and after event
+
         probe_t_test= []
         
         
         for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
-           
-              
+                         
             
-            ch_t_test = stats.ttest_rel(sum_before[channel,:],sum_after[channel,:])
+            ch_t_test =  scipy.stats.ttest_1samp(ratio[ch], 1.0)
             probe_t_test.append(ch_t_test[1])
         
            
-            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
-            
-            plt.hist(sum_before[channel,:],color= 'green', bins=50, alpha=.5,  linewidth=1,label='PRE touch')            
-            plt.hist(sum_after[channel,:], color='red' ,bins=50,alpha=.5,  linewidth=1, label='POST touch')
-                
-                   
-                
-        plt.suptitle( RAT_ID[r]+ band[b] + event_folder[:-1])
-        plt.legend(loc='upper right')  
-        f0_title = 'distibution' +'_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
-        f0.tight_layout()
-        f0.savefig(plot_directory+f0_title)
-        plt.close()           
-        
         
         #plot and save pvalues and bonferroni True/ False array 
-        
+        plot_directory = 'F:/Videogame_Assay/LFP_summary_plots/'
         f1 =plt.figure(figsize=(10,10))
         sns.set()
         sns.set_style('white')
@@ -742,22 +719,17 @@ for b in range(len(band)):
         bottom, top = ax.get_ylim()
         ax.set_ylim(bottom + 0.5, top - 0.5)
         plt.suptitle(RAT_ID[r]+ band[b] + event_folder[:-1])
-        f1_title = 'p_value_heatmap' + band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
+        f1_title = 'p_value_heatmap_ttest_1samp' + band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.png'
         
         f1.savefig(plot_directory+f1_title)
         plt.close() 
         
-        
-        
-        #save bonferroni and p value
-        title = 'stats_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.csv'
+                #save bonferroni and p value
+        title = 'stats_ttest_1samp_'+ band[b] +'_'+ RAT_ID[r] +'_'+ event_folder[:-1] + '.csv'
         p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni')
         # 0.05/121 = 0.0004132231404958678
         np.savetxt(plot_directory + title, np.vstack((probe_t_test,p_adjusted[0])).T, delimiter=',', fmt='%s')
         print(r)
     print(band[b])
 
-    
-    
-    
     
