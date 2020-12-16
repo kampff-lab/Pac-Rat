@@ -52,7 +52,7 @@ for session in session_list:
         
         # Specify outout movie/data folder and filename
         output_folder = os.path.join(hardrive_path, session)
-        output_name = os.path.join(hardrive_path, session +'/motionclips_34') #output_folder + '/motion'
+        output_name = os.path.join(hardrive_path, session +'/motion') #output_folder + '/motion'
         
         #measure motion 
         tracking.motion(video, background, output_name)

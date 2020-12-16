@@ -130,7 +130,7 @@ for r, rat in enumerate(rat_summary_table_path):
         down_T = reshaped_down.T
 
         freq = 30000
-        offset = 3000
+        offset = 1500
         num_raw_channels = 128
         
         start = 60000
@@ -165,7 +165,7 @@ for r, rat in enumerate(rat_summary_table_path):
         sns.despine() 
          
         
-        for ch, channel in enumerate(new_probe_flatten): #new_probe_flatten #probe_map_flatten
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
             #try:
                         
                 

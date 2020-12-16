@@ -299,126 +299,126 @@ def crop_rat(video, background, window_size, output_name):
 
 
 
-
-
-# Crop video around rat centroid
-def motion(video, background, output_name):
-
-    # Create output filenames
-    csv_path = output_name + '.csv'
-
-    # Read current frame
-    success, image = video.read()    
-    blue, green, red = cv2.split(image)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    #store the first frame only to make the loop working for frame=0
-    previous = np.copy(gray)
-    previous_green = np.copy(green)
-    
-    # Measure dimensions
-    width = image.shape[1]
-    height = image.shape[0]
-    num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    # Reset video to first frame
-    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    
-    # Empty list to be filled with motion values
-    motion = []
-    stimulus_motion = []
-
-    # Read and process each frame
-    cv2.namedWindow("Display")
-    #num_frames = 1200
-    for frame in range(0, num_frames):
-
-        # Read current frame
-        success, image = video.read()
-        blue, green, red = cv2.split(image)
-        
-        # Convert to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        # Subtract background (darker values positive)
-        back_sub = cv2.subtract(background, gray)
-
-        # Threshold
-        level, threshed = cv2.threshold(back_sub, 5, 255, cv2.THRESH_BINARY)
-        cv2.imshow('',threshed)
-        #smooth = cv2.blur(threshed, (15,15))
-                
-        
-        # Open (Erode then Dialate) to remove tail and noise
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
-        opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
-        
-        # Find Binary Contours            
-        ret, contours, hierarchy = cv2.findContours(np.copy(opened),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)   
-        if len(contours) == 0:
-            area = 0
-        else:
-            # Get largest particle
-            largest_cnt, area = get_largest_contour(contours)
-        
-        
-        #pixel above the th (mostly the rat)
-        count_foreground = area
-                
-        
-        # detect changed pixels
-        motion_diff = cv2.absdiff(gray, previous)
-        
-        # Threshold
-        level, threshed = cv2.threshold(motion_diff, 5, 255, cv2.THRESH_BINARY)
-
-        count_motion = np.sum(np.sum(threshed))
-        
-        
-        norm_motion = count_motion/count_foreground
-        
-        # Store motion in list
-        motion.append(norm_motion)
-
-
-        #stimulus motion 
-        # detect changed green pixels
-        green_motion_diff = cv2.absdiff(green, previous_green)
-        
-        # Threshold
-        level, threshed = cv2.threshold(green_motion_diff, 120, 255, cv2.THRESH_BINARY)
-        count_green_motion = np.sum(np.sum(threshed))
-        
-        # Store motion in list
-        stimulus_motion.append(count_green_motion)
-
-
-        
-        previous = np.copy(gray)
-        previous_green = np.copy(green)
-         
-        print(norm_motion)    
-        # Display (occasionally)
-#       if (frame % 12) == 0:
-#            resized = cv2.resize(gray, (np.int(width/2), np.int(height/2)))
-#            color = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
-#            cv2.circle(color, (np.int(cx/2), np.int(cy/2)), 5, (0, 255, 0), thickness=1, lineType=8, shift=0)
-#            cv2.imshow("Display", color)    
-#            cv2.waitKey(1)
-#            print("Frame %d of %d" % (frame, num_frames))
-
-    # Save csv file containing the centroids coordinates    
-    #np.savetxt(csv_path, motion, delimiter=',')    
-    np.savetxt(csv_path, np.vstack((motion,stimulus_motion)).T, delimiter=',', fmt='%s')
-    # Cleanup
-    cv2.destroyAllWindows()
-     
-    return 
+#
+#
+## Crop video around rat centroid
+#def motion(video, background, output_name):
+#
+#    # Create output filenames
+#    csv_path = output_name + '.csv'
+#
+#    # Read current frame
+#    success, image = video.read()    
+#    blue, green, red = cv2.split(image)
+#    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#    
+#    #store the first frame only to make the loop working for frame=0
+#    previous = np.copy(gray)
+#    previous_green = np.copy(green)
+#    
+#    # Measure dimensions
+#    width = image.shape[1]
+#    height = image.shape[0]
+#    num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+#
+#    # Reset video to first frame
+#    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+#    
+#    # Empty list to be filled with motion values
+#    motion = []
+#    stimulus_motion = []
+#
+#    # Read and process each frame
+#    cv2.namedWindow("Display")
+#    #num_frames = 1200
+#    for frame in range(0, num_frames):
+#
+#        # Read current frame
+#        success, image = video.read()
+#        blue, green, red = cv2.split(image)
+#        
+#        # Convert to grayscale
+#        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#
+#        # Subtract background (darker values positive)
+#        back_sub = cv2.subtract(background, gray)
+#
+#        # Threshold
+#        level, threshed = cv2.threshold(back_sub, 5, 255, cv2.THRESH_BINARY)
+#        cv2.imshow('',threshed)
+#        #smooth = cv2.blur(threshed, (15,15))
+#                
+#        
+#        # Open (Erode then Dialate) to remove tail and noise
+#        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15))
+#        opened = cv2.morphologyEx(threshed, cv2.MORPH_OPEN, kernel)
+#        
+#        # Find Binary Contours            
+#        ret, contours, hierarchy = cv2.findContours(np.copy(opened),cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)   
+#        if len(contours) == 0:
+#            area = 0
+#        else:
+#            # Get largest particle
+#            largest_cnt, area = get_largest_contour(contours)
+#        
+#        
+#        #pixel above the th (mostly the rat)
+#        count_foreground = area
+#                
+#        
+#        # detect changed pixels
+#        motion_diff = cv2.absdiff(gray, previous)
+#        
+#        # Threshold
+#        level, threshed = cv2.threshold(motion_diff, 5, 255, cv2.THRESH_BINARY)
+#
+#        count_motion = np.sum(np.sum(threshed))
+#        
+#        
+#        norm_motion = count_motion/count_foreground
+#        
+#        # Store motion in list
+#        motion.append(norm_motion)
+#
+#
+#        #stimulus motion 
+#        # detect changed green pixels
+#        green_motion_diff = cv2.absdiff(green, previous_green)
+#        
+#        # Threshold
+#        level, threshed = cv2.threshold(green_motion_diff, 120, 255, cv2.THRESH_BINARY)
+#        count_green_motion = np.sum(np.sum(threshed))
+#        
+#        # Store motion in list
+#        stimulus_motion.append(count_green_motion)
+#
+#
+#        
+#        previous = np.copy(gray)
+#        previous_green = np.copy(green)
+#         
+#        print(norm_motion)    
+#        # Display (occasionally)
+##       if (frame % 12) == 0:
+##            resized = cv2.resize(gray, (np.int(width/2), np.int(height/2)))
+##            color = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+##            cv2.circle(color, (np.int(cx/2), np.int(cy/2)), 5, (0, 255, 0), thickness=1, lineType=8, shift=0)
+##            cv2.imshow("Display", color)    
+##            cv2.waitKey(1)
+##            print("Frame %d of %d" % (frame, num_frames))
+#
+#    # Save csv file containing the centroids coordinates    
+#    #np.savetxt(csv_path, motion, delimiter=',')    
+#    np.savetxt(csv_path, np.vstack((motion,stimulus_motion)).T, delimiter=',', fmt='%s')
+#    # Cleanup
+#    cv2.destroyAllWindows()
+#     
+#    return 
 
 #FIN
         
-
-# Crop video around rat centroid
+#
+## Crop video around rat centroid
 def motion(video, background, output_name):
 
     # Create output filenames

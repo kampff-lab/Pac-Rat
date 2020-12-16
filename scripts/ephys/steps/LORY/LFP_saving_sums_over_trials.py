@@ -77,8 +77,8 @@ probe_map=np.array([[103,78,81,118,94,74,62,24,49,46,7],
 
 
 
-RAT_ID = RAT_ID_ephys #[0]
-rat_summary_table_path=rat_summary_ephys#[0]
+RAT_ID = RAT_ID_ephys[0] #[0]
+rat_summary_table_path=rat_summary_ephys[0]#[0]
 
 probe_map_flatten = ephys.probe_map.flatten()
 len(probe_map_flatten)
@@ -100,13 +100,13 @@ for r, rat in enumerate(rat_summary_table_path):
         session_path =  os.path.join(hardrive_path,session)
         
         
-        figure_folder = '/LFP/'
+        #figure_folder = '/LFP/'
         
-        results_dir =os.path.join(session_path + figure_folder)
+        #results_dir =os.path.join(session_path + figure_folder)
         
         
-        if not os.path.isdir(results_dir):
-            os.makedirs(results_dir)
+#        if not os.path.isdir(results_dir):
+#            os.makedirs(results_dir)
         #recording data path
         #raw_recording = os.path.join(session_path +'/Amplifier.bin')
         #downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
@@ -151,38 +151,38 @@ for r, rat in enumerate(rat_summary_table_path):
         offset = 1500
         num_raw_channels = 128
         
-        baseline_idx = np.arange(120000,num_samples-120000,6000) 
+        #baseline_idx = np.arange(120000,num_samples-120000,6000) 
         #remove the first early trials
-        downsampled_event_idx = downsampled_ball[1:]
+        downsampled_event_idx = downsampled_touch[1:]
         
-        event_name= 'ball_on.csv'
+        event_name= 'touch.csv'
          
         
-        csv_alpha_b = RAT_ID + '_sum_of_avg_alpha_base.csv'
+        csv_alpha_b = RAT_ID[r]+ '_sum_of_avg_alpha_base.csv'
         
-        csv_beta_b = RAT_ID + '_sum_of_avg_beta_base.csv'
+        csv_beta_b = RAT_ID[r] + '_sum_of_avg_beta_base.csv'
 
-        csv_delta_b = RAT_ID + '_sum_of_avg_delta_base.csv'
+        csv_delta_b = RAT_ID[r] + '_sum_of_avg_delta_base.csv'
    
-        csv_theta_b = RAT_ID+ '_sum_of_avg_theta_base.csv' 
+        csv_theta_b = RAT_ID[r]+ '_sum_of_avg_theta_base.csv' 
         
         
-        csv_alpha_pre = 'sum_alpha_before_ch_over_trials_' + event_name  #[r]
+        csv_alpha_pre = RAT_ID[r]+'sum_alpha_before_ch_over_trials_' + event_name  #[r]
         
-        csv_beta_pre ='sum_beta_before_ch_over_trials_' +event_name
+        csv_beta_pre =RAT_ID[r]+'sum_beta_before_ch_over_trials_' +event_name
 
-        csv_delta_pre =  'sum_delta_before_ch_over_trials_' +event_name
+        csv_delta_pre = RAT_ID[r]+ 'sum_delta_before_ch_over_trials_' +event_name
    
-        csv_theta_pre = 'sum_theta_before_ch_over_trials_' +event_name
+        csv_theta_pre = RAT_ID[r]+'sum_theta_before_ch_over_trials_' +event_name
         
         
-        csv_alpha_post =  'sum_alpha_after_ch_over_trials_' +event_name
+        csv_alpha_post =RAT_ID[r]+  'sum_alpha_after_ch_over_trials_' +event_name
         
-        csv_beta_post =   'sum_beta_after_ch_over_trials_' +event_name
+        csv_beta_post = RAT_ID[r]+  'sum_beta_after_ch_over_trials_' +event_name
 
-        csv_delta_post =   'sum_delta_after_ch_over_trials_' +event_name
+        csv_delta_post = RAT_ID[r]+  'sum_delta_after_ch_over_trials_' +event_name
    
-        csv_theta_post =  'sum_theta_after_ch_over_trials_' +event_name     
+        csv_theta_post =RAT_ID[r]+  'sum_theta_after_ch_over_trials_' +event_name     
 
           
         delta_pre = np.zeros((N,len(downsampled_event_idx)))
@@ -215,15 +215,15 @@ for r, rat in enumerate(rat_summary_table_path):
                     
                     print(e)
                     
-                 #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
-                for b, base in enumerate(baseline_idx):
-                     
-                    baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
-                    #print(b)    
-                print('epoch_baseline_DONE')
-                print('epoch_event_DONE')
-        
-           
+#                 #baseline_chunk_around_event = ch_downsampled[baseline_idx-offset : baseline_idx+offset]
+#                for b, base in enumerate(baseline_idx):
+#                     
+#                    baseline_chunk_around_event[b,:] = ch_downsampled[base-offset : base+offset]
+#                    #print(b)    
+#                print('epoch_baseline_DONE')
+#                print('epoch_event_DONE')
+#        
+#           
 
                 #half size chunk double  bandwidth   
                 ch_downsampled = None
@@ -233,18 +233,18 @@ for r, rat in enumerate(rat_summary_table_path):
         
                 p_after, f_after= time_frequency.psd_array_multitaper(chunk_after, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 10, n_jobs = 8)
         
-                p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
+                #p_base, f_base = time_frequency.psd_array_multitaper(baseline_chunk_around_event, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
         
-                p_base_avg = np.mean(p_base, axis =0) #[:len(downsampled_event_idx)]
-                p_base_sem = stats.sem(p_base, axis = 0)
+                #p_base_avg = np.mean(p_base, axis =0) #[:len(downsampled_event_idx)]
+                #p_base_sem = stats.sem(p_base, axis = 0)
                 
                 # tot baseline excluding noise and sum 
                 
-                baseline_tot = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
-                baseline_sel = p_base_avg[baseline_tot]
-                baseline_sum_tot = np.sum(baseline_sel)
-                tot_base_sum.append(baseline_sum_tot)    
-                
+#                baseline_tot = [i for i,v in enumerate(f_base) if  v <45 or v>55 ]
+#                baseline_sel = p_base_avg[baseline_tot]
+#                baseline_sum_tot = np.sum(baseline_sel)
+#                tot_base_sum.append(baseline_sum_tot)    
+#                
                 
                 delta_trial_sum_pre = []               
                 delta_trial_sum_post = []

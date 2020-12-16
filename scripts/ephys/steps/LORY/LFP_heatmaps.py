@@ -21,9 +21,9 @@ probe_map_flatten = ephys.probe_map.flatten()
 
 
 
-RAT_ID = RAT_ID_ephys
+RAT_ID = RAT_ID_ephys[0]
 
-rat_summary_table_path=rat_summary_ephys
+rat_summary_table_path=rat_summary_ephys[0]
 
 
 for r, rat in enumerate(rat_summary_table_path): 
@@ -96,9 +96,9 @@ for r, rat in enumerate(rat_summary_table_path):
         
 
         #remove the first early trials from event of choice 
-        downsampled_event_idx = downsampled_end[1:]
+        downsampled_event_idx = downsampled_touch[1:]
         
-        event_name= 'reward.csv'
+        event_name= 'touch.csv'
          
        
 
@@ -491,9 +491,9 @@ probe_map_flatten = ephys.probe_map.flatten()
 
 
 
-RAT_ID = RAT_ID_ephys[0]
+RAT_ID = RAT_ID_ephys[2]
 
-rat_summary_table_path=rat_summary_ephys[0]
+rat_summary_table_path=rat_summary_ephys[2]
 
 
 
@@ -505,6 +505,7 @@ for r, rat in enumerate(rat_summary_table_path):
     sessions_subset = Level_2_post
     
     N = 121
+
     tot_sessions = len(sessions_subset)
     
     alpha_rat_pre =  np.zeros((N,tot_sessions))
@@ -534,20 +535,28 @@ for r, rat in enumerate(rat_summary_table_path):
 
         freq = 30000
         offset = 6000
-        num_raw_channels = 128
+
         
         idx = np.arange(120000,num_samples-120000,offset)        
-        len(idx)
+        print(len(idx))
 
         delta_all_channels_mean = np.zeros((N,len(idx)))
         alpha_all_channels_mean = np.zeros((N,len(idx)))
         theta_all_channels_mean = np.zeros((N,len(idx)))
         beta_all_channels_mean = np.zeros((N,len(idx)))
-
+        gamma_all_channels_mean = np.zeros((N,len(idx)))
+        
         delta_all_channels_std = np.zeros((N,len(idx)))
         alpha_all_channels_std = np.zeros((N,len(idx)))
         theta_all_channels_std = np.zeros((N,len(idx)))
         beta_all_channels_std = np.zeros((N,len(idx)))
+        gamma_all_channels_std = np.zeros((N,len(idx)))
+
+        f0 =plt.figure(figsize=(20,20))
+        sns.set()
+        sns.set_style('white')
+        sns.axes_style('white')
+        sns.despine() 
 
         for ch, channel in enumerate(probe_map_flatten): 
            
@@ -555,12 +564,13 @@ for r, rat in enumerate(rat_summary_table_path):
             alpha_mean_ch =[]
             theta_mean_ch=[]
             beta_mean_ch=[]
-            
+            gamma_mean_ch=[]
+             
             delta_std_ch =[]
             alpha_std_ch=[]
             beta_std_ch=[]
             theta_std_ch=[]
-
+            gamma_std_ch=[]
 
             ch_downsampled = down_T[channel,:]#should use channel
             #down_T=None
@@ -569,22 +579,35 @@ for r, rat in enumerate(rat_summary_table_path):
             
             for i,index in enumerate(idx):
 
-                chunk =  ch_downsampled[index : index+offset]
-                tot_chunk[i,:]= chunk
                 
-                #half size chunk double  bandwidth   
-                ch_downsampled = None
+                tot_chunk[i,:]= ch_downsampled[index : index+offset]
+                
+            #half size chunk double  bandwidth   
+            ch_downsampled = None
                                 
                    
             p, f = time_frequency.psd_array_multitaper(tot_chunk, sfreq= 1000, fmin = 1, fmax = 100, bandwidth = 2.5, n_jobs = 8)
     
             
+            p_mean = np.mean(p, axis=0)
+            c = stats.sem(p, axis = 0)
+
+        
+        
+            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)#all the probe is 11 11
+            
+           
+            plt.plot(f, p_mean, color = '#1E90FF',alpha=0.3, label = 'touch', linewidth= 1)
+            plt.fill_between(f, p_mean-p_mean, p_mean+p_mean,
+                             alpha=0.4, edgecolor='#1E90FF', facecolor='#00BFFF')#,vmin=0.4, vmax =1.9) blue
+    
+
             
             for c in np.arange(len(idx)):
-                    
-                    
+                                        
+                  
                                 
-                delta_ch = [i for i,v in enumerate(f) if 1< v <4 ]
+                delta_ch = [i for i,v in enumerate(f) if 1<= v <=4 ]
                 delta_sel = p[:][c][delta_ch]        
                 delta_mean = np.mean(delta_sel)
                 delta_std = np.std(delta_sel)
@@ -592,42 +615,57 @@ for r, rat in enumerate(rat_summary_table_path):
                 delta_std_ch.append(delta_std)
                 
                 
-                theta_ch = [i for i,v in enumerate(f) if 4< v <8 ]
+                theta_ch = [i for i,v in enumerate(f) if 4<= v <=8 ]
                 theta_sel = p[:][c][theta_ch]
                 theta_mean = np.mean(theta_sel)
                 theta_std= np.std(theta_sel)
                 theta_mean_ch.append(theta_mean)
                 theta_std_ch.append(theta_std)
                 
-                alpha_ch = [i for i,v in enumerate(f) if 8< v <12 ]
+                alpha_ch = [i for i,v in enumerate(f) if 8<= v <=12 ]
                 alpha_sel = p[:][c][alpha_ch]
                 alpha_mean = np.mean(alpha_sel)   
                 alpha_std=np.std(alpha_sel)
                 alpha_mean_ch.append(alpha_mean)
                 alpha_std_ch.append(alpha_std)
                 
-                beta_ch = [i for i,v in enumerate(f) if 12< v <30 ]
+                beta_ch = [i for i,v in enumerate(f) if 12<= v <=30 ]
                 beta_sel = p[:][c][beta_ch]             
                 beta_mean= np.mean(beta_sel)
                 beta_std=np.std(beta_sel)
                 beta_mean_ch.append(beta_mean)
                 beta_std_ch.append(beta_std)
+
+
+                gamma_ch =  [i for i,v in enumerate(f) if  30<= v <=45 or 55<= v <=100 ]
+
+                gamma_sel = p[:][c][gamma_ch]             
+                gamma_mean= np.mean(gamma_sel)
+                gamma_std=np.std(gamma_sel)
+                gamma_mean_ch.append(gamma_mean)
+                gamma_std_ch.append(gamma_std)
                 
                 
             delta_all_channels_mean[ch,:] =   delta_mean_ch     
             alpha_all_channels_mean[ch,:] =   alpha_mean_ch   
             beta_all_channels_mean[ch,:] =   beta_mean_ch   
             theta_all_channels_mean[ch,:] =   theta_mean_ch   
-            
+            gamma_all_channels_mean[ch,:] =   gamma_mean_ch   
                     
             delta_all_channels_std[ch,:] =   delta_std_ch     
             alpha_all_channels_std[ch,:] =   alpha_std_ch   
             beta_all_channels_std[ch,:] =   beta_std_ch   
             theta_all_channels_std[ch,:] =   theta_std_ch   
+            gamma_all_channels_std[ch,:] =   gamma_std_ch  
             print(ch)
    
       
-              
+  
+
+session_path =  os.path.join(hardrive_path,session) 
+csv_bad_ch = os.path.join(session_path +'/bad_channels.csv')
+bad_ch = np.genfromtxt(csv_bad_ch, delimiter = ',', dtype=int)
+             
 
 #### z score  value ch - mean ch /std ch
             
@@ -642,13 +680,54 @@ for value in range(N):
     z_score = (ch_selection-delta_mean_all_ch[value])/delta_std_all_ch[value]
     delta_z_score[value,:]= z_score
     
+    
+    
+    
+good_ch =[ele for ele in range(121) if ele not in bad_ch]
+delta_good= delta_z_score[good_ch]
+delta_z_score=delta_good
+
+
 
 count = 0
-
+f =plt.figure(figsize=(20,10))
 for line in range(N):
     plt.plot(range(len(idx)),delta_z_score[line,:]+count)
-    count= count+10
+    count= count+1
 plt.title('zscore_delta_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_delta'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
+
+count = 0
+f =plt.figure(figsize=(20,10))
+for line in range(N-len(bad_ch)):
+    plt.plot(range(len(idx)),delta_z_score[line,:]+count)
+    count= count+1
+plt.title('zscore_delta_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_delta'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
+
+
+
+#
+#
+#for value in range(N):
+#    f=plt.figure(figsize=(10,5))
+#    #ax = f0.add_subplot(11, 11, 1+value, frameon=False)#all the probe is 11 11
+#    plt.plot(range(len(idx)),delta_z_score[value,:])
+#    plt.ylim(-2,5)
+#    f.savefig('E:/thesis_figures/z_score_test/'+str(value)+'.png')
+#    plt.close()
+#    
+
+
+
+f =plt.figure(figsize=(20,10))
+for line in range(N):
+    plt.plot(delta_z_score[line,:])
+plt.ylim(-2,5)
+f.savefig('E:/thesis_figures/z_score_test/'+'overlap'+'.png')
+plt.close()
 
 #theta
 
@@ -663,12 +742,44 @@ for value in range(N):
     theta_z_score[value,:]= z_score
     
 
-count = 0
 
-for line in range(N):
+theta_good= theta_z_score[good_ch]
+theta_z_score=theta_good
+
+count = 0
+f =plt.figure(figsize=(20,10))
+for line in range(N-len(bad_ch)):
     plt.plot(range(len(idx)),theta_z_score[line,:]+count)
-    count= count+10
+    count= count+1
 plt.title('zscore_theta_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_theta'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
+
+
+
+#for value in range(N):
+#    f=plt.figure(figsize=(10,5))
+#    #ax = f0.add_subplot(11, 11, 1+value, frameon=False)#all the probe is 11 11
+#    plt.plot(range(len(idx)),theta_z_score[value,:])
+#    plt.ylim(-2,5)
+#    f.savefig('E:/thesis_figures/z_score_test/'+str(value)+'.png')
+#    plt.close()
+#    
+
+
+
+f =plt.figure(figsize=(20,10))
+for line in range(N):
+    plt.plot(theta_z_score[line,:])
+plt.ylim(-2,5)
+f.savefig('E:/thesis_figures/z_score_test/'+'overlap'+'.png')
+plt.close()
+
+
+
+
+
+
 
 #aplha
 
@@ -683,14 +794,41 @@ for value in range(N):
     alpha_z_score[value,:]= z_score
     
 
+alpha_good= alpha_z_score[good_ch]
+alpha_z_score=alpha_good
+
+
+
 count = 0
-
-for line in range(N):
+f =plt.figure(figsize=(20,10))
+for line in range(N-len(bad_ch)):
     plt.plot(range(len(idx)),alpha_z_score[line,:]+count)
-    count= count+10
+    count= count+1
 plt.title('zscore_alpha_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_alpha'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
 
 
+
+
+#
+#for value in range(N):
+#    f=plt.figure(figsize=(10,5))
+#    #ax = f0.add_subplot(11, 11, 1+value, frameon=False)#all the probe is 11 11
+#    plt.plot(range(len(idx)),alpha_z_score[value,:])
+#    plt.ylim(-2,5)
+#    f.savefig('E:/thesis_figures/z_score_test/'+str(value)+'.png')
+#    plt.close()
+#    
+
+
+
+f =plt.figure(figsize=(20,10))
+for line in range(N):
+    plt.plot(alpha_z_score[line,:])
+plt.ylim(-2,5)
+f.savefig('E:/thesis_figures/z_score_test/'+'overlap'+'.png')
+plt.close()
 
 
 #beta
@@ -705,34 +843,130 @@ for value in range(N):
     z_score = (ch_selection-beta_mean_all_ch[value])/beta_std_all_ch[value]
     beta_z_score[value,:]= z_score
     
+beta_good= beta_z_score[good_ch]
+beta_z_score=beta_good
 
 count = 0
-
-for line in range(N):
+f =plt.figure(figsize=(20,10))
+for line in range(N-len(bad_ch)):
     plt.plot(range(len(idx)),beta_z_score[line,:]+count)
-    count= count+10
+    count= count+1
 plt.title('zscore_beta_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_beta'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
 
 
 
 
+#
+#for value in range(N):
+#    f=plt.figure(figsize=(10,5))
+#    #ax = f0.add_subplot(11, 11, 1+value, frameon=False)#all the probe is 11 11
+#    plt.plot(range(len(idx)),beta_z_score[value,:])
+#    plt.ylim(-2,5)
+#    f.savefig('E:/thesis_figures/z_score_test/'+str(value)+'.png')
+#    plt.close()
+    
 
 
 
+f =plt.figure(figsize=(20,10))
+for line in range(N):
+    plt.plot(beta_z_score[line,:])
+plt.ylim(-2,5)
+f.savefig('E:/thesis_figures/z_score_test/'+'overlap'+'.png')
+plt.close()
+
+
+###gamma
+
+gamma_mean_all_ch =  np.mean(gamma_all_channels_mean, axis= 1)
+gamma_std_all_ch = np.std(gamma_all_channels_mean, axis= 1)
+
+gamma_z_score = np.zeros((N,len(idx)))
+
+for value in range(N):
+    ch_selection = gamma_all_channels_mean[value,:]
+    z_score = (ch_selection-gamma_mean_all_ch[value])/gamma_std_all_ch[value]
+    gamma_z_score[value,:]= z_score
+    
+gamma_good= gamma_z_score[good_ch]
+gamma_z_score=gamma_good
+
+count = 0
+f =plt.figure(figsize=(20,10))
+for line in range(N-len(bad_ch)):
+    plt.plot(range(len(idx)),gamma_z_score[line,:]+count)
+    count= count+1
+plt.title('zscore_gamma_' +session + '_offset_'+str(offset))
+fig_name = 'zscore_gamma'
+f.savefig('E:/thesis_figures/z_score_test/'+ fig_name +'.png')
 
 
 
+#
+#
+#for value in range(N):
+#    f=plt.figure(figsize=(10,5))
+#    #ax = f0.add_subplot(11, 11, 1+value, frameon=False)#all the probe is 11 11
+#    plt.plot(range(len(idx)),gamma_z_score[value,:])
+#    plt.ylim(-2,5)
+#    f.savefig('E:/thesis_figures/z_score_test/'+str(value)+'.png')
+#    plt.close()
+#    
 
 
 
+f =plt.figure(figsize=(20,10))
+for line in range(N):
+    plt.plot(gamma_z_score[line,:])
+plt.ylim(-2,5)
+f.savefig('E:/thesis_figures/z_score_test/'+'overlap'+'.png')
+plt.close()
+
+#K = tot_chunk.shape[0]                            # Get the number of trials.
+#f, a = subplots(figsize=(6, 6))            # Make a square axis
+#a.imshow(tot_chunk,                               #... and show the image,
+#           extent=[0, 6000, K, 1],  # ... with meaningful axes,
+#           aspect='auto')
+######################tracking binning test 
 
 
 
+shader_tracking_path = os.path.join(session_path + '/events/' +'Tracking.csv')
+shader_tracking = np.genfromtxt(shader_tracking_path)
+#crop_path  = os.path.join(session_path  +'/crop.csv')
+#crop=np.genfromtxt(crop_path, delimiter =',')
 
+#x=crop[:,0]
+#y=crop[:,1]
+#
+#x= shader_tracking[:,0]
+#y= shader_tracking[:,1]
 
+offset = 120
 
+idx = np.arange(14400,len(shader_tracking)-14400,offset) 
 
+avg_bins_x =  []
+avg_bins_y =  []    
+            
+for i,index in enumerate(idx):
+              
+    chunk= shader_tracking[index : index+offset]
+    #chunk= crop[index : index+offset]
+    x_avg_chunk= np.mean(chunk[:,0])
+    y_avg_chunk= np.mean(chunk[:,1])
+    
+    avg_bins_x.append(x_avg_chunk)
+    avg_bins_y.append(y_avg_chunk)
+ 
+dst = np.sqrt((np.diff(avg_bins_x))**2 + (np.diff(avg_bins_y))**2)
 
+plt.figure()
+plt.plot(avg_bins_x,avg_bins_y)
+plt.figure()
+plt.plot(dst)
 
 
 

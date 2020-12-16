@@ -258,7 +258,8 @@ for count, row in enumerate(rat_trial_min_Level_1):
     plt.xlabel('Level 1 Sessions', fontsize = 13)
     plt.xticks((np.arange(0, 5, 1)))
     ax.axes.get_xaxis().set_visible(True) 
-       
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)   
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.xlim(-0.1,3.5)
@@ -293,9 +294,8 @@ t_test_rewarded = stats.ttest_rel(rat_trial_min_Level_1[:,0],rat_trial_min_Level
 
 
 target = open(main_folder +"stats_REWARDED_ONLY_Level_1_trial_per_min.txt", 'w')
-target.writelines(str(t_test_rewarded)+' LEVEL 1: day 1 Vs day 4, PLOT: trial rewarded/min mean +- SEM, trials_plot.py')
+target.writelines(str(t_test_rewarded)+str(mean_trial_speed)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: trial rewarded/min mean +- SEM, trials_plot.py')
 target.close()
-
 
 
 
@@ -570,6 +570,8 @@ for count, row in enumerate(rat_trial_min_Level_2_pre_final):
     plt.xticks((np.arange(0, 5, 1)))
     plt.xlim(-0.1,4.5)
     plt.yticks((np.arange(0, 4, .5)))
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
    
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -594,6 +596,22 @@ plt.errorbar(range(5), mean_trial_speed, yerr= sem, fmt='o', ecolor='k',color='k
 
 #SAVING
 f.savefig(results_dir + figure_name, transparent=True)    
+
+#t test 
+
+
+t_test_trial_per_min_Level_2 = stats.ttest_rel(rat_trial_min_Level_2_pre_final[:,0],rat_trial_min_Level_2_pre_final[:,4])
+#Ttest_relResult(statistic=-7.4017486831911725, pvalue=1.3568982038567815e-05)
+
+t_test_trial_per_min_Level_2_rewarded = stats.ttest_rel(rat_trial_min_Level_2_pre_final[:,0],rat_trial_min_Level_2_pre_final[:,4])
+#Ttest_relResult(statistic=-7.345068197447017, pvalue=1.4573202538736475e-05)
+
+
+target = open(main_folder +"stats_level_2_trial_rewarded_per_minutes.txt", 'w')
+target.writelines(str(t_test_trial_per_min_Level_2_rewarded) +str(mean_trial_speed) + str(sem)+' LEVEL 2: day 1 Vs day 5, PLOT: trial rewarded /min  +- SEM, trials_plot.py')
+
+target.close()
+
 
 
 
@@ -690,7 +708,7 @@ t_test_success = stats.ttest_rel(success_L_1[:,0],success_L_1[:,3])
 
 
 target = open(main_folder +"stats_level_1_success_trial.txt", 'w')
-target.writelines(str(t_test_success) +' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- SEM, trials_plot.py')
+target.writelines(str(t_test_success) +str(mean_trial_count)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- SEM, trials_plot.py')
 
 target.close()
 
@@ -749,7 +767,7 @@ t_test_miss = stats.ttest_rel(miss_L_1[:,0],miss_L_1[:,3])
 
 
 target = open(main_folder +"stats_level_1_miss_trial.txt", 'w')
-target.writelines(str(t_test_miss) +' LEVEL 1 1: day 1 Vs day 4, PLOT: miss trial mean +- SEM, trials_plot.py')
+target.writelines(str(t_test_miss) +str(mean_trial_miss)+str(sem)+' LEVEL 1 1: day 1 Vs day 4, PLOT: miss trial mean +- SEM, trials_plot.py')
 
 target.close()
 
@@ -901,7 +919,7 @@ t_test_success_L_2 = stats.ttest_rel(final_success_L_2[:,0],final_success_L_2[:,
 
 
 target = open(main_folder +"stats_level_2_success_trial.txt", 'w')
-target.writelines(str(t_test_success_L_2) +' LEVEL 2: day 1 Vs day 5, PLOT: success trial mean +- SEM, trials_plot.py')
+target.writelines(str(t_test_success_L_2) +str(mean_trial_count_L_2)+str(sem_L_2)+' LEVEL 2: day 1 Vs day 5, PLOT: success trial mean +- SEM, trials_plot.py')
 
 target.close()
 
@@ -958,7 +976,7 @@ t_test_miss_L_2 = stats.ttest_rel(final_miss_L_2[:,0],final_miss_L_2[:,4])
 
 
 target = open(main_folder +"stats_level_2_miss_trial.txt", 'w')
-target.writelines(str(t_test_miss_L_2) +' LEVEL 2: day 1 Vs day 5, PLOT: miss trial mean +- SEM, trials_plot.py')
+target.writelines(str(t_test_miss_L_2) +str(mean_trial_miss_L_2)+str(sem_L_2)+' LEVEL 2: day 1 Vs day 5, PLOT: miss trial mean +- SEM, trials_plot.py')
 
 target.close()
 
@@ -1133,8 +1151,8 @@ for count, rat in enumerate(rat_summary_table_path):
 rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv', 'F:/Videogame_Assay/AK_48.1_IrO2.csv',
                           'F:/Videogame_Assay/AK_48.4_IrO2.csv', 'F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Videogame_Assay/AK_49.2_behaviour_only.csv',
-                          'F:/Videogame_Assay/AK_31.2_behaviour_only.csv','F:/Videogame_Assay/AK_46.1_behaviour_only.csv','F:/Videogame_Assay/AK_48.3_behaviour_only.csv'
-                          ,'F:/Videogame_Assay/AK_46.2_IrO2.csv','F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
+                          'F:/Videogame_Assay/AK_46.1_behaviour_only.csv','F:/Videogame_Assay/AK_48.3_behaviour_only.csv'
+                         ,'F:/Videogame_Assay/AK_50.1_behaviour_only.csv', 'F:/Videogame_Assay/AK_50.2_behaviour_only.csv']
 
 colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9','#C0C0C0','#B0C4DE']
 RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 48.1','AK 48.4', 'AK 49.1', 'AK 49.2' ,'AK 31.2', 'AK 46.1', 'AK 48.3','AK 46.2','AK 50.1','AK 50.2']
