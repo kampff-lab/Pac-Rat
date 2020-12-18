@@ -22,16 +22,18 @@ importlib.reload(behaviour)
 importlib.reload(ephys)
 
 # Specify session folder
-#session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
-session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
+session_path =  '/home/kampff/Dropbox/LCARK/2018_04_29-15_43'
+#session_path =  '/media/kampff/Data/Dropbox/LCARK/2018_04_29-15_43'
 
 # Specify data paths
 data_path = os.path.join(session_path +'/Amplifier_cleaned.bin')
 
 # Detect spikes on each channel (using weak thresholds for picking up many spikes)
 ephys.detect_MUA(data_path)
+MUA_path = data_path[:-4] + '_MUA.npz'
 
-# To Do...
-# - Detect artifact spikes (when spikes occur on too many channels within 1 ms of one another)
-# - Count spikes per video-frame (removing or setting to NaN frames with artifact spikes)
-# -  - this "spike count" per frame per channel will be the MUA signal that we use for subsequent analysis 
+# Label MUA (valid vs artefact)
+ephys.label_MUA(MUA_path)
+
+# Bin MUA (and resmaple to 1 kHz)
+ephys.bin_MUA(raw_MUA_path)

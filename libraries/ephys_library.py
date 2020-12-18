@@ -471,6 +471,132 @@ def detect_MUA(filename):
 
     return
 
+# Label MUA on each channel and store List-of-Arrays as an npz file
+def label_MUA(filename):
+
+    plot = True
+
+    # Specifiy paths
+    in_path = filename
+    out_path = in_path[:-7] + '_LABELS.npz'
+
+    # Load raw MUA data (spike times jagged array)
+    raw_MUA = np.load(in_path, allow_pickle=True)
+    spike_times = raw_MUA['spike_times']
+    spike_peaks = raw_MUA['spike_peaks']
+
+    # Find largest spike time
+    last_spikes = np.zeros(num_raw_channels)
+    for ch in range(num_raw_channels):
+        if(len(spike_times[ch]) > 0):
+            last_spikes[ch] = spike_times[ch][-1]
+    last_spike = np.int(np.max(last_spikes))
+
+    # Create bins array (size of max spike time)
+    spike_bins = np.zeros(last_spike+1)
+
+    # Fill bins array by adding all spikes from all channels
+    for ch in range(num_raw_channels):
+        for spike_time in spike_times[ch]:
+            spike_bins[spike_time] = spike_bins[spike_time] + 1
+        print(ch)
+
+    # Plot binned spike array?
+    if(plot):
+        plt.figure()
+        plt.plot(spike_bins[30000:3000000])
+        plt.show()
+
+    # Identify artifacts (1 ms sliding window sum, should not exceed max_simulatanous_spikes)
+    window_length = np.int(raw_sample_rate/1000)
+    window = np.ones(window_length)
+    smoothed_bins = np.convolve(spike_bins, window, mode='same')
+
+    # Plot smoothed binned array?
+    if(plot):
+        plt.figure()
+        start = 600000
+        stop = 900000
+        plt.plot(smoothed_bins[start:stop], 'r')
+        plt.plot(spike_bins[start:stop])
+        plt.show()
+
+    # Set artifact threshold
+    artifact_threshold = 32
+
+    # Create data structure for labels
+    spike_labels = [[] for _ in range(num_raw_channels)]  
+
+    # Label spikes (1 = valid, 0 = bad)
+    for ch in range(num_raw_channels):
+        labels = np.zeros(len(spike_times[ch]))
+        for idx, spike_time in enumerate(spike_times[ch]):
+            # Check spike count in smoothed binned array
+            if(smoothed_bins[spike_time] < artifact_threshold):
+                labels[idx] = 1
+        spike_labels[ch] = labels
+
+    # Store spike lables
+    np.savez(out_path, spike_labels=spike_labels)
+
+    return
+
+# Bin MUA on each channel and store as a 1 kHz 2D array
+def bin_MUA(filename):
+
+    # Specify paths
+    mua_path = filename
+    labels_path = in_path[:-7] + '_LABELS.npz'
+    out_path = in_path[:-7] + '_BINNED.bin'
+
+    # Load spike data (spike times jagged array)
+    spikes_MUA = np.load(mua_path, allow_pickle=True)
+    spike_times = spikes_MUA['spike_times']
+    spike_peaks = spikes_MUA['spike_peaks']
+
+    # Load label data (spike labels jagged array)
+    labels_MUA = np.load(labels_path, allow_pickle=True)
+    spike_labels = labels_MUA['spike_labels']
+
+    # Find largest spike time
+    last_spikes = np.zeros(num_raw_channels)
+    for ch in range(num_raw_channels):
+        if(len(spike_times[ch]) > 0):
+            last_spikes[ch] = spike_times[ch][-1]
+    last_spike = np.int(np.max(last_spikes))
+
+    # Create 2D array for MUA bins (1 ms)
+    num_bins = np.int(np.ceil((last_spike+1)/30))
+    binned_MUA = np.zeros((num_raw_channels, num_bins), dtype=np.uint8)
+
+    # Fill 2D array of bins by adding all spikes from all channels
+    for ch in range(num_raw_channels):
+        num_artifacts = 0
+        num_spikes = 0
+        for idx, spike_time in enumerate(spike_times[ch]):
+            if(spike_labels[ch][idx] == 1):
+                bin = np.int((np.round(spike_time/30)))
+                binned_MUA[ch][bin] = binned_MUA[ch][bin] + 1
+                num_spikes = num_spikes + 1
+            else:
+                num_artifacts = num_artifacts + 1
+
+        print("{0} v {1}".format(num_spikes, num_artifacts))
+
+    # Save binned MUA
+    binned_MUA.tofile(out_path)
+
+#    # Plot binned MUA as image?
+#    if(plot):
+#        plt.figure()
+#        start = 60000
+#        stop = 590000
+#        plt.imshow(binned_MUA[:, start:stop], aspect='auto')
+#        plt.show()
+
+
+return
+
 # Get raw ephys clip from amplifier.bin (all channels)
 def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
 
