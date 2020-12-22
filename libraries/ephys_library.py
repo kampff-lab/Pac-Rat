@@ -431,8 +431,8 @@ def detect_MUA(filename):
         print("- threshold level set")
         
         #adaptive th depending of ch noise
-        spike_threshold_hard = -3.0 * sigma_n
-        spike_threshold_soft = -1.0 * sigma_n
+        spike_threshold_hard = -4.0 * sigma_n
+        spike_threshold_soft = -2.0 * sigma_n
         
         # Find threshold crossings
         spike_start_times, spike_stop_times = threshold_crossing(highpass_ch_uV, spike_threshold_hard, spike_threshold_soft)    
@@ -546,8 +546,8 @@ def bin_MUA(filename):
 
     # Specify paths
     mua_path = filename
-    labels_path = in_path[:-7] + '_LABELS.npz'
-    out_path = in_path[:-7] + '_BINNED.bin'
+    labels_path = mua_path[:-7] + '_LABELS.npz'
+    out_path = mua_path[:-7] + '_BINNED.bin'
 
     # Load spike data (spike times jagged array)
     spikes_MUA = np.load(mua_path, allow_pickle=True)
@@ -567,7 +567,7 @@ def bin_MUA(filename):
 
     # Create 2D array for MUA bins (1 ms)
     num_bins = np.int(np.ceil((last_spike+1)/30))
-    binned_MUA = np.zeros((num_raw_channels, num_bins), dtype=np.uint8)
+    binned_MUA = np.zeros((num_raw_channels, num_bins+1), dtype=np.uint8)
 
     # Fill 2D array of bins by adding all spikes from all channels
     for ch in range(num_raw_channels):
@@ -586,16 +586,15 @@ def bin_MUA(filename):
     # Save binned MUA
     binned_MUA.tofile(out_path)
 
-#    # Plot binned MUA as image?
+    #Plot binned MUA as image?
 #    if(plot):
 #        plt.figure()
 #        start = 60000
 #        stop = 590000
 #        plt.imshow(binned_MUA[:, start:stop], aspect='auto')
 #        plt.show()
+    return
 
-
-return
 
 # Get raw ephys clip from amplifier.bin (all channels)
 def get_raw_clip_from_amplifier(filename, start_sample, num_samples):
