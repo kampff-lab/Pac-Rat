@@ -25,20 +25,20 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import random 
 
-alpha = [0.6,1,0.3,0.4, 0.7]
-x_coordinate = [[1,2,3,4,5,6,7,8,9,10,11]]
-y_coordiinate = [5,7,9,20,20]
-
-x = np.arange(10)
-y = np.arange(30)
-
-colors = cm.rainbow(np.linspace(alpha))
-
-for i in arange(len(alpha)):
-    
-    plt.scatter(x_coordinate_final,y_coordinate_final, c = random_test, cmap="bwr",s=100)
-    plt.colorbar()
-    plt.hlines(4808,0,12)
+#alpha = [0.6,1,0.3,0.4, 0.7]
+#x_coordinate = [[1,2,3,4,5,6,7,8,9,10,11]]
+#y_coordiinate = [5,7,9,20,20]
+#
+#x = np.arange(10)
+#y = np.arange(30)
+#
+#colors = cm.rainbow(np.linspace(alpha))
+#
+#for i in arange(len(alpha)):
+#    
+#    plt.scatter(x_coordinate_final,y_coordinate_final, c = random_test, cmap="bwr",s=100)
+#    plt.colorbar()
+#    plt.hlines(4808,0,12)
 
 
 #x_coordinate_final = np.repeat(x_coordinate,11)
