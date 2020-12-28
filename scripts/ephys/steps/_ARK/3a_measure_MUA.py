@@ -37,7 +37,7 @@ rat_summary_table_path=rat_summary_ephys[0]#[0]
 
 
 
-for r, rat in enumerate(rat_summary_table_path): 
+for r, rat in enumerate(rat_summary_table_path[1:]): 
     
     
     #rat = rat_summary_table_path

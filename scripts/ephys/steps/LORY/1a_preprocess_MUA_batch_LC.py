@@ -30,7 +30,7 @@ rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/A
 
 RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
-RAT_ID = RAT_ID_ephys[0] 
+RAT_ID = RAT_ID_ephys#[0] 
 
 hardrive_path = r'F:/'
 
@@ -39,11 +39,11 @@ hardrive_path = r'F:/'
 
 #s = len(rat_summary_table_path)
 
-rat_summary_table_path=rat_summary_ephys[0]
+rat_summary_table_path=rat_summary_ephys#[0]
 probe_map_flatten = ephys.probe_map.flatten()
 
 
-for r, rat in enumerate(rat_summary_table_path): 
+for r, rat in enumerate(rat_summary_table_path[1:]): 
     
        
 
