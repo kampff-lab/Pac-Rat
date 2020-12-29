@@ -99,7 +99,7 @@ print(samples_diff)
 plt.figure()
 start = 60000
 stop = 590000
-plt.imshow(binned_MUA[:, start:stop], aspect='auto')
+plt.imshow(binned_mua_reshape[:, start:stop], aspect='auto')
 plt.show()        
         
         
