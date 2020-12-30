@@ -451,12 +451,39 @@ for k in range(K):           # For each trial, compute the cross spectrum.
 phi24_mean=np.mean(phi24,axis=1)
 phi8_mean=np.mean(phi8,axis=1)
 
-_, (a1, a2) = subplots(1, 2, sharey=True, sharex=True)
-a1.hist(phi8_mean, bins=20, range=[-pi, pi])
-a2.hist(phi24_mean, bins=20, range=[-pi, pi])
+phi24_std=np.std(phi24,axis=1)
 
 
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-cax = ax1.imshow(df)
-ax1.grid(True)
+
+
+
+reshape_mean = np.reshape(phi24_mean,newshape=(9,9))
+reshape_std = np.reshape(phi24_std,newshape=(9,9))
+ 
+f1 =plt.figure(figsize=(10,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+
+
+     
+ax = sns.heatmap(reshape_mean,annot=True,  cmap="bwr")
+bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+ax.set_ylim(bottom + 0.5, top - 0.5)
+
+plt.title('avg 10Hz')                
+
+f1 =plt.figure(figsize=(10,10))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine() 
+
+
+     
+ax = sns.heatmap(reshape_std,annot=True,  cmap="bwr")
+bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+ax.set_ylim(bottom + 0.5, top - 0.5)
+
+plt.title('std 10Hz')   
