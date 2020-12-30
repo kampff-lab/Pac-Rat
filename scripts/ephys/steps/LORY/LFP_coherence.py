@@ -190,6 +190,7 @@ test = np.load('F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/LFP/all_ch_around_to
 dt = 0.001                                # Define the sampling interval.
 K = np.shape(test)[2]               # Define the number of trials.
 N = np.shape(test)[1]             # Define number of points in each trial.
+C = np.shape(test)[0]
 
 f = rfftfreq(N, dt)   
 
@@ -198,23 +199,33 @@ f = rfftfreq(N, dt)
 j8 = where(f==30)[0][0]       # Determine index j for frequency 10 Hz.
 j24 = where(f==10)[0][0]     # Determine index j for frequency 50 Hz.
 
-phi8 = zeros(K)              # Variables to hold phase differences.
-phi24 = zeros(K)
+phi8 = zeros((C**2, K))            # Variables to hold phase differences.
+phi24 = zeros((C**2, K))
 
-ch_1 =100
-ch_2 = 15
-T = 3 
+#ch_1 =100
+#ch_2 = 15
+T = N*dt                          # ... and the total time of the recording.
 
 #ch deve  essere trialsxlenght
 for k in range(K):           # For each trial, compute the cross spectrum. 
-    x =test[ch_1].T[k] - mean(test[ch_1].T[k])  # Get the data from each electrode,
-    y = test[ch_2].T[k].T - mean(test[ch_2].T[k,:])
-    xf = rfft(x - mean(x))   # ... compute the Fourier transform,
-    yf = rfft(y - mean(y))
-    Sxy = 2 * dt**2 / T * (xf * conj(yf))  # ... and the cross-spectrum,
-    phi8[k] = angle(Sxy[j8]) # ... and the phases.
-    phi24[k] = angle(Sxy[j24])
-                             # Plot the distributions of phases.
+    x = test[:].T[k] - mean(test[:].T[k])  # Get the data from each electrode,
+    #y = test[ch_2].T[k].T - mean(test[ch_2].T[k,:])
+    xf = rfft((x.T))   # ... compute the Fourier transform,
+    #yf = rfft(y - mean(y))
+    #Sxy = 2 * dt**2 / T * (xf * conj(yf))  # ... and the cross-spectrum,
+    Sxy = []
+    for i in np.arange(C):
+        for j in np.arange(C):
+            Sxy.append(2 * dt**2 / T * (xf[i] * conj(xf[j])))
+            outcome = np.array(Sxy)
+            print(j)
+        print(i)
+    phi8[:, k] = angle(outcome[:,j8]) # ... and the phases.
+    phi24[:, k] = angle(outcome[:, j24])
+    
+ 
+outcome = np.array(Sxy)
+                            # []Plot the distributions of phases.
 _, (a1, a2) = subplots(1, 2, sharey=True, sharex=True)
 a1.hist(phi8, bins=20, range=[-pi, pi])
 a2.hist(phi24, bins=20, range=[-pi, pi])
@@ -242,7 +253,7 @@ for trial in range(K):
         t2=np.mean(t[0+count:11+count],axis=0)
         means.append(t2)
         count+=11
-
+    stack = np.vstack(means)
     layer_avg[:,:,trial]=means
 
 
@@ -281,7 +292,7 @@ a2.set_title('Angles at 80 Hz')
 a2.set_xlabel('Phase');
 
 
-#avg shunks
+#avg shanks
 
 
 shank_avg= np.zeros((11,offset*2,K))
@@ -336,4 +347,116 @@ a2.set_title('Angles at 80 Hz')
 a2.set_xlabel('Phase');
 
 
+#create 9 regional channel groups
 
+
+
+offset=1500
+start_array = np.arange(0,121,11)
+start = [start_array[:4],start_array[4:7],start_array[7:11]]
+
+cluster_avg= np.zeros((9,offset*2,K))
+
+for st in np.arange(3):
+    
+    starting = start[st]
+    
+    for trial in range(K):
+        
+        t=test[:,:,trial]
+        
+        group_1=[]
+        group_2=[]
+        group_3=[]
+        
+
+        count=0
+        for s in np.arange(11):
+            new = starting + count
+            if count <= 3:
+                sel = t[new]
+                group_1.append(sel)
+                count+=1
+            elif   3<count<=6:
+                sel = t[new]
+                group_2.append(sel)
+                count+=1
+            else:
+                sel = t[new]
+                group_3.append(sel)
+                count+=1
+                 
+        if st==0:
+            
+            cluster_avg[0,:,trial] = np.mean(np.vstack(group_1),axis=0)
+            cluster_avg[1,:,trial] = np.mean(np.vstack(group_2),axis=0)
+            cluster_avg[2,:,trial] = np.mean(np.vstack(group_3),axis=0)
+            
+        elif st==1:
+            
+            cluster_avg[3,:,trial] = np.mean(np.vstack(group_1),axis=0)
+            cluster_avg[4,:,trial] = np.mean(np.vstack(group_2),axis=0)
+            cluster_avg[5,:,trial] = np.mean(np.vstack(group_3),axis=0)     
+            
+        else:
+            
+            cluster_avg[6,:,trial] = np.mean(np.vstack(group_1),axis=0)
+            cluster_avg[7,:,trial] = np.mean(np.vstack(group_2),axis=0)
+            cluster_avg[8,:,trial] = np.mean(np.vstack(group_3),axis=0)              
+        
+
+ 
+test = cluster_avg
+    
+
+dt = 0.001                                # Define the sampling interval.
+K = np.shape(test)[2]               # Define the number of trials.
+N = np.shape(test)[1]             # Define number of points in each trial.
+C = np.shape(test)[0]
+T=3
+f = rfftfreq(N, dt)   
+
+#Visualizing the Phase Difference across Trials
+
+j8 = where(f==30)[0][0]       # Determine index j for frequency 10 Hz.
+j24 = where(f==10)[0][0]     # Determine index j for frequency 50 Hz.
+
+phi8 = zeros((C**2, K))            # Variables to hold phase differences.
+phi24 = zeros((C**2, K))
+
+#ch_1 =100
+#ch_2 = 15
+T = N*dt                          # ... and the total time of the recording.
+
+#ch deve  essere trialsxlenght
+for k in range(K):           # For each trial, compute the cross spectrum. 
+    x = test[:].T[k] - mean(test[:].T[k])  # Get the data from each electrode,
+    #y = test[ch_2].T[k].T - mean(test[ch_2].T[k,:])
+    xf = rfft((x.T))   # ... compute the Fourier transform,
+    #yf = rfft(y - mean(y))
+    #Sxy = 2 * dt**2 / T * (xf * conj(yf))  # ... and the cross-spectrum,
+    Sxy = []
+    for i in np.arange(C):
+        for j in np.arange(C):
+            Sxy.append(2 * dt**2 / T * (xf[i] * conj(xf[j])))
+            
+            print(j)
+        print(i)
+    outcome = np.array(Sxy)
+    phi8[:, k] = angle(outcome[:,j8]) # ... and the phases.
+    phi24[:, k] = angle(outcome[:, j24])
+    
+
+
+phi24_mean=np.mean(phi24,axis=1)
+phi8_mean=np.mean(phi8,axis=1)
+
+_, (a1, a2) = subplots(1, 2, sharey=True, sharex=True)
+a1.hist(phi8_mean, bins=20, range=[-pi, pi])
+a2.hist(phi24_mean, bins=20, range=[-pi, pi])
+
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+cax = ax1.imshow(df)
+ax1.grid(True)
