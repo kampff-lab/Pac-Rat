@@ -93,7 +93,10 @@ for r, rat in enumerate(rat_summary_table_path):
     
     N = 121
     tot_sessions = len(sessions_subset)
-
+    offset = 1500
+    final_array = np.zeros((121,offset*2,))
+    
+    tot_trial=[]
     
     for s, session in enumerate(sessions_subset):        
        
@@ -124,7 +127,10 @@ for r, rat in enumerate(rat_summary_table_path):
         downsampled_ball = np.uint32(np.array(ball)/30)
         downsampled_end= np.uint32(np.array(trial_end)/30)
 
-
+        freq = 30000
+        offset = 1500
+        num_raw_channels = 128
+        
 
         data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
         down =  np.memmap(data_down, dtype = np.uint16, mode = 'r')
@@ -132,36 +138,17 @@ for r, rat in enumerate(rat_summary_table_path):
         reshaped_down=  np.reshape(down,(num_samples,num_raw_channels))  
         down=None
         down_T = reshaped_down.T
-
-        freq = 30000
-        offset = 1500
-        num_raw_channels = 128
         
         #baseline_idx = np.arange(120000,num_samples-120000,6000) 
         #remove the first early trials
-        downsampled_event_idx = downsampled_touch[1:]
+        downsampled_event_idx = downsampled_end[1:]
         
-      
+        tot_trial.append(len(downsampled_event_idx))
  
         matrix_around_event = np.zeros((121,offset*2,len(downsampled_event_idx)))
 
             
-            
-        
-        csv_name = RAT_ID[r]+ '_sum_of_avg_alpha_base.csv'
-        
-        csv_beta_b = RAT_ID[r] + '_sum_of_avg_beta_base.csv'
-
-        csv_delta_b = RAT_ID[r] + '_sum_of_avg_delta_base.csv'
-   
-        csv_theta_b = RAT_ID[r]+ '_sum_of_avg_theta_base.csv' 
-        
-
-
-        
-        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten
-           
-                        
+        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten probe_map_flatten                                   
                 
             ch_downsampled = down_T[channel,:]#should use channel
             #down_T=None
@@ -172,20 +159,189 @@ for r, rat in enumerate(rat_summary_table_path):
             for e, event in enumerate(downsampled_event_idx):
                  
                 chunk[e,:] = ch_downsampled[event-offset : event+offset]
+                                
+                #print(e)
+            matrix_around_event[ch,:,:]  = chunk.T            
+        
+        filename = 'all_ch_1500_around_'+'reward'
+        saving_folder = os.path.join(session_path + '/LFP/' + filename )
+        np.save(saving_folder,matrix_around_event) 
+        if s==0:
+            
+            final_array = matrix_around_event
+            
+        else:
+            
+            final_array= np.concatenate([final_array,matrix_around_event],axis=-1)
+    
+    final_filename= RAT_ID[r] + '_raw_snippets_1500_all_trials_' + 'reward'    
+    summary_folder = 'F:/Videogame_Assay/LFP_summary/'
+    saving_folder = os.path.join(summary_folder + final_filename)
+    np.save(saving_folder,final_array)
+              
+    print(sum(tot_trial))
+    print(np.shape(final_array))    
+    print(r)
+
+
+####create big array with all trials and save in the summary LFP 
+
+summary_folder =  'F:/Videogame_Assay/LFP_summary/raw_snippets_around_event/'
+events=['touch','ball','reward']
+
+
+for e in arange(len(events)):
+    
+    event = events[e]
+    
+    for rat in arange(len(RAT_ID_ephys)):
+
+        matching_files = glob.glob(summary_folder +"*"+RAT_ID_ephys[rat]+"*" +"*"+event+"*")
+        array = np.load(matching_files[0])
+    
+        cluster_avg = avg_9_clusters(array,offset)
+        
+        dt = 0.001                                # Define the sampling interval.
+        K = np.shape(cluster_avg)[2]               # Define the number of trials.
+        N = np.shape(cluster_avg)[1]             # Define number of points in each trial.
+        C = np.shape(cluster_avg)[0]
+        T = N*dt 
+        
+        f = rfftfreq(N, dt) 
+                
+        
+        #Visualizing the Phase Difference across Trials
+        delta = [i for i,v in enumerate(f) if 1<= v <4 ]
+        theta = [i for i,v in enumerate(f) if 4<= v <8 ]
+        alpha = [i for i,v in enumerate(f) if 8<= v <12 ]
+        beta = [i for i,v in enumerate(f) if 12<= v <30 ]
+        gamma =  [i for i,v in enumerate(f) if  30<= v <45 or 55< v <=100 ]
+        
+
+        delta_angles = zeros((C**2, K))            # Variables to hold phase differences.
+        theta_angles = zeros((C**2, K))
+        alpha_angles =  zeros((C**2, K))
+        beta_angles =  zeros((C**2, K))
+        gamma_angles =  zeros((C**2, K))
+        #ch_1 =100
+        #ch_2 = 15
+        T = N*dt                          # ... and the total time of the recording.
+        
+       
+        for k in arange(K):          
+            x = cluster_avg[:].T[k] - mean(cluster_avg[:].T[k])  
+        
+            xf = rfft((x.T))   # ... compute the Fourier transform,
+           
+            Sxy = []
+            for i in np.arange(C):
+                for j in np.arange(C):
+                    Sxy.append(2 * dt**2 / T * (xf[i] * conj(xf[j])))
+                    
+                    #print(j)
+                #print(i)
                 
                 
-                print(e)
-            matrix_around_event[ch,:,:]  = chunk.T
+            outcome = np.array(Sxy)
+            
+            delta_angles[:, k] = angle(np.mean(outcome[:,delta],axis=1)) 
+            theta_angles[:, k] = angle(np.mean(outcome[:,theta],axis=1))
+            alpha_angles[:, k] = angle(np.mean(outcome[:,alpha],axis=1))
+            beta_angles[:, k] = angle(np.mean(outcome[:,beta],axis=1))
+            gamma_angles[:, k] = angle(np.mean(outcome[:,gamma],axis=1))
+        
+        
+        test = math.radians(delta_mean[:])
+        
+        delta_mean=np.mean(delta_angles,axis=1)
+        delta_std=np.std(delta_angles,axis=1)
+        
+        theta_mean=np.mean(theta_angles,axis=1)
+        theta_std=np.std(theta_angles,axis=1)
+        
+        alpha_mean=np.mean(alpha_angles,axis=1)
+        alpha_std=np.std(alpha_angles,axis=1)
+        
+        beta_mean=np.mean(beta_angles,axis=1)
+        beta_std=np.std(beta_angles,axis=1)
+        
+        gamma_mean=np.mean(gamma_angles,axis=1)
+        gamma_std=np.std(gamma_angles,axis=1)
+        
+        
+        means= [delta_mean,theta_mean,alpha_mean,beta_mean,gamma_mean]
+        stds  = [delta_std,theta_std,alpha_std,beta_std,gamma_std]
+        freq_range =['delta','theta','alpha','beta','gamma']
+        
+        
+        for freq in range(len(means)):
+            
+            
+            reshape_mean = np.reshape(means[freq],newshape=(9,9))
+            reshape_std = np.reshape(stds[freq],newshape=(9,9))
+             
+            
+            mask = np.triu(np.ones_like(reshape_mean, dtype=bool))
+            
+            f,ax = plt.subplots(1,2,figsize=(15,7),sharey=True)
+            sns.set()
+            sns.set_style('white')
+            sns.axes_style('white')
+            sns.despine() 
+                
+            plt.subplot(121)     
+            ax= sns.heatmap(reshape_mean,annot=True,  cmap="bwr",mask=mask,vmin=-1,vmax=+1)#,annot=reshape_std
+            bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+            ax.set_ylim(bottom + 0.5, top - 0.5)
 
-         filename = 'all_ch_around_touch'
-         saving_folder = os.path.join(session_path + '/LFP/' + filename )
-         np.save(saving_folder,matrix_around_event)       
+#                
+            plt.title(RAT_ID_ephys[rat]+'_avg ' + freq_range[freq]+ '_'+ event)   
+#                fig_name = RAT_ID_ephys[rat]+'_avg_' + freq_range[freq]+'png'
+#                f.savefig('F:/Videogame_Assay/LFP_summary_plots/'+ fig_name +'.png') 
+#                plt.close()
+##                
+#                f1 =plt.figure(figsize=(8,8))
+#                sns.set()
+#                sns.set_style('white')
+#                sns.axes_style('white')
+#                sns.despine() 
+               
+            plt.subplot(122)      
+            ax = sns.heatmap(reshape_std,annot=True,  cmap="bwr",mask=mask, vmin=0,vmax=2)
+            bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+            ax.set_ylim(bottom + 0.5, top - 0.5)
 
-
-
-test = np.load('F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/LFP/all_ch_around_touch.npy')       
+            
+            plt.title(RAT_ID_ephys[rat]+ '_std '+ freq_range[freq]+ '_'+ event) 
+            
+            
+            
+            fig_name = RAT_ID_ephys[rat]+'_9_clusters_avg_and_std_' + freq_range[freq] + '_'+ event
+            f.savefig('F:/Videogame_Assay/LFP_summary_plots/'+ fig_name +'.png')
+            plt.close()
+            
+            print(fig_name+'_SAVED')
         
      
+
+
+
+
+
+
+
+test = np.load('F:/Videogame_Assay/AK_33.2/2018_04_28-16_26/LFP/all_ch_1500_around_touch.npy')       
+ 
+
+
+
+
+
+
+
+
+
+
 
 dt = 0.001                                # Define the sampling interval.
 K = np.shape(test)[2]               # Define the number of trials.
@@ -196,8 +352,8 @@ f = rfftfreq(N, dt)
 
 #Visualizing the Phase Difference across Trials
 
-j8 = where(f==30)[0][0]       # Determine index j for frequency 10 Hz.
-j24 = where(f==10)[0][0]     # Determine index j for frequency 50 Hz.
+j8 = where(f==30)[0][0]            # Determine index j for frequency 10 Hz.
+j24 = where(f==10)[0][0]           # Determine index j for frequency 50 Hz.
 
 phi8 = zeros((C**2, K))            # Variables to hold phase differences.
 phi24 = zeros((C**2, K))
@@ -350,80 +506,94 @@ a2.set_xlabel('Phase');
 #create 9 regional channel groups
 
 
+cluster_avg = avg_9_clusters(test,offset)
 
-offset=1500
-start_array = np.arange(0,121,11)
-start = [start_array[:4],start_array[4:7],start_array[7:11]]
+def avg_9_clusters(event_array, offset):
 
-cluster_avg= np.zeros((9,offset*2,K))
-
-for st in np.arange(3):
     
-    starting = start[st]
+    start_array = np.arange(0,121,11)
+    start = [start_array[:4],start_array[4:7],start_array[7:11]]
     
-    for trial in range(K):
+    cluster_avg= np.zeros((9,offset*2,K))
+    
+    for st in np.arange(3):
         
-        t=test[:,:,trial]
+        starting = start[st]
         
-        group_1=[]
-        group_2=[]
-        group_3=[]
-        
-
-        count=0
-        for s in np.arange(11):
-            new = starting + count
-            if count <= 3:
-                sel = t[new]
-                group_1.append(sel)
-                count+=1
-            elif   3<count<=6:
-                sel = t[new]
-                group_2.append(sel)
-                count+=1
+        for trial in range(K):
+            
+            t = event_array[:,:,trial]
+            
+            group_1=[]
+            group_2=[]
+            group_3=[]
+            
+    
+            count=0
+            for s in np.arange(11):
+                new = starting + count
+                if count <= 3:
+                    sel = t[new]
+                    group_1.append(sel)
+                    count+=1
+                elif   3<count<=6:
+                    sel = t[new]
+                    group_2.append(sel)
+                    count+=1
+                else:
+                    sel = t[new]
+                    group_3.append(sel)
+                    count+=1
+                     
+            if st==0:
+                
+                cluster_avg[0,:,trial] = np.mean(np.vstack(group_1),axis=0)
+                cluster_avg[1,:,trial] = np.mean(np.vstack(group_2),axis=0)
+                cluster_avg[2,:,trial] = np.mean(np.vstack(group_3),axis=0)
+                
+            elif st==1:
+                
+                cluster_avg[3,:,trial] = np.mean(np.vstack(group_1),axis=0)
+                cluster_avg[4,:,trial] = np.mean(np.vstack(group_2),axis=0)
+                cluster_avg[5,:,trial] = np.mean(np.vstack(group_3),axis=0)     
+                
             else:
-                sel = t[new]
-                group_3.append(sel)
-                count+=1
-                 
-        if st==0:
+                
+                cluster_avg[6,:,trial] = np.mean(np.vstack(group_1),axis=0)
+                cluster_avg[7,:,trial] = np.mean(np.vstack(group_2),axis=0)
+                cluster_avg[8,:,trial] = np.mean(np.vstack(group_3),axis=0)              
             
-            cluster_avg[0,:,trial] = np.mean(np.vstack(group_1),axis=0)
-            cluster_avg[1,:,trial] = np.mean(np.vstack(group_2),axis=0)
-            cluster_avg[2,:,trial] = np.mean(np.vstack(group_3),axis=0)
-            
-        elif st==1:
-            
-            cluster_avg[3,:,trial] = np.mean(np.vstack(group_1),axis=0)
-            cluster_avg[4,:,trial] = np.mean(np.vstack(group_2),axis=0)
-            cluster_avg[5,:,trial] = np.mean(np.vstack(group_3),axis=0)     
-            
-        else:
-            
-            cluster_avg[6,:,trial] = np.mean(np.vstack(group_1),axis=0)
-            cluster_avg[7,:,trial] = np.mean(np.vstack(group_2),axis=0)
-            cluster_avg[8,:,trial] = np.mean(np.vstack(group_3),axis=0)              
-        
-
+    return cluster_avg
  
-test = cluster_avg
-    
+event_array=test
+
+#delta = 1-4 Hz
+#theta = 4-8 Hz
+#alpha = 8-12 Hz
+#beta = 12-30 Hz     
 
 dt = 0.001                                # Define the sampling interval.
-K = np.shape(test)[2]               # Define the number of trials.
-N = np.shape(test)[1]             # Define number of points in each trial.
-C = np.shape(test)[0]
+K = np.shape(cluster_avg)[2]               # Define the number of trials.
+N = np.shape(cluster_avg)[1]             # Define number of points in each trial.
+C = np.shape(cluster_avg)[0]
 T=3
 f = rfftfreq(N, dt)   
 
 #Visualizing the Phase Difference across Trials
+delta = [i for i,v in enumerate(f) if 1<= v <4 ]
+theta = [i for i,v in enumerate(f) if 4<= v <8 ]
+alpha = [i for i,v in enumerate(f) if 8<= v <12 ]
+beta = [i for i,v in enumerate(f) if 12<= v <30 ]
+gamma =  [i for i,v in enumerate(f) if  30<= v <45 or 55< v <=100 ]
 
-j8 = where(f==30)[0][0]       # Determine index j for frequency 10 Hz.
-j24 = where(f==10)[0][0]     # Determine index j for frequency 50 Hz.
 
-phi8 = zeros((C**2, K))            # Variables to hold phase differences.
-phi24 = zeros((C**2, K))
 
+
+delta_angles = zeros((C**2, K))            # Variables to hold phase differences.
+theta_angles = zeros((C**2, K))
+alpha_angles =  zeros((C**2, K))
+beta_angles =  zeros((C**2, K))
+gamma_angles =  zeros((C**2, K))
 #ch_1 =100
 #ch_2 = 15
 T = N*dt                          # ... and the total time of the recording.
@@ -443,47 +613,77 @@ for k in range(K):           # For each trial, compute the cross spectrum.
             print(j)
         print(i)
     outcome = np.array(Sxy)
-    phi8[:, k] = angle(outcome[:,j8]) # ... and the phases.
-    phi24[:, k] = angle(outcome[:, j24])
     
-
-
-phi24_mean=np.mean(phi24,axis=1)
-phi8_mean=np.mean(phi8,axis=1)
-
-phi24_std=np.std(phi24,axis=1)
-
-
+    delta_angles[:, k] = angle(np.mean(outcome[:,delta],axis=1)) # ... and the phases.
+    theta_angles[:, k] = angle(np.mean(outcome[:,theta],axis=1))
+    alpha_angles[:, k] = angle(np.mean(outcome[:,alpha],axis=1))
+    beta_angles[:, k] = angle(np.mean(outcome[:,beta],axis=1))
+    gamma_angles[:, k] = angle(np.mean(outcome[:,gamma],axis=1))
 
 
 
-reshape_mean = np.reshape(phi24_mean,newshape=(9,9))
-reshape_std = np.reshape(phi24_std,newshape=(9,9))
- 
-f1 =plt.figure(figsize=(10,10))
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
 
 
+
+
+
+
+delta_mean=np.mean(delta_angles,axis=1)
+delta_std=np.std(delta_angles,axis=1)
+
+theta_mean=np.mean(theta_angles,axis=1)
+theta_std=np.std(theta_angles,axis=1)
+
+alpha_mean=np.mean(alpha_angles,axis=1)
+alpha_std=np.std(alpha_angles,axis=1)
+
+beta_mean=np.mean(beta_angles,axis=1)
+beta_std=np.std(beta_angles,axis=1)
+
+gamma_mean=np.mean(gamma_angles,axis=1)
+gamma_std=np.std(gamma_angles,axis=1)
+
+
+means= [delta_mean,theta_mean,alpha_mean,beta_mean,gamma_mean]
+stds  = [delta_std,theta_std,alpha_std,beta_std,gamma_std]
+freq_range =['delta','theta','alpha','beta','gamma']
+
+
+for freq in range(len(means)):
+    
+    
+    reshape_mean = np.reshape(means[freq],newshape=(9,9))
+    reshape_std = np.reshape(stds[freq],newshape=(9,9))
      
-ax = sns.heatmap(reshape_mean,annot=True,  cmap="bwr")
-bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
-ax.set_ylim(bottom + 0.5, top - 0.5)
-
-plt.title('avg 10Hz')                
-
-f1 =plt.figure(figsize=(10,10))
-sns.set()
-sns.set_style('white')
-sns.axes_style('white')
-sns.despine() 
-
-
-     
-ax = sns.heatmap(reshape_std,annot=True,  cmap="bwr")
-bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
-ax.set_ylim(bottom + 0.5, top - 0.5)
-
-plt.title('std 10Hz')   
+    
+    mask = np.triu(np.ones_like(reshape_mean, dtype=bool))
+    
+    f =plt.figure(figsize=(10,10))
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine() 
+        
+         
+    ax = sns.heatmap(reshape_mean,annot=True,  cmap="bwr")#,annot=reshape_std
+    bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+    ax.set_ylim(bottom + 0.5, top - 0.5)
+    
+    plt.title('avg ' + freq_range[freq])   
+    fig_name = 'avg_' + freq_range[freq]+'png'
+    f.savefig('F:/Videogame_Assay/LFP_summary_plots/'+ fig_name +'.png')             
+    
+    f1 =plt.figure(figsize=(10,10))
+    sns.set()
+    sns.set_style('white')
+    sns.axes_style('white')
+    sns.despine() 
+       
+         
+    ax = sns.heatmap(reshape_std,annot=True,  cmap="bwr")
+    bottom, top = ax.get_ylim()#,norm=LogNorm() # "YlGnBu" RdBu
+    ax.set_ylim(bottom + 0.5, top - 0.5)
+    
+    plt.title('std '+ freq_range[freq]) 
+    fig_name = 'std_' + freq_range[freq]+'png'
+    f.savefig('F:/Videogame_Assay/LFP_summary_plots/'+ fig_name +'.png')     
