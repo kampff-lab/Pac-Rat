@@ -135,7 +135,17 @@ band = ['delta','theta','beta','alpha']
 
 for b in range(len(band)):
             
-    for r in range(len(rat_summary_table_path)):       
+    for r in range(len(rat_summary_table_path)): 
+        
+        
+        #retrieve bad channel frim the last session of each rat
+        Level_2_post = prs.Level_2_post_paths(rat_summary_table_path[r])
+        sessions_subset = Level_2_post   
+        
+        session = sessions_subset[-1]
+        session_path =  os.path.join(hardrive_path,session) 
+        csv_bad_ch = os.path.join(session_path +'/bad_channels.csv')
+        bad_ch = np.genfromtxt(csv_bad_ch, delimiter = ',', dtype=int)  
         
         #session_path =  os.path.join(hardrive_path,session)    
         csv_dir_path = os.path.join(summary_folder + event_folder)
@@ -213,10 +223,12 @@ for b in range(len(band)):
             title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1]
             figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1] +'.png'
          
-            plt.scatter(x[no_indexes],np.array(y)[no_indexes], c = np.array(avg_to_plot)[no_indexes],cmap ="viridis", s=40, linewidth=.2)
-            #plt.scatter(x[no_indexes],np.array(y)[no_indexes], c='grey', alpha = .4,s=85, linewidth=.2)     
-            plt.colorbar()
-            plt.clim(-.75,.75)
+            plot=plt.scatter(x[no_indexes],np.array(y)[no_indexes], c = np.array(avg_to_plot)[no_indexes],cmap ="bwr", s=75, vmin=-.75,vmax=.75)
+            #plt.scatter(x[no_indexes],np.array(y)[no_indexes], c='grey', alpha = .4,s=85, linewidth=.2)  
+            plt.scatter(x[bad_ch],np.array(y)[bad_ch], c = 'w',s=85,marker='D')
+            plt.scatter(x[bad_ch],np.array(y)[bad_ch], c = 'k',s=40,  edgecolors="k", linewidth=1.5, marker ='x')
+            f.colorbar(plot)
+            
             #plt.clim(0.0,2.0)
             plt.ylim(-500,5000)
             plt.hlines(4808,0,12)  
@@ -228,108 +240,126 @@ for b in range(len(band)):
             #plot image with + where cluster    
             
             
-            f =plt.figure(figsize=(20,10))
-            sns.set()
-            sns.set_style('white')
-            sns.axes_style('white')
-            sns.despine(left=False)
-            #plt.title(title)
-            title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_'+ event_folder[:-1]
-            figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_image'+ event_folder[:-1] +'.png'
-            
-            
-            
-            interpolation = 'bilinear'
-            colormap='viridis'
-            #f=plt.figure()
-            ax = f.add_subplot(111)
-            im = ax.imshow(avg, aspect='auto',              
-                   interpolation=interpolation,
-                  cmap=colormap,origin='upper',vmin =- .75, vmax=.75) #vmin = 0.5, vmax=1.5
-
-            plt.colorbar(im, ax=ax, cmap=colormap)
-           
-            plt.title(title)
-            f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
-            plt.close()
+#            f =plt.figure(figsize=(20,10))
+#            sns.set()
+#            sns.set_style('white')
+#            sns.axes_style('white')
+#            sns.despine(left=False)
+#            #plt.title(title)
+#            title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_'+ event_folder[:-1]
+#            figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_image'+ event_folder[:-1] +'.png'
+#            
+#            
+#            
+#            interpolation = 'bilinear'
+#            colormap='viridis'
+#            #f=plt.figure()
+#            ax = f.add_subplot(111)
+#            im = ax.imshow(avg, aspect='auto',              
+#                   interpolation=interpolation,
+#                  cmap=colormap,origin='upper',vmin =- .75, vmax=.75) #vmin = 0.5, vmax=1.5
+#
+#            plt.colorbar(im, ax=ax, cmap=colormap)
+#           
+#            plt.title(title)
+#            f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
+#            plt.close()
             
         else:
+ 
+        
+                #scatter probe
+                f =plt.figure(figsize=(20,10))
+                sns.set()
+                sns.set_style('white')
+                sns.axes_style('white')
+                sns.despine(left=False)
+                title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1]
+                figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1] +'.png'
             
-            #scatter probe
-            f =plt.figure(figsize=(20,10))
-            sns.set()
-            sns.set_style('white')
-            sns.axes_style('white')
-            sns.despine(left=False)
-            title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1]
-            figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post'+ event_folder[:-1] +'.png'
+              
+                
+                import itertools
+                markers = itertools.cycle(('D', 's', 'd', '^', 'p'))           
+            
+                for clust in np.arange(len(clusters)):
+
+                    find_cluster = cluster_indexes = [i for i,x in enumerate(clusters_reshaped_sum) if x == clusters[clust]]
+                    no_indexes =[ele for ele in range(121) if ele not in find_cluster]
+                    
+#                    if r==0:
+#                        try:
+#                        
+#                            find_cluster.remove(bad_ch)
+#                            no_indexes.remove(bad_ch)
+#
+#                            
+#                    else:
+#                        
+#                            
+#                        find_cluster = list(set(find_cluster) - set(bad_ch))
+#                        
+#                        no_indexes= list(set(no_indexes) - set(bad_ch))
+#                                    
+                    
+                    plot=plt.scatter(x[find_cluster],np.array(y)[find_cluster], c = np.array(avg_to_plot)[find_cluster], cmap ="bwr",s=75, edgecolors="k",linewidth=.6,marker= next(markers),vmin=-.75,vmax=.75)
+                    plt.scatter(x[no_indexes],np.array(y)[no_indexes], c = np.array(avg_to_plot)[no_indexes],cmap ="bwr", s=40, linewidth=.2,vmin=-.75,vmax=.75)
+                    plt.scatter(x[bad_ch],np.array(y)[bad_ch], c = 'w',s=85,marker='D')
+                    plt.scatter(x[bad_ch],np.array(y)[bad_ch], c = 'k',s=75,  edgecolors="k", linewidth=1.5, marker ='x')  
+                    
+                f.colorbar(plot)
+                    #plt.clim(-.75,.75)               
+                plt.ylim(-500,5000)
+                plt.hlines(4808,0,12)  
+                plt.title(title)
+                                
             
             
-            #for loop to color differently the different clusters put on hold for now, insted plot diamonds where cluster
-            #for c in clusters:
-                  
-                #idx_cluster = [i for i,x in enumerate(clusters_reshaped_sum) if x == c]
-                #no_indexes =[ele for ele in range(121) if ele not in idx_cluster]
             
-            #plt.scatter(x[cluster_indexes],np.array(y)[cluster_indexes], c = 'grey', alpha =.2, s=75,  edgecolors="grey", linewidth=.2)
+                f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
+                plt.close()
+                
+                
+                #plot image with + where cluster    
+                               
+    #            
+    #            f =plt.figure(figsize=(20,10))
+    #            sns.set()
+    #            sns.set_style('white')
+    #            sns.axes_style('white')
+    #            sns.despine(left=False)
+    #            #plt.title(title)
+    #            title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_'+ event_folder[:-1]
+    #            figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_image'+ event_folder[:-1] +'.png'
+    #            
+    #            
+    #            
+    #            interpolation = 'bilinear'
+    #            colormap='viridis'
+    #            #f=plt.figure()
+    #            ax = f.add_subplot(111)
+    #            im = ax.imshow(avg, aspect='auto',              
+    #                   interpolation=interpolation,
+    #                  cmap=colormap,origin='upper',vmin = -.75, vmax=.75)
+    #    
+    #            
+    #            # create x and y for matching the scatter to the image 
+    #            x_image =  np.array(list(np.arange(0,11))*11)
+    #            y_list=[10,9,8,7,6,5,4,3,2,1,0]
+    #            y_image = np.repeat(y_list,11)
+    #            y_flipped_image = abs(y_image-10)
+    #        
+    #            ax.scatter(x_image[cluster_indexes],np.array(y_flipped_image)[cluster_indexes], color='w', marker='+', linewidth=2)
+#    #            plt.colorbar(im, ax=ax, cmap=colormap)
+#               
+#                plt.title(title)
+#                f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
+#                plt.close()
+#                
+        
+        
+        
     
-            plt.scatter(x[cluster_indexes],np.array(y)[cluster_indexes], c = np.array(avg_to_plot)[cluster_indexes], cmap ="viridis",s=85,vmin = 0.5, vmax=1.5, linewidth=.2,marker='d')
-               
-            plt.colorbar()
-            plt.clim(-.75,.75)
-            plt.scatter(x[no_indexes],np.array(y)[no_indexes], c = np.array(avg_to_plot)[no_indexes],cmap ="viridis", s=40, linewidth=.2)
-            #plt.scatter(x[no_indexes],np.array(y)[no_indexes], c='grey', alpha = .4,s=85, linewidth=.2)     
-    
-            plt.ylim(-500,5000)
-            plt.hlines(4808,0,12)  
-            plt.title(title)
-            
-            f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
-            plt.close()
-            
-            
-            #plot image with + where cluster    
-                           
-            
-            f =plt.figure(figsize=(20,10))
-            sns.set()
-            sns.set_style('white')
-            sns.axes_style('white')
-            sns.despine(left=False)
-            #plt.title(title)
-            title = RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_'+ event_folder[:-1]
-            figure_name =  RAT_ID[r]+'_'+band[b]+ '_norm_diff_pre_post_image'+ event_folder[:-1] +'.png'
-            
-            
-            
-            interpolation = 'bilinear'
-            colormap='viridis'
-            #f=plt.figure()
-            ax = f.add_subplot(111)
-            im = ax.imshow(avg, aspect='auto',              
-                   interpolation=interpolation,
-                  cmap=colormap,origin='upper',vmin = -.75, vmax=.75)
-    
-            
-            # create x and y for matching the scatter to the image 
-            x_image =  np.array(list(np.arange(0,11))*11)
-            y_list=[10,9,8,7,6,5,4,3,2,1,0]
-            y_image = np.repeat(y_list,11)
-            y_flipped_image = abs(y_image-10)
-        
-            ax.scatter(x_image[cluster_indexes],np.array(y_flipped_image)[cluster_indexes], color='w', marker='+', linewidth=2)
-            plt.colorbar(im, ax=ax, cmap=colormap)
-           
-            plt.title(title)
-            f.savefig('F:/Videogame_Assay/LFP_summary_plots/' + figure_name, transparent=False)
-            plt.close()
-            
-        
-        
-        
-        
-        
-    
-        
+
         
         
