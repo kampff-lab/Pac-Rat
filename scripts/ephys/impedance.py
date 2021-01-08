@@ -556,9 +556,9 @@ for rat in range(n):
         
         
         
-        f.savefig(results_dir + figure_name, transparent=True)
+        #f.savefig(results_dir + figure_name, transparent=True)
    
-        plt.close()
+        #plt.close()
         print(rat)
 
     except Exception: 
@@ -652,7 +652,7 @@ flat_pedot_Pt = np.array(pedot_Pt).flatten()
 
 
 
-
+#THESIS
 #scatter of all the data point connected 
 
 
@@ -692,6 +692,8 @@ plt.close()
 
 #plt.minorticks_off() 
 ######################################data cleaning
+#THESIS
+
 
 th_max = 6
 th_min = 0.01
@@ -717,8 +719,9 @@ test_Pt = stats.ttest_rel(flat_saline_Pt_cleaned,flat_pedot_Pt_cleaned)
 
 
 
-target = open(main_folder +"stats_Pt_saline_VS_PEDOT_thmax_6_thmin_001.txt", 'w')
-target.writelines(str(test_Pt) +' Pt_saline_VS_PEDOT, PLOT: barplot +- SEM, n = 481, thmax=6 thmin = 0.01, impedance.py')
+target = open(main_folder +"stats_Pt_saline_VS_PEDOT_thmax_6_thmin_001_mean_and_sem.txt", 'w')
+target.writelines(str(test_Pt) + 'saline:'+ str(mean_saline_Pt) +'_'+ str(sem_saline_Pt) +'pedot:' + str(mean_pedot_Pt) +'_'+str(sem_pedot_Pt)+
+                  'Pt_saline_VS_PEDOT, PLOT: barplot mean+- SEM, n = 481, thmax=6 thmin = 0.01, impedance.py')
 
 target.close()
 
@@ -731,7 +734,7 @@ target.close()
 #th 1 = statistic=25.58967226582703, pvalue=8.682862522544012e-91 n=466
 ##############################
 
-
+#THESIS
 
 materials = ['Saline', 'PEDOT']
 x_pos = np.arange(len(materials))
@@ -820,7 +823,7 @@ plt.close()
 
 
             
-#####IrOx
+#####IrOx THESIS
 
 surgery_rat_summary_table_path_IrOx = ['F:/Videogame_Assay/AK_48.1_IrO2.csv', 'F:/Videogame_Assay/AK_48.4_IrO2.csv']
 
@@ -930,7 +933,7 @@ __
 
 
 #####################cleaning con th 5 e 10
-
+#THESIS
 
 #th = 6 # as well as for ephys pre processing
 
@@ -969,15 +972,16 @@ test_ir = stats.ttest_rel(flat_saline_Ir_cleaned,flat_pedot_Ir_cleaned)
 #Ttest_relResult(statistic=-5.1325785753223885, pvalue=0.0003269935176528684)
 
 
-target = open(main_folder +"stats_IrOx_saline_VS_PEDOT_th_6_tmin_001.txt", 'w')
-target.writelines(str(test_ir) +' IrOx_saline_VS_PEDOT, PLOT: barplot +- SEM, n=220, th max =6,th min =0.01, impedance.py')
+target = open(main_folder +"stats_IrOx_saline_VS_PEDOT_th_6_tmin_001_mean_and_sem.txt", 'w')
+target.writelines(str(test_ir) + 'saline:'+ str( mean_saline_Ir)+'_'+str(sem_saline_Ir)+ '_'+str(mean_pedot_Ir) + '_'+ str(sem_pedot_Ir)+
+                  ' IrOx_saline_VS_PEDOT, PLOT: barplot mean +- SEM, n=220, th max =6,th min =0.01, impedance.py')
 
 target.close()
 
 
 
 
-#####
+#####THESIS
 
 
 
@@ -1269,7 +1273,7 @@ n =len(summary_list)
 #    plt.close()
 #
 
-#USED all in one plot
+#USED all in one plot THESIS
     
  
 
@@ -1420,11 +1424,17 @@ plt.close()
 #stats
 
 comparison_saline_day1_Pt = stats.ttest_rel(t_tests[:4,0],t_tests[:4,2])
-Ttest_relResult(statistic=-3.3139623662137554, pvalue=0.04525781899003773)
+#Ttest_relResult(statistic=-3.3139623662137554, pvalue=0.04525781899003773)
 
-comparison_saline_day1_Ir = stats.ttest_rel(t_tests[4:5,0],t_tests[4:5,2])
+comparison_saline_day1_Ir = stats.ttest_rel(t_tests[4:,0],t_tests[4:,2])
 
 
+
+target = open(main_folder +"daily_impedance_linelot_saline_to_first_day_median_pt_ir.txt", 'w')
+target.writelines('saline_day_1_Pt:'+ str(comparison_saline_day1_Pt)+'_'+'saline_day_1_Ir:'+ str(comparison_saline_day1_Ir)
+                        +' PLOT: median +- SEM, n=121, no th bur excluded 7 not connected ch, impedance.py')
+
+target.close()
 
 
 #target = open(main_folder +"stats_IrOx_saline_VS_PEDOT.txt", 'w')

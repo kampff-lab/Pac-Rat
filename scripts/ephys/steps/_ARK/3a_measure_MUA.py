@@ -48,7 +48,7 @@ for r, rat in enumerate(rat_summary_table_path[1:]):
     tot_sessions = len(sessions_subset)
 
     
-    for s, session in enumerate(sessions_subset[2:]):        
+    for s, session in enumerate(sessions_subset[:2]):        
        
         
         session_path =  os.path.join(hardrive_path,session)
@@ -88,10 +88,9 @@ num_samples = int(int(len(down))/num_raw_channels)
 
 binned_mua_path = data_path[:-4] +'__BINNED.bin'
 binned_mua_raw = fromfile(binned_mua_path, dtype=uint8)
-binned_mua_reshape =  np.reshape(binned_mua_raw,(int(len(binned_mua_raw)/128),128)).T
 
-samples_diff = num_samples-(len(binned_mua_raw)/128)
-print(samples_diff)
+binned_mua_reshape =  np.reshape(binned_mua_raw,(128,-1))
+
 
 
 

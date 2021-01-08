@@ -287,20 +287,22 @@ for b in range(len(band)):
                     find_cluster = cluster_indexes = [i for i,x in enumerate(clusters_reshaped_sum) if x == clusters[clust]]
                     no_indexes =[ele for ele in range(121) if ele not in find_cluster]
                     
-#                    if r==0:
-#                        try:
-#                        
-#                            find_cluster.remove(bad_ch)
-#                            no_indexes.remove(bad_ch)
-#
-#                            
-#                    else:
-#                        
-#                            
-#                        find_cluster = list(set(find_cluster) - set(bad_ch))
-#                        
-#                        no_indexes= list(set(no_indexes) - set(bad_ch))
-#                                    
+                    if r==0:
+                        try:
+                                       
+                            find_cluster.remove(bad_ch) 
+                            no_indexes.remove(bad_ch)
+                            
+                        except Exception:
+                            continue
+                            
+                    else:
+                        
+                            
+                        find_cluster = list(set(find_cluster) - set(bad_ch)) 
+                        
+                        no_indexes= list(set(no_indexes) - set(bad_ch))
+                                    
                     
                     plot=plt.scatter(x[find_cluster],np.array(y)[find_cluster], c = np.array(avg_to_plot)[find_cluster], cmap ="bwr",s=75, edgecolors="k",linewidth=.6,marker= next(markers),vmin=-.75,vmax=.75)
                     plt.scatter(x[no_indexes],np.array(y)[no_indexes], c = np.array(avg_to_plot)[no_indexes],cmap ="bwr", s=40, linewidth=.2,vmin=-.75,vmax=.75)
