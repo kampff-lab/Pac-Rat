@@ -33,6 +33,27 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
 #colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
 RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
 
+for count, rat in enumerate(rat_summary_table_path):
+    
+    try:    
+         Level_1 = prs.Level_1_paths(rat)
+         sessions_subset = Level_1
+         
+         start_end_idx(sessions_subset)
+         print(rat)
+         print(count)
+         
+    except Exception: 
+        print (rat + '/error')
+        continue    
+    
+
+
+
+
+
+
+
 
 #Level 2 saving trial idx in each session folder under events folder
 

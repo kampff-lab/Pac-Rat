@@ -223,7 +223,7 @@ for r, rat in enumerate(rat_summary_table_path):
                 
                 
             plt.tight_layout()
-            figure_name = RAT_ID[r] + '_session_'+str(s)+ '_rewarded_'+ events[ev]+'_psth.png'
+            figure_name = RAT_ID[r] + '_session_'+str(s)+ '_MEAN_rewarded_'+ events[ev]+'_psth.png'
             
             f.savefig('F:/Videogame_Assay/MUA_summary_plots/'+figure_name)
             plt.close() 
@@ -252,11 +252,11 @@ for r, rat in enumerate(rat_summary_table_path):
                 #plt.xticks(np.arange(0, 30))
                 #plt.yticks(np.arange(0, 300))
                 
-                plt.suptitle( RAT_ID[r] + 'session_'+str(s)+ 'rewarded_ball')
+                plt.suptitle( RAT_ID[r] + 'session_'+str(s)+ 'rewarded_'+events[ev]+'ball')
                 
                 
             plt.tight_layout()
-            figure_name = RAT_ID[r] + '_session_'+str(s)+ '_rewarded_ball_psth.png'
+            figure_name = RAT_ID[r] + '_session_'+str(s)+ '_STD_rewarded_'+ events[ev]+'ball_psth.png'
             f.savefig('F:/Videogame_Assay/MUA_summary_plots/'+figure_name)
             plt.close() 
 

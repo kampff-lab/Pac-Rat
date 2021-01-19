@@ -80,8 +80,7 @@ if not os.path.isdir(results_dir):
 #s = len(rat_summary_table_path)
 
 
-rat_summary_table_path=rat_summary_ephys
-
+rat_summary_table_path=rat_summary_table_path[0]
 
 #rat_ball_all_rats = [[] for _ in range(s)]
 #rat_poke_all_rats = [[] for _ in range(s)]
@@ -91,7 +90,8 @@ rat_summary_table_path=rat_summary_ephys
 for r, rat in enumerate(rat_summary_table_path): 
     
     
-    try:    
+    try:  
+         #rat = rat_summary_table_path
          Level_2_post= prs.Level_2_pre_paths(rat)
          sessions_subset = Level_2_post
          
@@ -270,6 +270,9 @@ for r, rat in enumerate(rat_summary_table_path):
          print(len(rat_pos_at_touch_flat))
          print(len(rat_pos_before_touch))
          print(len(rat_pos_after_touch))
+
+
+
 
 ###################################
 # snippets around_touch
@@ -581,6 +584,91 @@ csv_name = '/Trial_table_final_level_3_moving_light_ephys.csv'
 
 np.savetxt(results_dir + csv_name, final_table,delimiter=',', fmt='%s')
 
+##########################reaction time 
 
 
+s = len(rat_summary_table_path)
 
+avg_reaction_time_all_rats = [[] for _ in range(s)]
+std_reaction_time =[[] for _ in range(s)]
+rt_all_rats = [[] for _ in range(s)]
+
+
+for r, rat in enumerate(rat_summary_table_path): 
+    
+
+     #rat = rat_summary_table_path[0]
+     Level_1= prs.Level_1_paths(rat)
+     sessions_subset = Level_1
+     
+     rt,avg,std = reaction_time(sessions_subset,trial_file = 'Trial_idx.csv',
+                                           tracking_file = '/crop.csv',tracking_delimiter=',', poke_coordinates = [1400,600])
+     
+     avg_reaction_time_all_rats[r]=avg
+     std_reaction_time[r]=std
+     rt_all_rats[r]=rt
+     print(rat)
+
+#plot test
+
+select_6000=np.zeros((s,4))    
+select_10000_20000 =  np.zeros((s,2)) 
+
+for i in range(len(rat_summary_table_path)):
+    #plt.figure()
+    sel=avg_reaction_time_all_rats[i][:4]
+    sel2=avg_reaction_time_all_rats[i][-2:]
+    select_6000[i,:]=sel
+    select_10000_20000[i,:]=sel2
+        
+    
+final_avg=np.hstack((select_6000,select_10000_20000))
+
+
+for l in range(len(final)):
+    plt.plot(final[l])
+
+
+colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
+
+    
+f,ax = plt.subplots(figsize=(8,7))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+for count, row in enumerate(final):    
+    
+  
+    plt.plot(row,color=colours[count], marker = 'o', alpha = .3, label = RAT_ID[count])
+    
+    
+    
+    plt.title('reaction time level 1',fontsize = 16)
+    plt.ylabel('dst to poke / time to reward', fontsize = 13)
+    plt.xlabel('Level 1 Sessions', fontsize = 13)
+    #plt.xticks((np.arange(0, 5, 1)))
+    ax.axes.get_xaxis().set_visible(True) 
+    #ax.set_ylim(ymin= -10 ,ymax= 260)
+    #plt.yticks((np.arange(0, 350, 50)))
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)   
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    #plt.xlim(-0.1,3.5)
+    #plt.ylim(-10,300)
+
+
+mean= np.nanmean(final, axis=0)
+
+#sem = stats.sem(miss_L_1, nan_policy='omit', axis=0)
+
+
+plt.plot(mean,marker = 'o',color= 'k')
+#plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+plt.errorbar(range(4), mean_trial_miss, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
+plt.yticks((np.arange(0, 150, 50)))
+#plt.legend()
+f.tight_layout()

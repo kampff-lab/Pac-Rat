@@ -657,7 +657,7 @@ for count, rat in enumerate(rat_summary_table_path):
 
 
 
-figure_name =  '_trial_count_level1.pdf'
+figure_name =  '_trial_count_level1_std.pdf'
     
 f,ax = plt.subplots(figsize=(8,7))
 sns.set()
@@ -686,7 +686,7 @@ for count, row in enumerate(success_L_1):
 
 mean_trial_count = np.nanmean(success_L_1, axis=0)
 
-sem = stats.sem(success_L_1, nan_policy='omit', axis=0)
+sem = np.nanstd(success_L_1, axis=0)#stats.sem(success_L_1, nan_policy='omit', axis=0)
 
 
 plt.plot(mean_trial_count,marker = 'o',color= 'k')
@@ -707,8 +707,8 @@ t_test_success = stats.ttest_rel(success_L_1[:,0],success_L_1[:,3])
 
 
 
-target = open(main_folder +"stats_level_1_success_trial.txt", 'w')
-target.writelines(str(t_test_success) +str(mean_trial_count)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- SEM, trials_plot.py')
+target = open(main_folder +"stats_level_1_success_trial_std.txt", 'w')
+target.writelines(str(t_test_success) +str(mean_trial_count)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- STD, trials_plot.py')
 
 target.close()
 

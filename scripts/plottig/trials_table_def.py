@@ -79,6 +79,81 @@ def moving_light_and_joystick_parser(filename):
 
 
 
+def reaction_time(sessions_subset,trial_file = 'Trial_idx.csv',tracking_file = '/crop.csv',tracking_delimiter=',', poke_coordinates = [1400,600]):
+    
+    #sessions_subset=sessions_subset[:4]
+    poke= poke_coordinates
+    l = len(sessions_subset)
+    
+        
+    rat_reaction_time = [[] for _ in range(l)]
+    avg_reaction_time =[]
+    std_reaction_time =[] 
+    
+    for count in np.arange(l):
+        
+        session = sessions_subset[count]    
+
+        script_dir = os.path.join(hardrive_path + session) 
+        #centroid_tracking_path = os.path.join(hardrive_path, session + '/crop.csv')
+        crop_tracking_path = os.path.join(script_dir + tracking_file)
+        #parse ball tracking file         
+
+        crop = np.genfromtxt(crop_tracking_path, delimiter= tracking_delimiter)
+        trial_idx_path = os.path.join(script_dir+ '/events/' + trial_file)
+        trial_idx = np.genfromtxt(trial_idx_path, delimiter = ',', dtype = int) 
+        success,misses = behaviour.trial_outcome_index(script_dir)
+        
+        onset = trial_idx[:,0]
+        ttr = abs(onset-trial_idx[:,1])
+        rat_position_at_start = crop[onset]
+
+
+        rat_position_at_start_success= rat_position_at_start[success]
+        ttr_success = ttr[success]
+
+                      
+        bad_idx = []
+        
+        for p in range(len(rat_position_at_start_success)):
+            if  rat_position_at_start_success[p,0]>1250.0 and 450.0 <rat_position_at_start_success[p,1] < 750.0:
+                bad_idx.append(p)
+            
+
+        #print(len(bad_idx))
+        #print(len(trial_idx))
+        good_idx =[ele for ele in range(len(rat_position_at_start_success)) if ele not in bad_idx]
+                #poke_coord=[poke]*len(onset)
+        #print(len(good_idx))
+        #print(len(rat_position_at_start_success))
+
+        rat_position_at_start_good= rat_position_at_start_success[good_idx]
+        ttr_good = ttr_success[good_idx]
+
+       
+        session_rat_poke_dist = [] 
+        
+        for e in range(len(rat_position_at_start_good)):        
+        
+            dist_rat_poke = (np.sqrt(np.nansum((rat_position_at_start_good[e]-poke)**2)))
+            #euclidian = distance.euclidean(rat_position_at_start[e], poke_coord[e])  
+        
+            session_rat_poke_dist.append(dist_rat_poke)
+       
+        
+        session_reaction_time = session_rat_poke_dist/ttr_good
+        #rewarded_trial_rt = session_reaction_time[good_idx]
+        avg_rt = np.mean(session_reaction_time)
+        std_rt = np.std(session_reaction_time)
+        
+        avg_reaction_time.append(avg_rt)
+        std_reaction_time.append(std_rt)
+        
+        rat_reaction_time[count]=session_reaction_time 
+        print(count)
+    return rat_reaction_time, avg_reaction_time,std_reaction_time
+
+
 
 #####def to make the trail table
 

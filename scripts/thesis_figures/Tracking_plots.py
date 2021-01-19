@@ -227,9 +227,9 @@ for i, session in enumerate(sessions_subset):
         f2.tight_layout()
         f2.subplots_adjust(top = 0.87)
         
-        f2.savefig(results_dir + figure_name2, transparent=True)
+        #f2.savefig(results_dir + figure_name2, transparent=True)
         print(i)
-        plt.close()
+        #plt.close()
 
         #ax.set_ylabel('Trials / Session', fontsize = 10)
         #ax.set_xlabel('Sessions', fontsize = 10)
@@ -513,9 +513,9 @@ for i, session in enumerate(sessions_subset):
         f6.tight_layout()
         f6.subplots_adjust(top = 0.87)
         
-        f6.savefig(results_dir + figure_name6, transparent=True)
+        #f6.savefig(results_dir + figure_name6, transparent=True)
         print(i)
-        plt.close()
+        #plt.close()
 
         #ax.set_ylabel('Trials / Session', fontsize = 10)
         #ax.set_xlabel('Sessions', fontsize = 10)
@@ -824,8 +824,8 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
 
 
 
-poke_files = ['F:/Videogame_Assay/Summary/Impedance/summary_Level_1_percentage_at_poke.csv',
-              'F:/Videogame_Assay/Summary/Impedance/summary_Level_2_percentage_at_poke.csv']
+poke_files = ['F:/Videogame_Assay/Summary/Behaviour/summary_Level_1_percentage_at_poke.csv',
+              'F:/Videogame_Assay/Summary/Behaviour/summary_Level_2_percentage_at_poke.csv']
 
 
 
@@ -880,6 +880,24 @@ plt.ylim(0,100)
 
 
 f.savefig(results_dir + figure_name, transparent=True)
+
+
+
+t_test_1_4 = stats.ttest_rel(filtered_data[0],filtered_data[3])
+t_test_4_6 = stats.ttest_rel(filtered_data[3],filtered_data[5])
+t_test_6_8 = stats.ttest_rel(filtered_data[5],filtered_data[7])
+t_test_4_8 = stats.ttest_rel(filtered_data[3],filtered_data[7])
+
+
+
+
+target = open(main_folder +"stats_level_1_%_at_poke.txt", 'w')
+target.writelines('_1vs4_'+ str(t_test_1_4) + '_4vs6_'+str(t_test_4_6)+'_6vs8_'+str(t_test_6_8)+'_4vs8_'+str(t_test_4_8)+' PLOT: boxplot % at poke level 1, rel t test, Tracking_plots.py')
+
+target.close()
+
+
+
 
 #######lines
 
