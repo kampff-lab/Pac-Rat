@@ -5,28 +5,24 @@ Created on Wed Dec 16 00:13:11 2020
 @author: KAMPFF-LAB-ANALYSIS3
 """
 import os
-
 os.sys.path.append('D:/Repos/Pac-Rat/libraries')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy import signal
 from scipy import stats 
- 
-#import plotting_probe_layout as layout
 import seaborn as sns
-
 import glob
 
 
+#delta = 1-4 Hz
+#theta = 4-8 Hz
+#alpha = 8-12 Hz
+#beta = 12-30 Hz   
 
 
 #test George cluster code 
 hardrive_path = r'F:/'
-
-
-
-#test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
 
 rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
@@ -53,14 +49,12 @@ probe_map = np.array([[103,78,81,118,94,74,62,24,49,46,7],
                     [117,85,124,106,72,63,36,0,41,15,16],
                     [114,111,75,96,116,95,33,10,30,53,17]])
 
-
-
             
 summary_folder = 'F:/Videogame_Assay/LFP_summary/'            
 event_folder =  'ball_on/'       
 
     
-band = ['delta','theta','beta','alpha']
+band = ['delta','theta','beta','alpha','gamma']
        
 
 for b in range(len(band)):
@@ -90,14 +84,17 @@ for b in range(len(band)):
         
         for i in range(shape[1]):
             
-            trial_before = np.reshape(sum_before[:,i],np.shape(probe_map))
-            matrix_before[:,:,i] = trial_before
+            trial_before = np.reshape(sum_before[:,i],np.shape(probe_map)) #make it 11x11
+            matrix_before[:,:,i] = trial_before # stacking them trial by trial
         
             trial_after = np.reshape(sum_after[:,i],np.shape(probe_map))
             matrix_after[:,:,i] = trial_after
-            
+        
+        
+        
         num_permutations=1000
         min_area = 3 
+        
         p_values_sum, cluster_labels_under_alpha_sum = monte_carlo_significance_probability(matrix_before, matrix_after, 
                                                        num_permutations=num_permutations, min_area=min_area, cluster_alpha=0.01,
                                                        monte_carlo_alpha=0.05, sample_statistic='independent',

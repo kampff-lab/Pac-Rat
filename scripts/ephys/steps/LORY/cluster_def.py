@@ -4,6 +4,10 @@ Created on Wed Dec 16 12:13:59 2020
 
 @author: KAMPFF-LAB-ANALYSIS3
 """
+#delta = 1-4 Hz
+#theta = 4-8 Hz
+#alpha = 8-12 Hz
+#beta = 12-30 Hz   
 
 
 #####george code 
@@ -118,7 +122,8 @@ def monte_carlo_significance_probability(dataset_1, dataset_2, num_permutations=
     return p_values, cluster_labels_under_alpha
 
 
-
+#plotting fx (not used)
+    
 def show_significant_clusters_on_data(data, cluster_labels, lfp_probe_positions, window_time=10,
                                       colormap=None, markers=None, alpha=None, marker_color=None):
     if colormap is None:
@@ -152,32 +157,3 @@ def show_significant_clusters_on_data(data, cluster_labels, lfp_probe_positions,
 
 
 
-def show_significant_clusters_on_data(data, cluster_labels,lfp_probe_positions, window_time=8,
-                                      colormap=None, markers=None, alpha=None, marker_color=None):
-    if colormap is None:
-        colormap = 'viridis'
-    if markers is None:
-        markers = '+'
-    if alpha is None:
-        alpha = 1
-    interpolation = 'bilinear'
-    f = plt.figure(1)
-    ax = f.add_subplot(111)
-    ax.imshow(np.flipud(data), aspect='auto',
-               extent=[-window_time, window_time,
-                       lfp_probe_positions[0], lfp_probe_positions[-1]],
-               interpolation=interpolation,
-              cmap=colormap, alpha=alpha)
-    #ax.hlines(y=brain_regions, xmin=-window_time, xmax=window_time)
-    t = np.flipud(cluster_labels)
-    clusters = np.delete(np.unique(t), np.argwhere(np.unique(t) == -1))
-    for c in clusters:
-        points = np.argwhere(t == c).astype(np.float)
-        points[:, 1] = (points[:, 1]) / (data.shape[1]) * 16 - 8
-        points[:, 0] = np.abs(points[:, 0] - data.shape[0] + 0.5)
-        points[:, 0] = points[:, 0] / data.shape[0] * \
-                       (lfp_probe_positions[-1] - lfp_probe_positions[0]) + lfp_probe_positions[0]
-        if marker_color is not None:
-            ax.scatter(points[:, 1], points[:, 0], marker=markers, color=marker_color)
-        else:
-            ax.scatter(points[:, 1], points[:, 0], marker=markers)

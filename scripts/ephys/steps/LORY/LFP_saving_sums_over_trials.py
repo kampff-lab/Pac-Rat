@@ -42,9 +42,6 @@ if not os.path.isdir(results_dir):
 hardrive_path = r'F:/'
 
 
-
-#test ephys quality and pre processing on test clips from prior Trial end to current Trial end 
-
 rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
                           'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
                               'F:/Videogame_Assay/AK_48.1_IrO2.csv','F:/Videogame_Assay/AK_48.4_IrO2.csv']
@@ -100,18 +97,6 @@ for r, rat in enumerate(rat_summary_table_path):
         session_path =  os.path.join(hardrive_path,session)
         
         
-        #figure_folder = '/LFP/'
-        
-        #results_dir =os.path.join(session_path + figure_folder)
-        
-        
-#        if not os.path.isdir(results_dir):
-#            os.makedirs(results_dir)
-        #recording data path
-        #raw_recording = os.path.join(session_path +'/Amplifier.bin')
-        #downsampled_recording = os.path.join(session_path +'/Amplifier_downsampled.bin')
-        #cleaned_recording =  os.path.join(session_path +'/Amplifier_cleaned.bin')
-        
         #filed needed path 
         csv_dir_path = os.path.join(session_path + '/events/')
         touch_path = os.path.join(hardrive_path, session +'/events/'+'RatTouchBall.csv')
@@ -134,10 +119,7 @@ for r, rat in enumerate(rat_summary_table_path):
         downsampled_touch = np.uint32(np.array(touching_light)/30)
         downsampled_ball = np.uint32(np.array(ball)/30)
         downsampled_end= np.uint32(np.array(trial_end)/30)
-        #end_samples = event_finder(trial_end_idx,video_csv,samples_for_frames_file_path)
-        #samples_lenght_end_to_end = np.diff(np.hstack((0, end_samples)))
-        #sample_start_clip = end_samples[21]
-        #clip_sample_lenght = samples_lenght_end_to_end[22]
+
 
 
         data_down= os.path.join(session_path +'/Amplifier_downsampled.bin')
@@ -349,81 +331,81 @@ for r, rat in enumerate(rat_summary_table_path):
         
 #retrieve saved files and create 11x11 hist to check distribution pre VS post and t test for each ch 
 #files are saved with words after and before so alfabetically after is [0] and before is [1] in the matching array         
-band = 'delta'
-       
-
-        
-for r, rat in enumerate(rat_summary_table_path): 
-    
-    
-    #rat = rat_summary_table_path
-    Level_2_post = prs.Level_2_post_paths(rat)
-    sessions_subset = Level_2_post
-    
-    N = 121
-    tot_sessions = len(sessions_subset)
-
-    
-    for s, session in enumerate(sessions_subset):        
-       
-        
-        session_path =  os.path.join(hardrive_path,session)    
-        csv_dir_path = os.path.join(session_path + figure_folder)
-       
-        matching_files_before  = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*before*" + "*"+event_name+"*"))
-        sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
-        
-        matching_files_after = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*after*"+"*"+event_name+"*" ))
-        sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
- 
-        f0 =plt.figure(figsize=(20,20))
-        sns.set()
-        sns.set_style('white')
-        sns.axes_style('white')
-        sns.despine() 
-                 
-        probe_t_test= []
-        
-        
-        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
-           
-              
-            
-            ch_t_test = stats.ttest_rel(sum_before[ch,:],sum_after[ch,:])
-            probe_t_test.append(ch_t_test[1])
-
-           
-            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
-            
-            plt.hist(sum_before[ch,:],color= 'green', bins=20, alpha=.5,  linewidth=1,label='PRE touch')            
-            plt.hist(sum_after[ch,:], color='red' ,bins=20,alpha=.5,  linewidth=1, label='POST touch')
-            
-               
-            
-        plt.suptitle(session + band + event_name[:-4])
-        plt.legend(loc='upper right')  
-        plt.close()           
-
-
-    f1 =plt.figure(figsize=(10,10))
-    sns.set()
-    sns.set_style('white')
-    sns.axes_style('white')
-    sns.despine() 
-    
-    
-    t_test_heatmap =np.reshape(probe_t_test,newshape=probe_map.shape) 
-         
-    ax = sns.heatmap(t_test_heatmap,annot=True,  cmap="bwr",vmin = 0, vmax=1,  edgecolors='white', linewidths=1,
-                                  annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
-    
-    #ax.patch.set(hatch='//', edgecolor='black')
-    bottom, top = ax.get_ylim()
-    ax.set_ylim(bottom + 0.5, top - 0.5)
-    plt.suptitle(session+band + event_name[:-4])
-    
-    from statsmodels.sandbox.stats.multicomp import multipletests
-    p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni') # 0.05/121 = 0.0004132231404958678
+#band = 'delta'
+#       
+#
+#        
+#for r, rat in enumerate(rat_summary_table_path): 
+#    
+#    
+#    #rat = rat_summary_table_path
+#    Level_2_post = prs.Level_2_post_paths(rat)
+#    sessions_subset = Level_2_post
+#    
+#    N = 121
+#    tot_sessions = len(sessions_subset)
+#
+#    
+#    for s, session in enumerate(sessions_subset):        
+#       
+#        
+#        session_path =  os.path.join(hardrive_path,session)    
+#        csv_dir_path = os.path.join(session_path + figure_folder)
+#       
+#        matching_files_before  = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*before*" + "*"+event_name+"*"))
+#        sum_before = np.genfromtxt(matching_files_before[0], delimiter= ',',dtype= float)       
+#        
+#        matching_files_after = np.array(glob.glob(csv_dir_path +"*"+band+"*" + "*after*"+"*"+event_name+"*" ))
+#        sum_after = np.genfromtxt(matching_files_after[0], delimiter= ',',dtype= float)
+# 
+#        f0 =plt.figure(figsize=(20,20))
+#        sns.set()
+#        sns.set_style('white')
+#        sns.axes_style('white')
+#        sns.despine() 
+#                 
+#        probe_t_test= []
+#        
+#        
+#        for ch, channel in enumerate(probe_map_flatten): #new_probe_flatten #probe_map_flatten
+#           
+#              
+#            
+#            ch_t_test = stats.ttest_rel(sum_before[ch,:],sum_after[ch,:])
+#            probe_t_test.append(ch_t_test[1])
+#
+#           
+#            ax = f0.add_subplot(11, 11, 1+ch, frameon=False)
+#            
+#            plt.hist(sum_before[ch,:],color= 'green', bins=20, alpha=.5,  linewidth=1,label='PRE touch')            
+#            plt.hist(sum_after[ch,:], color='red' ,bins=20,alpha=.5,  linewidth=1, label='POST touch')
+#            
+#               
+#            
+#        plt.suptitle(session + band + event_name[:-4])
+#        plt.legend(loc='upper right')  
+#        plt.close()           
+#
+#
+#    f1 =plt.figure(figsize=(10,10))
+#    sns.set()
+#    sns.set_style('white')
+#    sns.axes_style('white')
+#    sns.despine() 
+#    
+#    
+#    t_test_heatmap =np.reshape(probe_t_test,newshape=probe_map.shape) 
+#         
+#    ax = sns.heatmap(t_test_heatmap,annot=True,  cmap="bwr",vmin = 0, vmax=1,  edgecolors='white', linewidths=1,
+#                                  annot_kws={"size": 10}, cbar_kws = dict(use_gridspec=False,location="right"))#,norm=LogNorm() # "YlGnBu" RdBu
+#    
+#    #ax.patch.set(hatch='//', edgecolor='black')
+#    bottom, top = ax.get_ylim()
+#    ax.set_ylim(bottom + 0.5, top - 0.5)
+#    plt.suptitle(session+band + event_name[:-4])
+#    
+#    from statsmodels.sandbox.stats.multicomp import multipletests
+#    p_adjusted = multipletests(probe_t_test,alpha=.5, method='bonferroni') # 0.05/121 = 0.0004132231404958678
 
 
 
