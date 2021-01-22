@@ -62,7 +62,7 @@ RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 4
 
 RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
-RAT_ID = RAT_ID_ephys 
+RAT_ID = RAT_ID_ephys
 
 
 main_folder = 'E:/thesis_figures/'
@@ -80,7 +80,7 @@ if not os.path.isdir(results_dir):
 #s = len(rat_summary_table_path)
 
 
-rat_summary_table_path=rat_summary_table_path[0]
+rat_summary_table_path=rat_summary_ephys
 
 #rat_ball_all_rats = [[] for _ in range(s)]
 #rat_poke_all_rats = [[] for _ in range(s)]
@@ -92,12 +92,13 @@ for r, rat in enumerate(rat_summary_table_path):
     
     try:  
          #rat = rat_summary_table_path
-         Level_2_post= prs.Level_2_pre_paths(rat)
-         sessions_subset = Level_2_post
+         Level_2_pre= prs.Level_2_post_paths(rat)
+         sessions_subset = Level_2_pre
          
          distance_rat_at_start_ball, distance_rat_at_touch_poke, distance_rat_ball_before_touch, distance_rat_ball_after_touch = trial.distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx.csv',
-                                                                                                                            ball_file = 'BallPosition.csv', tracking_file = '/events/Tracking.csv',
-                                                                                                                            tracking_delimiter=None, poke_coordinates = [1,0])
+                         ball_file = 'BallPosition.csv', tracking_file = '/events/Tracking.csv',
+                         tracking_delimiter=None, poke_coordinates = [1,0]) # crop : '/crop.csv', delimiter  ',',  ball:  Ball_coordinates , poke :[1400,600/ shaders: '/events/Tracking.csv'
+                                                                             #delimiter : None, ball:  'BallPosition.csv', poke =[1,0]
          
          
          dist_rat_at_start_ball_flat = [val for sublist in distance_rat_at_start_ball for val in sublist]
@@ -167,7 +168,7 @@ for r, rat in enumerate(rat_summary_table_path):
          outcome = [val for sublist in outcome_sessions for val in sublist]
          print(len(outcome))
          
-         csv_name = RAT_ID[r] +'_Trial_table.csv'
+         csv_name = RAT_ID[r] +'_Trial_table_level_3_pre_SHADERS.csv'
          #csv_name = RAT_ID[8:][r] +'_Trial_table.csv'
          
          #moving_str = ['moving_light'  for x in range(len(ball_flat) - 6)]
@@ -219,8 +220,7 @@ for r, rat in enumerate(rat_summary_table_path):
 
         
 
-trial_table_folder = 'E:/thesis_figures/Tracking_figures/Trial_table/'
-
+trial_table_folder = 'E:/thesis_figures/Tracking_figures/Trial_table_moving_light_ephys_shaders/'
 
 csv_in_folder = os.listdir(trial_table_folder)
 
@@ -240,7 +240,7 @@ flat_table = [val for sublist in all_rats_trial_table for val in sublist]
 
 final_table = np.array(flat_table)
 
-csv_name = '/Trial_table_final_level_2_touching_light.csv'
+csv_name = '/Trial_table_final_level_3_moving_light_ephys_shaders.csv'
 
 
 np.savetxt(results_dir + csv_name, final_table,delimiter=',', fmt='%s')
@@ -277,7 +277,7 @@ for r, rat in enumerate(rat_summary_table_path):
 ###################################
 # snippets around_touch
 
-session_type ='touching_light_ephys'
+session_type ='moving_light_ephys_catch'
 
 #x_crop_all_rats = []
 #y_crop_all_rats =[]
@@ -288,11 +288,11 @@ for r, rat in enumerate(rat_summary_table_path):
     
     
     try:    
-         Level_3_pre= prs.Level_2_post_paths(rat)
+         Level_3_pre= Level_3_moving_post_paths(rat)
          sessions_subset = Level_3_pre
          
-         #x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets(sessions_subset, event=4, offset=360, folder = 'Trial_idx_cleaned.csv')
-         x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets_ephys(sessions_subset, event=2, offset=240, folder = 'Trial_idx.csv')
+         #x_crop_snippet, y_crop_snippet,x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets(sessions_subset, event=2, offset=360, folder = 'Trial_idx_cleaned.csv')
+         x_shader_snippet,y_shader_snippet = rat_position_around_event_snippets_ephys(sessions_subset, event=2, offset=360, folder = 'Trial_idx_cleaned.csv') # 4 for moving light and joytick (when ball move away)
              
          #x_crop_all_rats.extend(x_crop_snippet)
          #y_crop_all_rats.extend(y_crop_snippet)
@@ -323,11 +323,11 @@ print(len(y_shaders_all_rats))
 #np.savetxt(results_dir + csv_name,y_crop_all_rats, delimiter=',', fmt='%s')
 
 
-csv_name = 'x_shaders_snippets_around_touch_'  + session_type +'.csv'
+csv_name = 'x_shaders_snippets_around_touch_all_rats_'  + session_type +'.csv'
 np.savetxt(results_dir + csv_name,x_shaders_all_rats, delimiter=',', fmt='%s')
 
 
-csv_name = 'y_shaders_snippets_around_touch_'  + session_type +'.csv'
+csv_name = 'y_shaders_snippets_around_touch_all_rats_'  + session_type +'.csv'
 np.savetxt(results_dir + csv_name,y_shaders_all_rats, delimiter=',', fmt='%s')
 
 
@@ -412,7 +412,7 @@ for r, rat in enumerate(rat_summary_table_path):
     
     
     try:    
-         Level_3_pre=  Level_3_joystick_postpaths(rat) #joystick_post   Level_3_moving_post_paths  Level_3_moving_light_paths #joystick_post_paths
+         Level_3_pre=   Level_3_moving_post_paths(rat) #joystick_post   Level_3_moving_post_paths  Level_3_moving_light_paths #joystick_post_paths
          sessions_subset = Level_3_pre
          
          distance_rat_at_start_ball, distance_rat_at_touch_poke, distance_rat_ball_before_touch, distance_rat_ball_after_touch = trial.distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx_cleaned.csv',
@@ -502,7 +502,7 @@ for r, rat in enumerate(rat_summary_table_path):
          print(len(outcome))
          print(len(trial_count_flat))
          
-         csv_name = RAT_ID[r] +'_Trial_table_joystick_ephys.csv'
+         csv_name = RAT_ID[r] +'_Trial_table_moving_light_ephys_SHADERS.csv'
          #csv_name = RAT_ID[8:][r] +'_Trial_table.csv'
          
          #moving_str = ['moving_light'  for x in range(len(ball_flat) - 6)]

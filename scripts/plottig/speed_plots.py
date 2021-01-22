@@ -39,7 +39,7 @@ rat_summary_table_path = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_As
 
 
 
-
+rat_summary_table_path=rat_summary_table_path[0]
 
 
 #colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
@@ -182,7 +182,8 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2):
     
     l = len(sessions_subset)
     event_rat_coordinates = [[] for _ in range(l)]
-  
+    event_rat_idx = [[] for _ in range(l)]  
+    
     for count in np.arange(l):
     
         
@@ -202,8 +203,10 @@ def rat_event_idx_and_pos_finder(sessions_subset, event=2):
         rat_pos = crop[rat_event]
             
         event_rat_coordinates[count]= rat_pos
+        event_rat_idx[count]=rat_event
+        print(session)
     
-    return event_rat_coordinates
+    return event_rat_idx,event_rat_coordinates
 
 
 
@@ -313,9 +316,9 @@ def time_to_events(sessions_subset):
             csv_dir_path = os.path.join(script_dir + '/events/')
             
             csv_name = 'Start_touch_idx_diff.csv'
-            np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
+            #np.savetxt(csv_dir_path + csv_name,start_touch_diff, fmt='%s')
             csv_name = 'Touch_reward_idx_diff.csv'
-            np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
+            #np.savetxt(csv_dir_path + csv_name,touch_end_diff, fmt='%s')
             
             print(len(start_touch_diff))
             print(len(touch_end_diff))
@@ -346,10 +349,10 @@ te_all_rats = [[] for _ in range(s)]
 for r, rat in enumerate(rat_summary_table_path[8:]):
     
     try:    
-         #Level_2_pre = prs.Level_2_pre_paths(rat)
-         #sessions_subset = Level_2_pre#[3:6]
-         Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
-         sessions_subset = Level_3_moving_light#[3:6]         
+         Level_2_pre = prs.Level_2_pre_paths(rat)
+         sessions_subset = Level_2_pre#[3:6]
+         #Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
+         #sessions_subset = Level_3_moving_light#[3:6]         
          st_time, te_time = time_to_events(sessions_subset)
          
          st_all_rats[r] = st_time
@@ -407,12 +410,14 @@ max_te = max(te_idx_tot)
 st_pooled=[]
 te_pooled=[]
                 
-for r,rat in enumerate(rat_summary_table_path[8:]):
+for r,rat in enumerate(rat_summary_table_path):
     
     try:
-               
-        Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
-        sessions_subset = Level_3_moving_light#[3:6]   
+          
+        Level_2_pre = prs.Level_2_pre_paths(rat)
+        sessions_subset = Level_2_pre
+        #Level_3_moving_light = prs.Level_3_moving_light_paths(rat)
+        #sessions_subset = Level_3_moving_light#[3:6]   
         l=len(sessions_subset)
          
         rat_st = []
@@ -468,15 +473,19 @@ te_selection = [i for i,v in enumerate(te_pooled) if 1000 >v]
 
 print(len(te_selection))
 
+
+
+
+color_map = np.array(te_selection)/1000
+max(color_map)
+min(color_map)
+
 te_sel = np.array(te_pooled)[te_selection]
 touch_pos_selection = np.array(touch_coordinates)[te_selection]
 
 plt.scatter(touch_pos_selection[:,0],touch_pos_selection[:,1],c=color_map,cmap='jet',s=3)
 plt.colorbar()
 
-color_map = np.array(te_selection)/1000
-max(color_map)
-min(color_map)
 
 
 import numpy as np
@@ -581,7 +590,7 @@ plt.boxplot(final_to_plot, showfliers=True)
 #te_norm = ( te_array- te_array.min()) / (te_array.max() - te_array.min())
 
 
-trial_table_path = 'F:/Videogame_Assay/Trial_table_final_level_3_moving_light.csv'
+trial_table_path = 'F:/Videogame_Assay/Trial_table_final_level_2.csv'
 trial_table = np.genfromtxt(trial_table_path, delimiter =',')
 
 st_seconds = trial_table[4:,1]/120
@@ -592,8 +601,18 @@ te_seconds = trial_table[4:,2]/120
 
 
 
-#st_seconds = np.array(st_pooled)/120
-#te_seconds = np.array(te_pooled)/120
+st_seconds = np.array(st_pooled)/120
+te_seconds = np.array(te_pooled)/120
+
+tot_stack= np.vstack((st_seconds,te_seconds))
+final_to_plot = tot_stack.tolist()
+
+plt.figure()
+plt.boxplot(final_to_plot, showfliers=False)
+
+plt.figure()
+plt.boxplot(final_to_plot, showfliers=True)
+
 
 
 median_st = np.median(st_seconds)

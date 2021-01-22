@@ -166,7 +166,8 @@ def reaction_time(sessions_subset,trial_file = 'Trial_idx.csv',tracking_file = '
 #    rat position 120- after touch - rat position at touch
 
    
-def distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx.csv',ball_file = 'BallPosition.csv', tracking_file = '/events/Tracking.csv',tracking_delimiter=None, poke_coordinates = [1,0] ): #',' for '/crop.csv', None for shaders
+def distance_events(sessions_subset,frames=120, trial_file = 'Trial_idx.csv',ball_file = 'BallPosition.csv', 
+                    tracking_file = '/events/Tracking.csv',tracking_delimiter=None, poke_coordinates = [1,0] ): #',' for '/crop.csv', None for shaders
     
     #poke = [1400,600]
     poke = poke_coordinates
