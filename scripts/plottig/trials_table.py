@@ -622,7 +622,7 @@ for i in range(len(rat_summary_table_path)):
     select_10000_20000[i,:]=sel2
         
     
-final=np.hstack((select_6000,select_10000_20000))
+final=np.hstack((select_6000,select_10000_20000))*120
 
 
 for l in range(len(final)):
@@ -648,8 +648,8 @@ for count, row in enumerate(final):
     
     
     
-    plt.title('reaction time level 1',fontsize = 16)
-    plt.ylabel('dst to poke / time to reward', fontsize = 13)
+    plt.title('reaction speed level 1',fontsize = 16)
+    plt.ylabel('dst to poke / time to reward in secons (frame*120)', fontsize = 13)
     plt.xlabel('Level 1 Sessions', fontsize = 13)
     #plt.xticks((np.arange(0, 5, 1)))
     ax.axes.get_xaxis().set_visible(True) 
@@ -671,7 +671,7 @@ sem = stats.sem(final, nan_policy='omit', axis=0)
 plt.plot(mean,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
 plt.errorbar(range(len(mean)), mean, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
-plt.yticks((np.arange(0, 1.1, .1)))
+plt.yticks((np.arange(0, 140, 20)))
 #plt.legend()
 f.tight_layout()
 
@@ -688,8 +688,8 @@ t_test_3 = stats.ttest_rel(final[:,4],final[:,5],nan_policy='omit')
 
 
 
-target = open(main_folder +"stats_level_1_success_trial_std.txt", 'w')
-target.writelines(str(t_test_success) +str(mean_trial_count)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- STD, trials_plot.py')
+target = open(main_folder +"level_1_dst_speed.txt", 'w')
+target.writelines(str(mean) +str(sem)+str(t_test)+ str(t_test_2)+str(t_test_3)+ ' LEVEL 1: dst to poke / time to reward in secons (frame*120) mean +- sem, trials_table.py')
 
 target.close()
 
