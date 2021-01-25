@@ -889,7 +889,9 @@ t_test_6_8 = stats.ttest_rel(filtered_data[5],filtered_data[7])
 t_test_4_8 = stats.ttest_rel(filtered_data[3],filtered_data[7])
 
 
-
+tot_trials=[]
+for t in np.arange(len(filtered_data)):
+    tot_trials.append(len(filtered_data[t]))
 
 target = open(main_folder +"stats_level_1_%_at_poke.txt", 'w')
 target.writelines('_1vs4_'+ str(t_test_1_4) + '_4vs6_'+str(t_test_4_6)+'_6vs8_'+str(t_test_6_8)+'_4vs8_'+str(t_test_4_8)+' PLOT: boxplot % at poke level 1, rel t test, Tracking_plots.py')
@@ -990,7 +992,7 @@ sns.despine(left=False)
 
 
 #plt.figure(frameon=False)
-plt.boxplot(filtered_data_L2, showfliers=True) # [:,:5] for the first 5 days only
+plt.boxplot(filtered_data_L2[:5], showfliers=True) # [:,:5] for the first 5 days only
 sns.despine(top=True, right=True, left=False, bottom=False)
 
 ax.yaxis.set_ticks_position('left')
@@ -1003,6 +1005,19 @@ plt.ylim(0,100)
 f.savefig(results_dir + figure_name, transparent=True)
 
 
+t_test_0_4 = stats.ttest_rel(filtered_data_L2[0],filtered_data_L2[4])
+
+tot_trials=[]
+for t in np.arange(filtered_data_L2):
+    tot_trials.append(len(filtered_data_L2[t]))
+
+
+
+
+target = open(main_folder +"stats_level_2_%_at_poke.txt", 'w')
+target.writelines('_0vs4_'+ str(t_test_0_4) + 'PLOT: boxplot % at poke level 1, rel t test, Tracking_plots.py')
+
+target.close()
 
 #b = np.zeros([len(percentage_at_poke_level_1),len(max(percentage_at_poke_level_1,key = lambda x: len(x)))])
 #for i,j in enumerate(percentage_at_poke_level_1):

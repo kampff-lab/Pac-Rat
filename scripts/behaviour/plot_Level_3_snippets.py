@@ -7,6 +7,9 @@ import statsmodels.api as sm
 from scipy.signal import savgol_filter
 # Filter trials
 
+
+
+
 #central_trials = (x_ball > 600) * (x_ball < 1100) * (y_ball > 450) * (y_ball < 850)
 #central_trials = (x_ball > -.3) * (x_ball < .3) * (y_ball > -.3) * (y_ball < .3)
 

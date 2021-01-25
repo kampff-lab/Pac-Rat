@@ -598,7 +598,7 @@ for r, rat in enumerate(rat_summary_table_path):
     
 
      #rat = rat_summary_table_path[0]
-     Level_1= prs.Level_1_paths(rat)
+     Level_1= Level_1_paths(rat)
      sessions_subset = Level_1
      
      rt,avg,std = reaction_time(sessions_subset,trial_file = 'Trial_idx.csv',
@@ -622,7 +622,7 @@ for i in range(len(rat_summary_table_path)):
     select_10000_20000[i,:]=sel2
         
     
-final_avg=np.hstack((select_6000,select_10000_20000))
+final=np.hstack((select_6000,select_10000_20000))
 
 
 for l in range(len(final)):
@@ -638,6 +638,8 @@ sns.set()
 sns.set_style('white')
 sns.axes_style('white')
 sns.despine(left=False)
+
+figure_name = 'mean_reaction_time_level_1.pdf'
 
 for count, row in enumerate(final):    
     
@@ -663,12 +665,31 @@ for count, row in enumerate(final):
 
 mean= np.nanmean(final, axis=0)
 
-#sem = stats.sem(miss_L_1, nan_policy='omit', axis=0)
+sem = stats.sem(final, nan_policy='omit', axis=0)
 
 
 plt.plot(mean,marker = 'o',color= 'k')
 #plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
-plt.errorbar(range(4), mean_trial_miss, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
-plt.yticks((np.arange(0, 150, 50)))
+plt.errorbar(range(len(mean)), mean, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
+plt.yticks((np.arange(0, 1.1, .1)))
 #plt.legend()
 f.tight_layout()
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+
+#t test level 2
+
+t_test = stats.ttest_rel(final[:,0],final[:,3],nan_policy='omit')
+t_test_2 = stats.ttest_rel(final[:,3],final[:,4],nan_policy='omit')
+t_test_3 = stats.ttest_rel(final[:,4],final[:,5],nan_policy='omit')
+#Ttest_relResult(statistic=-3.292444121706258, pvalue=0.007173538082732699)
+
+
+
+
+target = open(main_folder +"stats_level_1_success_trial_std.txt", 'w')
+target.writelines(str(t_test_success) +str(mean_trial_count)+str(sem)+' LEVEL 1: day 1 Vs day 4, PLOT: success trial mean +- STD, trials_plot.py')
+
+target.close()
+
