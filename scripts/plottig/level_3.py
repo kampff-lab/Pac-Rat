@@ -103,7 +103,7 @@ plt.plot(snippet_centred_before[0][:][:,0],snippet_centred_before[0][:][:,1])
 
 
 
-def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=:): #start_event=0, end_event= 1
+def rat_event_idx_and_pos_finder(sessions_subset, event=2, offset = 360, trial_number=11): #start_event=0, end_event= 1
     
     ball_coordinates = []
     rat_coordinates_before = [[] for _ in range(trial_number)]

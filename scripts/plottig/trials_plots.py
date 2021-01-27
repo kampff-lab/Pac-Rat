@@ -1348,6 +1348,12 @@ for count, rat in enumerate(rat_summary_table_path):
       
 np.sum([np.sum([s for s in rat if type(s) is not list and s > 0]) for rat in rat_total_videogame_lenght])
 
+
+
+
+
+
+
 #####################################################################################################
 #
 #figure_name = 'RAT_' + rat_ID + '_Trial_per_Minute.pdf'

@@ -693,3 +693,97 @@ target.writelines(str(mean) +str(sem)+str(t_test)+ str(t_test_2)+str(t_test_3)+ 
 
 target.close()
 
+#####reaction time level 2  at ball on and also 
+
+
+
+s = len(rat_summary_table_path)
+
+avg_reaction_time_all_rats = [[] for _ in range(s)]
+std_reaction_time =[[] for _ in range(s)]
+rt_all_rats = [[] for _ in range(s)]
+
+
+for r, rat in enumerate(rat_summary_table_path): 
+    
+
+     #rat = rat_summary_table_path[0]
+     Level_2= prs.Level_3_moving_light_paths(rat)
+     sessions_subset = Level_2
+     
+     rt, avg,std =  reaction_time_level_2_and_3(sessions_subset,trial_file = 'Trial_idx_cleaned.csv',outcome='/Trial_outcome_cleaned.csv',tracking_file = '/crop.csv',tracking_delimiter=',', poke_coordinates = [1400,600])
+
+
+     
+     avg_reaction_time_all_rats[r]=avg
+     std_reaction_time[r]=std
+     rt_all_rats[r]=rt
+     print(rat)
+
+
+
+for l in range(len(avg_reaction_time_all_rats)):
+    plt.plot(avg_reaction_time_all_rats[l])
+
+
+
+select_level_2=np.zeros((s,4))    
+ 
+
+for i in range(len(rat_summary_table_path)):
+    #plt.figure()
+    sel=avg_reaction_time_all_rats[i][:4]
+
+    select_level_2[i,:]=sel
+   
+final=select_level_2*120
+
+colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+RAT_ID = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2', 'AK 46.1', 'AK 48.1','AK 48.3','AK 48.4', 'AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
+
+    
+f,ax = plt.subplots(figsize=(8,7))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+figure_name = 'mean_reaction_time_level_2.pdf'
+
+for count, row in enumerate(final):    
+    
+  
+    plt.plot(row,color=colours[count], marker = 'o', alpha = .3, label = RAT_ID[count])
+    
+    
+    
+    plt.title('reaction speed level 2',fontsize = 16)
+    plt.ylabel('dst to poke / time to reward in secons (frame*120)', fontsize = 13)
+    plt.xlabel('Level 1 Sessions', fontsize = 13)
+    #plt.xticks((np.arange(0, 5, 1)))
+    ax.axes.get_xaxis().set_visible(True) 
+    #ax.set_ylim(ymin= -10 ,ymax= 260)
+    #plt.yticks((np.arange(0, 350, 50)))
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)   
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    #plt.xlim(-0.1,3.5)
+    #plt.ylim(-10,300)
+
+
+mean= np.nanmean(np.array(final), axis=0)
+
+sem = stats.sem(final, nan_policy='omit', axis=0)
+
+
+plt.plot(mean,marker = 'o',color= 'k')
+#plt.fill_between(range(4),mean_trial_speed-sem,mean_trial_speed+sem, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+plt.errorbar(range(len(mean)), mean, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2)  
+plt.yticks((np.arange(0, 180, 20)))
+#plt.legend()
+f.tight_layout()
+
+
+f.savefig(results_dir + figure_name, transparent=True)
+
