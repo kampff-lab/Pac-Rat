@@ -9,15 +9,15 @@ import seaborn as sns
 # Filter trials
 
 
-def smoothing_speed(speed_file):
-    
-    smooth = np.zeros(( np.shape(speed_file)[0], np.shape(speed_file)[1]))
-    
-    for t, trial in enumerate(speed_file):
-        smooth_trial= scipy.signal.savgol_filter(trial, window, poly,mode='nearest')
-        smooth[t,:]=smooth_trial
-        
-    return smooth
+#def smoothing_speed(speed_file):
+#    
+#    smooth = np.zeros(( np.shape(speed_file)[0], np.shape(speed_file)[1]))
+#    
+#    for t, trial in enumerate(speed_file):
+#        smooth_trial= scipy.signal.savgol_filter(trial, window, poly,mode='nearest')
+#        smooth[t,:]=smooth_trial
+#        
+#    return smooth
 
 
 
@@ -136,7 +136,22 @@ plt.plot(smooth)
  sem_avg_speed = stats.sem(smooth, nan_policy='omit', axis=0)
 
 ##############################moving light 
-
+def sliding_window(speeds, window_size=6):    
+    # Smooth speeds
+    speeds_smoothed = np.copy(speeds)
+    
+    # Sliding window smoothing
+    #window_size = 6 # Means +/- 6 samples from centre sample (~100 ms window)
+    num_trials = speeds.shape[0]
+    trial_length = speeds.shape[1]
+    for i in range(num_trials):
+        tmp_speed = np.copy(speeds[i][:])
+        smooth_speed = np.copy(speeds[i][:])
+        for s in range(window_size, trial_length-window_size):
+            smooth_speed[s] = np.nanmean(tmp_speed[(s-window_size):(s+window_size+1)])
+        speeds_smoothed[i] = smooth_speed
+        print(i)
+    return speeds_smoothed
 
 # Load trial table
 moving_pre = 'F:/Videogame_Assay/Trial_tables/Trial_table_moving_light_pre_shaders/Trial_table_final_level_3_moving_light_pre_shaders.csv'
@@ -225,7 +240,7 @@ for t, table in enumerate(Level_3_trial_tables):
     trial_table_outcome  = np.genfromtxt(table, delimiter=',', dtype=str)
     outcome = trial_table_outcome[:,-1]    
     
-    late = [300,50]   
+    late = [300,100]   
     
     from_above_trials = (y_trigger > y_ball)
     from_below_trials = (y_trigger < y_ball)        
@@ -259,7 +274,7 @@ for t, table in enumerate(Level_3_trial_tables):
                         ['b','g'],
                         ['m','b']]
     
-    agv_str_sel= 'mean'
+    agv_str_sel= 'median'
     num_trials = len(x_ball)
 
     # Filter trials
@@ -275,7 +290,7 @@ for t, table in enumerate(Level_3_trial_tables):
     # Measure noise and set threshold (however, this could be hard coded, 0.1 or so)
     
     noise = np.nanstd(speed)
-    threshold = noise*2
+    threshold = noise*3
     #threshold = 0.1
     
     # Find over threshold values
@@ -285,9 +300,9 @@ for t, table in enumerate(Level_3_trial_tables):
     speed[over_indices] = np.nan
     
     # Measure median/mean
-    smooth_speed = smoothing_speed(speed)
+    smooth_speed = sliding_window(speed, window_size=6)
     
-    mean_speed = np.nanmean(smooth_speed, axis=0)   
+    median_speed = np.nanmedian(smooth_speed, axis=0)   
     sem_avg_speed = stats.sem(smooth_speed, nan_policy='omit', axis=0)
   
    
@@ -312,7 +327,7 @@ for t, table in enumerate(Level_3_trial_tables):
             #avg_speed_from_above = np.nanmedian(np.sqrt(dx*dx + dy*dy), axis=0)
             speed_cond_1 = np.sqrt(dx*dx + dy*dy)
             noise = np.nanstd(speed_cond_1)
-            threshold = noise*2
+            threshold = noise*3
             #threshold = 0.1
             
             # Find over threshold values
@@ -321,9 +336,9 @@ for t, table in enumerate(Level_3_trial_tables):
             # Set these to NaN
             speed_cond_1[over_indices] = np.nan
             
-            smooth_cond_1 =  smoothing_speed(speed_cond_1)
+            smooth_cond_1 =  sliding_window(speed_cond_1, window_size=6)
             
-            mean_speed_cond_1 = np.nanmean(smooth_cond_1, axis=0)
+            median_speed_cond_1 = np.nanmedian(smooth_cond_1, axis=0)
             sem_cond_1 = stats.sem(smooth_cond_1, nan_policy='omit', axis=0) 
             
             # Compute speed around touch (from below trials)
@@ -332,7 +347,7 @@ for t, table in enumerate(Level_3_trial_tables):
             dy = np.diff(y_snippets[filtered_trials], axis=1)
             speed_cond_2 = np.sqrt(dx*dx + dy*dy)
             noise = np.nanstd(speed_cond_2)
-            threshold = noise*2
+            threshold = noise*3
             #threshold = 0.1
             
             # Find over threshold values
@@ -341,13 +356,14 @@ for t, table in enumerate(Level_3_trial_tables):
             # Set these to NaN
             speed_cond_2[over_indices] = np.nan
             
-            smooth_cond_2 = smoothing_speed(speed_cond_2)
+            smooth_cond_2 =sliding_window(speed_cond_2, window_size=6)
             
-            mean_speed_cond_2 = np.nanmean(smooth_cond_2, axis=0)
+            
+            median_speed_cond_2 = np.nanmedian(smooth_cond_2, axis=0)
             sem_cond_2 = stats.sem(smooth_cond_2, nan_policy='omit', axis=0)        
         
-            c1 =mean_speed_cond_1
-            c2 = mean_speed_cond_2
+            c1 = median_speed_cond_1
+            c2 = median_speed_cond_2
 
 
             plot_condition =agv_str_sel+'_'+ string_1 +'_VS_' + string_2 +'.png'
@@ -369,8 +385,8 @@ for t, table in enumerate(Level_3_trial_tables):
             plt.vlines(359, 0.0, max(mean_speed)*2, 'k')
                         
             
-            plt.plot(mean_speed,color= 'k')
-            plt.fill_between(range(len(mean_speed)),mean_speed-sem_avg_speed,mean_speed+sem_avg_speed, alpha = alpha, facecolor ='k')
+            plt.plot(median_speed,color= 'k')
+            plt.fill_between(range(len(median_speed)),median_speed-sem_avg_speed,median_speed+sem_avg_speed, alpha = alpha, facecolor ='k')
             
             plt.plot(c1 ,color= color_1)
             plt.fill_between(range(len(c1 )),c1 -sem_cond_1,c1 +sem_cond_1, alpha = alpha, facecolor = color_1)
@@ -406,201 +422,201 @@ for t, table in enumerate(Level_3_trial_tables):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-        
-    #avg = [median_speed,mean_speed]
-    avg= [smooth_median,smooth_mean]
-    sem = [sem_avg_speed,sem_avg_speed]
-    avg_str = ['median','mean']
-    
-    for a in np.arange(len(avg)):
-        
-        avg_sel = avg[a]
-        sem_sel = sem[a]
-        agv_str_sel = avg_str[a]
-    
-        for c, con in enumerate(conditions):
-            try:
-            
-            
-                condition_1 = con[0]
-                condition_2 = con[1]
-                string_1 =conditions_str[c][0]
-                string_2 = conditions_str[c][1]
-                color_1 = condition_colors[c][0]
-                color_2 = condition_colors[c][1]
-     
-    
-    
-                # Compute speed around touch (from above trials)
-                filtered_trials = condition_1
-                dx = np.diff(x_snippets[filtered_trials], axis=1)
-                dy = np.diff(y_snippets[filtered_trials], axis=1)
-                #avg_speed_from_above = np.nanmedian(np.sqrt(dx*dx + dy*dy), axis=0)
-                speed_cond_1 = np.sqrt(dx*dx + dy*dy)
-                noise = np.nanstd(speed_cond_1)
-                threshold = noise*2
-                #threshold = 0.1
-                
-                # Find over threshold values
-                over_indices = speed_cond_1 > threshold
-                
-                # Set these to NaN
-                speed_cond_1[over_indices] = np.nan
-                
-                sem_cond_1 = stats.sem(speed_cond_1, nan_policy='omit', axis=0)
-                
-                # Compute speed around touch (from below trials)
-                filtered_trials = condition_2
-                dx = np.diff(x_snippets[filtered_trials], axis=1)
-                dy = np.diff(y_snippets[filtered_trials], axis=1)
-                speed_cond_2 = np.sqrt(dx*dx + dy*dy)
-                noise = np.nanstd(speed_cond_2)
-                threshold = noise*2
-                #threshold = 0.1
-                
-                # Find over threshold values
-                over_indices = speed_cond_2 > threshold
-                
-                # Set these to NaN
-                speed_cond_2[over_indices] = np.nan
-                
-                sem_cond_2 = stats.sem(speed_cond_2, nan_policy='omit', axis=0)        
-            
-                if a==0 :
-                    
-            
-                    median_speed_cond_1 = np.nanmedian(speed_cond_1, axis=0)
-                    smooth_speed_cond_1 = scipy.signal.savgol_filter(median_speed_cond_1,window, poly)
-                    
-                    median_speed_cond_2 = np.nanmedian(speed_cond_2, axis=0) 
-                    smooth_speed_cond_2 = scipy.signal.savgol_filter(median_speed_cond_2,window, poly)
-                    
-                    c1 = smooth_speed_cond_1
-                    c2 = smooth_speed_cond_2
-                    
-    
-                    plot_condition =agv_str_sel+'_'+ string_1 +'_VS_' + string_2 +'.png'
-                    
-                    # Plot average speeds
-                    
-                    figure_name = plot + plot_condition
-                      
-                    f,ax = plt.subplots(figsize=(9,5))
-                    
-                    sns.set()
-                    sns.set_style('white')
-                    sns.axes_style('white')
-                    sns.despine(left=False)
-                    
-                    alpha = .4
-                    
-                    #plt.vlines(359, 0.001, 0.004, 'k')
-                    plt.vlines(359, 0.0, max(median_speed)*2, 'k')
-                                
-                    
-                    plt.plot(avg_sel,color= 'k')
-                    plt.fill_between(range(len(avg_sel)),avg_sel-sem_sel,avg_sel+sem_sel, alpha = alpha, facecolor ='k')
-                    
-                    plt.plot(c1,color= color_1)
-                    plt.fill_between(range(len(c1)),c1-sem_cond_1,c1+sem_cond_1, alpha = alpha, facecolor = color_1)
-                    
-                    plt.plot(c2,color= color_2)
-                    plt.fill_between(range(len(c2)),c2-sem_cond_2,c2+sem_cond_2, alpha = alpha, facecolor = color_2)
-                    
-                    ax.axes.get_yaxis().set_visible(True) 
-                    ax.yaxis.set_ticks_position('left')
-                    ax.xaxis.set_ticks_position('bottom')
-                    plt.yticks(fontsize=15)
-                    plt.xticks(fontsize=15)
-                    plt.xlim((-50,800))
-                    plt.ylim((0,lim))
-        
-                    plt.title(agv_str_sel + '_'+string_1+'_'+color_1 +'_VS_'+ string_2+ '_'+color_2 )
-                    plt.ylabel(agv_str_sel + '_speed_sem_shaders')
-                    #plt.show()
-                    
-                    f.tight_layout()
-                    
-                    f.savefig(results_dir + figure_name, transparent=False)
-                        
-                        
-                    
-                else:
-                  
-                    
-                   
-                    mean_speed_cond_1 = np.nanmean(speed_cond_1, axis=0)   
-                    smooth_speed_cond_1 = scipy.signal.savgol_filter(mean_speed_cond_1, window, poly)
-                    
-                    mean_speed_cond_2 = np.nanmean(speed_cond_2, axis=0)
-                    smooth_speed_cond_2 = scipy.signal.savgol_filter(mean_speed_cond_2, window, poly)
-                    
-                    c1 =smooth_speed_cond_1
-                    c2 = smooth_speed_cond_2
-    
-    
-                    plot_condition =agv_str_sel+'_'+ string_1 +'_VS_' + string_2 +'.png'
-                    
-                    # Plot average speeds
-                    
-                    figure_name = plot + plot_condition
-                      
-                    f,ax = plt.subplots(figsize=(9,5))
-                    
-                    sns.set()
-                    sns.set_style('white')
-                    sns.axes_style('white')
-                    sns.despine(left=False)
-                    
-                    alpha = .4
-                    
-                    #plt.vlines(359, 0.001, 0.004, 'k')
-                    plt.vlines(359, 0.0, max(median_speed)*2, 'k')
-                                
-                    
-                    plt.plot(avg_sel,color= 'k')
-                    plt.fill_between(range(len(avg_sel)),avg_sel-sem_sel,avg_sel+sem_sel, alpha = alpha, facecolor ='k')
-                    
-                    plt.plot(c1 ,color= color_1)
-                    plt.fill_between(range(len(c1 )),c1 -sem_cond_1,c1 +sem_cond_1, alpha = alpha, facecolor = color_1)
-                    
-                    plt.plot(c2,color= color_2)
-                    plt.fill_between(range(len(c2)),c2-sem_cond_2,c2+sem_cond_2, alpha = alpha, facecolor = color_2)
-                    
-                    ax.axes.get_yaxis().set_visible(True) 
-                    ax.yaxis.set_ticks_position('left')
-                    ax.xaxis.set_ticks_position('bottom')
-                    plt.yticks(fontsize=15)
-                    plt.xticks(fontsize=15)
-                    plt.xlim((-50,800))
-                    plt.ylim((0,lim))
-        
-                    plt.title(agv_str_sel + '_'+string_1+'_'+color_1 +'_VS_'+ string_2+ '_'+color_2)
-                    plt.ylabel(agv_str_sel + '_speed_sem_shaders')
-                    #plt.show()
-                    
-                    f.tight_layout()
-                    
-                    f.savefig(results_dir + figure_name, transparent=False)
-                    #print(con)
-            except Exception:
-                print(table + '_error')
-                continue 
-     
-    print(table)
-
-
-
-
-
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#        
+#    #avg = [median_speed,mean_speed]
+#    avg= [smooth_median,smooth_mean]
+#    sem = [sem_avg_speed,sem_avg_speed]
+#    avg_str = ['median','mean']
+#    
+#    for a in np.arange(len(avg)):
+#        
+#        avg_sel = avg[a]
+#        sem_sel = sem[a]
+#        agv_str_sel = avg_str[a]
+#    
+#        for c, con in enumerate(conditions):
+#            try:
+#            
+#            
+#                condition_1 = con[0]
+#                condition_2 = con[1]
+#                string_1 =conditions_str[c][0]
+#                string_2 = conditions_str[c][1]
+#                color_1 = condition_colors[c][0]
+#                color_2 = condition_colors[c][1]
+#     
+#    
+#    
+#                # Compute speed around touch (from above trials)
+#                filtered_trials = condition_1
+#                dx = np.diff(x_snippets[filtered_trials], axis=1)
+#                dy = np.diff(y_snippets[filtered_trials], axis=1)
+#                #avg_speed_from_above = np.nanmedian(np.sqrt(dx*dx + dy*dy), axis=0)
+#                speed_cond_1 = np.sqrt(dx*dx + dy*dy)
+#                noise = np.nanstd(speed_cond_1)
+#                threshold = noise*2
+#                #threshold = 0.1
+#                
+#                # Find over threshold values
+#                over_indices = speed_cond_1 > threshold
+#                
+#                # Set these to NaN
+#                speed_cond_1[over_indices] = np.nan
+#                
+#                sem_cond_1 = stats.sem(speed_cond_1, nan_policy='omit', axis=0)
+#                
+#                # Compute speed around touch (from below trials)
+#                filtered_trials = condition_2
+#                dx = np.diff(x_snippets[filtered_trials], axis=1)
+#                dy = np.diff(y_snippets[filtered_trials], axis=1)
+#                speed_cond_2 = np.sqrt(dx*dx + dy*dy)
+#                noise = np.nanstd(speed_cond_2)
+#                threshold = noise*2
+#                #threshold = 0.1
+#                
+#                # Find over threshold values
+#                over_indices = speed_cond_2 > threshold
+#                
+#                # Set these to NaN
+#                speed_cond_2[over_indices] = np.nan
+#                
+#                sem_cond_2 = stats.sem(speed_cond_2, nan_policy='omit', axis=0)        
+#            
+#                if a==0 :
+#                    
+#            
+#                    median_speed_cond_1 = np.nanmedian(speed_cond_1, axis=0)
+#                    smooth_speed_cond_1 = scipy.signal.savgol_filter(median_speed_cond_1,window, poly)
+#                    
+#                    median_speed_cond_2 = np.nanmedian(speed_cond_2, axis=0) 
+#                    smooth_speed_cond_2 = scipy.signal.savgol_filter(median_speed_cond_2,window, poly)
+#                    
+#                    c1 = smooth_speed_cond_1
+#                    c2 = smooth_speed_cond_2
+#                    
+#    
+#                    plot_condition =agv_str_sel+'_'+ string_1 +'_VS_' + string_2 +'.png'
+#                    
+#                    # Plot average speeds
+#                    
+#                    figure_name = plot + plot_condition
+#                      
+#                    f,ax = plt.subplots(figsize=(9,5))
+#                    
+#                    sns.set()
+#                    sns.set_style('white')
+#                    sns.axes_style('white')
+#                    sns.despine(left=False)
+#                    
+#                    alpha = .4
+#                    
+#                    #plt.vlines(359, 0.001, 0.004, 'k')
+#                    plt.vlines(359, 0.0, max(median_speed)*2, 'k')
+#                                
+#                    
+#                    plt.plot(avg_sel,color= 'k')
+#                    plt.fill_between(range(len(avg_sel)),avg_sel-sem_sel,avg_sel+sem_sel, alpha = alpha, facecolor ='k')
+#                    
+#                    plt.plot(c1,color= color_1)
+#                    plt.fill_between(range(len(c1)),c1-sem_cond_1,c1+sem_cond_1, alpha = alpha, facecolor = color_1)
+#                    
+#                    plt.plot(c2,color= color_2)
+#                    plt.fill_between(range(len(c2)),c2-sem_cond_2,c2+sem_cond_2, alpha = alpha, facecolor = color_2)
+#                    
+#                    ax.axes.get_yaxis().set_visible(True) 
+#                    ax.yaxis.set_ticks_position('left')
+#                    ax.xaxis.set_ticks_position('bottom')
+#                    plt.yticks(fontsize=15)
+#                    plt.xticks(fontsize=15)
+#                    plt.xlim((-50,800))
+#                    plt.ylim((0,lim))
+#        
+#                    plt.title(agv_str_sel + '_'+string_1+'_'+color_1 +'_VS_'+ string_2+ '_'+color_2 )
+#                    plt.ylabel(agv_str_sel + '_speed_sem_shaders')
+#                    #plt.show()
+#                    
+#                    f.tight_layout()
+#                    
+#                    f.savefig(results_dir + figure_name, transparent=False)
+#                        
+#                        
+#                    
+#                else:
+#                  
+#                    
+#                   
+#                    mean_speed_cond_1 = np.nanmean(speed_cond_1, axis=0)   
+#                    smooth_speed_cond_1 = scipy.signal.savgol_filter(mean_speed_cond_1, window, poly)
+#                    
+#                    mean_speed_cond_2 = np.nanmean(speed_cond_2, axis=0)
+#                    smooth_speed_cond_2 = scipy.signal.savgol_filter(mean_speed_cond_2, window, poly)
+#                    
+#                    c1 =smooth_speed_cond_1
+#                    c2 = smooth_speed_cond_2
+#    
+#    
+#                    plot_condition =agv_str_sel+'_'+ string_1 +'_VS_' + string_2 +'.png'
+#                    
+#                    # Plot average speeds
+#                    
+#                    figure_name = plot + plot_condition
+#                      
+#                    f,ax = plt.subplots(figsize=(9,5))
+#                    
+#                    sns.set()
+#                    sns.set_style('white')
+#                    sns.axes_style('white')
+#                    sns.despine(left=False)
+#                    
+#                    alpha = .4
+#                    
+#                    #plt.vlines(359, 0.001, 0.004, 'k')
+#                    plt.vlines(359, 0.0, max(median_speed)*2, 'k')
+#                                
+#                    
+#                    plt.plot(avg_sel,color= 'k')
+#                    plt.fill_between(range(len(avg_sel)),avg_sel-sem_sel,avg_sel+sem_sel, alpha = alpha, facecolor ='k')
+#                    
+#                    plt.plot(c1 ,color= color_1)
+#                    plt.fill_between(range(len(c1 )),c1 -sem_cond_1,c1 +sem_cond_1, alpha = alpha, facecolor = color_1)
+#                    
+#                    plt.plot(c2,color= color_2)
+#                    plt.fill_between(range(len(c2)),c2-sem_cond_2,c2+sem_cond_2, alpha = alpha, facecolor = color_2)
+#                    
+#                    ax.axes.get_yaxis().set_visible(True) 
+#                    ax.yaxis.set_ticks_position('left')
+#                    ax.xaxis.set_ticks_position('bottom')
+#                    plt.yticks(fontsize=15)
+#                    plt.xticks(fontsize=15)
+#                    plt.xlim((-50,800))
+#                    plt.ylim((0,lim))
+#        
+#                    plt.title(agv_str_sel + '_'+string_1+'_'+color_1 +'_VS_'+ string_2+ '_'+color_2)
+#                    plt.ylabel(agv_str_sel + '_speed_sem_shaders')
+#                    #plt.show()
+#                    
+#                    f.tight_layout()
+#                    
+#                    f.savefig(results_dir + figure_name, transparent=False)
+#                    #print(con)
+#            except Exception:
+#                print(table + '_error')
+#                continue 
+#     
+#    print(table)
+#
+#
+#
+#
+#
