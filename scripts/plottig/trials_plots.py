@@ -1074,8 +1074,6 @@ f4.savefig(results_dir + figure_name, transparent=True)
 
 
 
-
-
 ####################################################################################################
 
 #PLOT SPEED FROM TOUCH TO REWARD per rat all the sessions

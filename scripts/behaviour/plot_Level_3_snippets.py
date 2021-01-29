@@ -190,8 +190,8 @@ window=15
 poly =3
 
 # choose which one to plot 
-Level_3_snippets = Level_3_snippets_trigger
-plot_name = plot_name_trigger
+Level_3_snippets = Level_3_snippets_catch
+plot_name = plot_name_catch
 lim =0.007# 0.005 
 
 #CHANGE IDX FROM TRIGGER TO TOUCH BEFORE RUNNING THE CODE 
@@ -242,18 +242,18 @@ for t, table in enumerate(Level_3_trial_tables):
     
     late = [300,100]   
     
-    from_above_trials = (y_trigger > y_ball)
-    from_below_trials = (y_trigger < y_ball)        
-    #from_above_trials = (y_touch > y_ball)
-    #from_below_trials = (y_touch < y_ball)
+    #from_above_trials = (y_trigger > y_ball)
+    #from_below_trials = (y_trigger < y_ball)        
+    from_above_trials = (y_touch > y_ball)
+    from_below_trials = (y_touch < y_ball)
     
     early_trials = trial_counts < 50
     late_trials = trial_counts > late[t]
     
-    from_left_trials = (x_trigger < x_ball)
-    from_right_trials = (x_trigger > x_ball)
-    #from_left_trials = (x_touch < x_ball)
-    #from_right_trials = (x_touch > x_ball)
+    #from_left_trials = (x_trigger < x_ball)
+    #from_right_trials = (x_trigger > x_ball)
+    from_left_trials = (x_touch < x_ball)
+    from_right_trials = (x_touch > x_ball)
     
     missed_trials = outcome == 'Missed'
     rewarded_trials = outcome == 'Food'
@@ -382,7 +382,7 @@ for t, table in enumerate(Level_3_trial_tables):
             alpha = .4
             
             #plt.vlines(359, 0.001, 0.004, 'k')
-            plt.vlines(359, 0.0, max(mean_speed)*2, 'k')
+            plt.vlines(359, 0.0, max(median_speed)*2, 'k')
                         
             
             plt.plot(median_speed,color= 'k')

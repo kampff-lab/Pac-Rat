@@ -485,8 +485,7 @@ rat_summary_table_path = ['F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Vi
 
 
 
-
-colours = ['#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+colours = ['#32CD32', '#ADFF2F','#7FFFD4','#6495ED']
 RAT_ID = ['AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
 
 
@@ -544,7 +543,7 @@ sns.despine(left=False)
 
 figure_name = 'mean_reaction_time_level_3.pdf'
 
-for count, row in enumerate(select_level_3):    
+for count, row in enumerate(final):    
     
   
     plt.plot(row,color=colours[count], marker = 'o', alpha = .3, label = RAT_ID[count])
