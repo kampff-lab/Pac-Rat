@@ -54,7 +54,22 @@ from scipy import stats
   
         
 ##############################touching light 
-
+def sliding_window(speeds, window_size=6):    
+    # Smooth speeds
+    speeds_smoothed = np.copy(speeds)
+    
+    # Sliding window smoothing
+    #window_size = 6 # Means +/- 6 samples from centre sample (~100 ms window)
+    num_trials = speeds.shape[0]
+    trial_length = speeds.shape[1]
+    for i in range(num_trials):
+        tmp_speed = np.copy(speeds[i][:])
+        smooth_speed = np.copy(speeds[i][:])
+        for s in range(window_size, trial_length-window_size):
+            smooth_speed[s] = np.nanmean(tmp_speed[(s-window_size):(s+window_size+1)])
+        speeds_smoothed[i] = smooth_speed
+    print('smoothing_done')
+    return speeds_smoothed
 #touching light spped plot
 
 # Load trial table
@@ -117,7 +132,7 @@ for t, table in enumerate(Level_2_trial_tables):
     trial_table_outcome  = np.genfromtxt(table, delimiter=',', dtype=str)
     outcome = trial_table_outcome[:,-1]    
     
-    late = [300,50]   
+    late = [300,100]   
     
     from_above_trials = (y_touch > y_ball)
     from_below_trials = (y_touch < y_ball)
@@ -161,7 +176,7 @@ for t, table in enumerate(Level_2_trial_tables):
     # Measure noise and set threshold (however, this could be hard coded, 0.1 or so)
     
     noise = np.nanstd(speed)
-    threshold = noise*2
+    threshold = noise*3
     #threshold = 0.1
     
     # Find over threshold values
@@ -170,9 +185,9 @@ for t, table in enumerate(Level_2_trial_tables):
     # Set these to NaN
     speed[over_indices] = np.nan
     
-    smooth_speed = smoothing_speed(speed)
+    smooth_speed =  sliding_window(speed, window_size=6)
     
-    mean_speed = np.nanmean(smooth_speed, axis=0)   
+    median_speed = np.nanmedian(smooth_speed, axis=0)   
     sem_avg_speed = stats.sem(smooth_speed, nan_policy='omit', axis=0)
     
     
@@ -202,7 +217,7 @@ for t, table in enumerate(Level_2_trial_tables):
             # Measure noise and set threshold (however, this could be hard coded, 0.1 or so)
             
             noise = np.nanstd(speed_cond_1)
-            threshold = noise*2
+            threshold = noise*3
             #threshold = 0.1
             
             # Find over threshold values
@@ -211,9 +226,9 @@ for t, table in enumerate(Level_2_trial_tables):
             # Set these to NaN
             speed_cond_1[over_indices] = np.nan
     
-            smooth_cond_1 =  smoothing_speed(speed_cond_1)
+            smooth_cond_1 =   sliding_window(speed_cond_1, window_size=6)
             
-            mean_speed_cond_1 = np.nanmean(smooth_cond_1, axis=0)
+            median_speed_cond_1 = np.nanmedian(smooth_cond_1, axis=0)
             sem_cond_1 = stats.sem(smooth_cond_1, nan_policy='omit', axis=0) 
             
             
@@ -223,7 +238,7 @@ for t, table in enumerate(Level_2_trial_tables):
             dy = np.diff(y_snippets[filtered_trials], axis=1)
             speed_cond_2 = np.sqrt(dx*dx + dy*dy)
             noise = np.nanstd(speed_cond_2)
-            threshold = noise*2
+            threshold = noise*3
             #threshold = 0.1
             
             # Find over threshold values
@@ -232,9 +247,10 @@ for t, table in enumerate(Level_2_trial_tables):
             # Set these to NaN
             speed_cond_2[over_indices] = np.nan
             
-            smooth_cond_2 = smoothing_speed(speed_cond_2)
+            smooth_cond_2 = sliding_window(speed_cond_2, window_size=6)
             
-            mean_speed_cond_2 = np.nanmean(smooth_cond_2, axis=0)
+            
+            median_speed_cond_2 = np.nanmedian(smooth_cond_2, axis=0)
             sem_cond_2 = stats.sem(smooth_cond_2, nan_policy='omit', axis=0)        
                     
             
@@ -256,17 +272,17 @@ for t, table in enumerate(Level_2_trial_tables):
             alpha = .4
             
             #plt.vlines(359, 0.001, 0.004, 'k')
-            plt.vlines(359, 0.0, max(avg_sel)*2, 'k')
+            plt.vlines(359, 0.0, max(median_speed)*2, 'k')
                         
             
-            plt.plot(mean_speed,color= 'k')
-            plt.fill_between(range(len(mean_speed)),mean_speed-sem_avg_speed,mean_speed+sem_avg_speed, alpha = alpha, facecolor ='k')
+            plt.plot(median_speed,color= 'k')
+            plt.fill_between(range(len(median_speed)),median_speed-sem_avg_speed,median_speed+sem_avg_speed, alpha = alpha, facecolor ='k')
             
-            plt.plot(mean_speed_cond_1,color= color_1)
-            plt.fill_between(range(len(mean_speed_cond_1)),mean_speed_cond_1-sem_cond_1,mean_speed_cond_1+sem_cond_1, alpha = alpha, facecolor = color_1)
+            plt.plot(median_speed_cond_1,color= color_1)
+            plt.fill_between(range(len(median_speed_cond_1)),median_speed_cond_1-sem_cond_1,median_speed_cond_1+sem_cond_1, alpha = alpha, facecolor = color_1)
             
-            plt.plot(mean_speed_cond_2,color= color_2)
-            plt.fill_between(range(len(mean_speed_cond_2)),mean_speed_cond_2-sem_cond_2,mean_speed_cond_2+sem_cond_2, alpha = alpha, facecolor = color_2)
+            plt.plot(median_speed_cond_2,color= color_2)
+            plt.fill_between(range(len(median_speed_cond_2)),median_speed_cond_2-sem_cond_2,median_speed_cond_2+sem_cond_2, alpha = alpha, facecolor = color_2)
             
             ax.axes.get_yaxis().set_visible(True) 
             ax.yaxis.set_ticks_position('left')

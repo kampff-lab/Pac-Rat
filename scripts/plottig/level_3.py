@@ -38,12 +38,293 @@ rat_summary_table_path = ['F:/Videogame_Assay/AK_49.1_behaviour_only.csv','F:/Vi
 
 
 
-#colours = ['#FF0000','#FF8C00','#FF69B4','#BA55D3','#4B0082','#0000FF','#00BFFF','#2E8B57','#32CD32', '#ADFF2F','#7FFFD4','#FFDAB9']
+colours = ['#32CD32', '#ADFF2F','#7FFFD4','#6495ED']
 RAT_ID = ['AK 49.1', 'AK 49.2','AK 50.1','AK 50.2']
+
+
+
+rat_summary_ephys = [r'F:/Videogame_Assay/AK_33.2_Pt.csv', 'F:/Videogame_Assay/AK_40.2_Pt.csv',
+                          'F:/Videogame_Assay/AK_41.1_Pt.csv','F:/Videogame_Assay/AK_41.2_Pt.csv',
+                              'F:/Videogame_Assay/AK_48.1_IrO2.csv','F:/Videogame_Assay/AK_48.4_IrO2.csv']
+
+
+
+RAT_ID_ephys = ['AK 33.2', 'AK 40.2', 'AK 41.1', 'AK 41.2','AK 48.1','AK 48.4']
 
 
 main_folder = 'E:/thesis_figures/'
 figure_folder = 'Tracking_figures/'
+
+
+results_dir =os.path.join(main_folder + figure_folder)
+
+
+
+
+rat_summary_table_path=rat_summary_ephys
+RAT_ID= RAT_ID_ephys
+
+s = len(rat_summary_table_path)
+
+trial_per_min_all_rats = [[] for _ in range(s)]
+missed = [[] for _ in range(s)]
+rewarded = [[] for _ in range(s)]
+
+for r, rat in enumerate(rat_summary_table_path):
+    
+    
+     Level_3_pre = prs.Level_3_moving_post_paths(rat)
+     sessions_subset = Level_3_pre
+     
+     session_reward = []
+     session_missed =[]
+     trial_per_min=[]
+     
+     for s, session in enumerate(sessions_subset):        
+       
+        
+        session_path =  os.path.join(hardrive_path,session)
+        
+        csv_dir_path = os.path.join(session_path + '/events/')
+
+        trial_idx_path = os.path.join(csv_dir_path + 'Trial_idx_cleaned.csv')
+        trial_outcome_path= os.path.join(csv_dir_path + 'Trial_outcome_cleaned.csv') 
+        counter_csv = os.path.join(session_path + '/Video.csv')
+        counter = np.genfromtxt(counter_csv, usecols = 1)
+
+        #subctract thefirst counter value from the last one to obtain the total lenght of the session
+        #in frames and then convert it to minutes taking into account the video is recorded at 120fps
+        tot_frames = counter[-1] - counter[0]
+        #minutes conversion
+        session_length_minutes = tot_frames/120/60
+
+        
+        trial_idx =np.genfromtxt(trial_idx_path, delimiter=',')
+        outcome =np.genfromtxt(trial_outcome_path,dtype=str)
+        #print(len(trial_idx))
+        #print(len(outcome))
+        
+
+        food=[]
+        
+        for o in np.arange(len(outcome)):
+            if outcome[o]=='Food':
+                
+                food.append(o)
+                
+        trial_per_min.append(len(food)/session_length_minutes)
+        session_reward.append(len(food))
+        session_missed.append(len(trial_idx)-len(food))
+        #print(len(food))
+        #print(len(trial_idx)-len(food))
+
+     rewarded[r]=session_reward
+     missed[r]=session_missed
+     trial_per_min_all_rats[r]=trial_per_min
+     print(r)
+#pre surgery 
+missed_array = np.array([[1,0,1,0,1],
+                  [1,0,0,1,0],
+                  [0,1,2,nan,nan],
+                  [0,0,0,0,nan]])
+
+
+rewarded_array =np.array([[65,67,97,106,76],
+                          [38,90,105,130,87],
+                          [24,54,48,nan,nan],
+                          [52,104,73,78,nan]])
+
+
+trial_per_min_array = np.array([[1.137426936116951, 1.4158710218984527,1.6977128035840603, 1.79913013755142, 1.456244793898249],
+                                 [1.1255692640603594,1.4294317347080585, 1.7132950334840398, 2.0140770212317283, 1.5081874062499248],
+                                 [0.47772945804799966, 1.3398072304103161, 0.893612069968584,nan,nan],
+                                 [1.050142627544366, 2.01639940218928, 1.5108441007804303, 1.5167760945716375,nan]])
+   
+
+mean_rewarded=np.nanmean(rewarded_array)#76.11764705882354
+sem_rewarded =
+mean_trial_per_min =np.nanmean(trial_per_min_array)# 1.417779831546815
+
+
+
+# ephys
+
+missed_array_ephys = np.array([[2, 2, 9, 5, 5],
+                         [5, 1, 8, 6, 5],
+                         [16, 6, 11, 4, 4, 7, 5, 6],
+                         [13, 6, 8, 10, 13, 12, 3, 5, 5],
+                         [9, 0, 5, 1, 2],
+                         [0, 1, 0, 1, 0]])
+    
+    
+rewarded_array_ephys=np.array([[21, 25, 43, 53, 54],
+                 [27, 8, 44, 16, 3],
+                 [15, 5, 38, 13, 35],# 33, 39, 26],
+                 [21, 33, 13, 32, 43],# 31, 24, 6, 2],
+                 [35, 47, 41, 49, 56],
+                 [41, 60, 46, 53, 54]])
+
+trial_per_min_array_ephys =   np.array([[0.19937103186376312,0.6463729500102341,0.373920720594505,0.8245480219274458,0.5051600907936912],
+                                  [0.43199904000213335,0.2315605816351554,0.6520893411798123,0.36916095994667675, 0.142081894425259],
+                                  [0.2371046883061285, 0.05463295004271993,0.4195231604078084,0.1914208292857508,0.5089130465514073],#0.48321459731100025, 0.496705434926812,0.4091669125602439],
+                                  [0.31972459701378914,0.3283096612303046,0.23660442318824457, 0.381403279339828,0.4784533716590556],# 0.32018132132175214, 0.3616825774907015, 0.08910688907636172, 0.028842282786565105],
+                                  [0.3525417279301184,0.7143535670181438, 0.7219316072515976, 1.0208008425657746, 0.8556349460665621]])
+    
+mean_rewarded_ephys=np.nanmean(rewarded_array_ephys)#34.13333333333333
+mean_trial_min_ephys = np.nanmean(trial_per_min_array_ephys)# 0.4479046932094364
+    
+
+change_percent_reward = ((mean_rewarded_ephys-mean_rewarded)/mean_rewarded)*100  # -55.15713549716641%
+change_percent_trial_per_min = ((mean_trial_min_ephys-mean_trial_per_min)/mean_trial_per_min)*100  # -68.40802194789532
+
+
+
+
+    
+f,ax = plt.subplots(figsize=(8,7))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+for count, row in enumerate(rewarded_array):
+    
+    plt.plot(row, color = colours[count], marker = 'o', alpha = .3)
+   
+    plt.title('Level 3 rewarded trial', fontsize = 16)
+    plt.ylabel('Trial/Min', fontsize = 13)
+    plt.xlabel('Level 2 Sessions', fontsize = 13)
+    #plt.xticks((np.arange(0, 5, 1)))
+    plt.ylim(0,140,20)
+   
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
+   
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    #plt.ylim(0,3)
+    #plt.legend()
+    f.tight_layout()
+
+
+#f.savefig(results_dir + figure_name, transparent=True)       
+    
+mean_trial = np.nanmean(rewarded_array, axis=0)
+
+sem = stats.sem(rewarded_array, nan_policy='omit', axis=0)
+
+
+plt.plot(mean_trial,marker = 'o',color= 'k')
+#plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+plt.errorbar(range(5), mean_trial, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2) 
+
+
+figure_name='level 3 rewarded trial count mean and sem.pdf'
+
+#SAVING
+f.savefig(results_dir + figure_name, transparent=True)    
+
+#t test 
+
+
+t_test = stats.ttest_rel(rewarded_array[:,0],rewarded_array[:,-1],nan_policy='omit')
+
+
+target = open(main_folder +"stats_level 3 rewarded trial count mean and sem.txt", 'w')
+target.writelines(str(mean_trial) +str(sem) + str(t_test)+' LEVEL 3: day 1 Vs day 5, PLOT: mean trial rewarded   +- SEM, Level 3.py')
+
+target.close()
+
+
+
+######################trial/ min level 3
+
+
+
+
+    
+f,ax = plt.subplots(figsize=(8,7))
+sns.set()
+sns.set_style('white')
+sns.axes_style('white')
+sns.despine(left=False)
+
+
+for count, row in enumerate(trial_per_min_array):
+    
+    plt.plot(row, color = colours[count], marker = 'o', alpha = .3)
+   
+    plt.title('Level 3 trial/min', fontsize = 16)
+    plt.ylabel('Trial/Min', fontsize = 13)
+    plt.xlabel('Level 3 Sessions', fontsize = 13)
+    #plt.xticks((np.arange(0, 5, 1)))
+    #plt.ylim(0,140,20)
+   
+    plt.yticks(fontsize=15)
+    plt.xticks(fontsize=15)
+   
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plt.ylim(0,3,.2)
+    #plt.legend()
+    f.tight_layout()
+
+
+#f.savefig(results_dir + figure_name, transparent=True)       
+    
+mean_trial = np.nanmean(trial_per_min_array, axis=0)
+
+sem = stats.sem(trial_per_min_array, nan_policy='omit', axis=0)
+
+
+plt.plot(mean_trial,marker = 'o',color= 'k')
+#plt.fill_between(range(4),mean_trial_speed-stderr,mean_trial_speed+stderr, alpha = 0.5, edgecolor ='#808080', facecolor ='#DCDCDC')
+plt.errorbar(range(5), mean_trial, yerr= sem, fmt='o', ecolor='k',color='k', capsize=2) 
+
+
+figure_name='level 3 rewarded trial per min mean and sem.pdf'
+
+#SAVING
+f.savefig(results_dir + figure_name, transparent=True)    
+
+#t test 
+
+
+t_test = stats.ttest_rel(trial_per_min_array[:,0],trial_per_min_array[:,-1],nan_policy='omit')
+
+
+target = open(main_folder +"stats_level 3 rewarded trial per min mean and sem.txt", 'w')
+target.writelines(str(mean_trial) +str(sem) + str(t_test)+' LEVEL 3: day 1 Vs day 5, PLOT: mean trial rewarded /min  +- SEM, Level 3.py')
+
+target.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###################
+
+
+
 
 
 
